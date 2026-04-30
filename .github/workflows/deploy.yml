@@ -24,7 +24,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: "8.4"
           coverage: none
       - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
@@ -35,10 +35,6 @@ jobs:
         run: cp .env.example .env
       - name: Install PHP Dependencies
         run: composer update -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Install Node Dependencies
-        run: npm ci
-      - name: Build Assets
-        run: npm run build
       - name: Generate application key
         run: php artisan key:generate --force
       - name: Run migrations the database
@@ -66,9 +62,16 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
       - name: Install Node Dependencies
-        run: npm ci
-      - name: Build Assets
+        run: |
+          npm install -g npm@latest
+          npm cache clean --force
+      - name: Build Frontend Assets
         run: npm run build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: public/
       - name: Deploy to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
