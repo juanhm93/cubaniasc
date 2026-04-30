@@ -19,11 +19,6 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u${{ secrets.DB_API_FIELD_USER }} -p${{ secrets.DB_API_FIELD_PASSWORD }}"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
     steps:
       - uses: actions/checkout@v4
       - name: Setup PHP
@@ -65,14 +60,7 @@ jobs:
         run: chmod -R 777 storage bootstrap/cache
       - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
         run: php artisan test --compact
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: laravel-tests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node from .nvmrc
+         - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
@@ -93,4 +81,4 @@ jobs:
             **/.git*/**
             .env
             **/.env
-            node_modules/**
+   
