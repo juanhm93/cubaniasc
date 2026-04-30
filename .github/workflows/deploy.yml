@@ -83,6 +83,4 @@ jobs:
           exclude: |
             **/.git*
             **/.git*/**
-            .env
-            **/.env
             node_modules/**
