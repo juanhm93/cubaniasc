@@ -69,7 +69,7 @@ jobs:
           cache: npm
       - name: Install Node Dependencies
         run: |
-          npm install -g npm@latest
+          npm install
           npm cache clean --force
       - name: Build Frontend Assets
         run: npm run build
