@@ -75,11 +75,6 @@ jobs:
           npm cache clean --force
       - name: Build Frontend Assets
         run: npm run build
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist
-          path: public/
       - name: Deploy to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
