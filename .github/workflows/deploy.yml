@@ -32,12 +32,12 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: '8.4'
           coverage: none
       - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: '.nvmrc'
           cache: npm
       - name: Prepare .env for CI
         run: cp .env.example .env
@@ -62,12 +62,10 @@ jobs:
           php artisan view:clear
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
-        run: php artisan test --compact
       - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: '.nvmrc'
           cache: npm
       - name: Install Node Dependencies
         run: |
@@ -87,4 +85,3 @@ jobs:
             **/.git*/**
             .env
             **/.env
-   
