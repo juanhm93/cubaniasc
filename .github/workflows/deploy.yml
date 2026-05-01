@@ -56,8 +56,8 @@ jobs:
         run: php artisan migrate --force --seed
       - name: Clear Config and Cache
         run: |
-          php artisan config:clear
           php artisan config:cache
+          php artisan config:clear
           php artisan route:clear
           php artisan view:clear
       - name: Directory Permissions
