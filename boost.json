@@ -2,6 +2,7 @@
     "agents": [
         "cursor"
     ],
+    "cloud": false,
     "guidelines": true,
     "mcp": true,
     "nightwatch_mcp": false,
@@ -9,6 +10,7 @@
     "skills": [
         "fortify-development",
         "laravel-best-practices",
-        "wayfinder-development"
+        "wayfinder-development",
+        "tailwindcss-development"
     ]
 }
