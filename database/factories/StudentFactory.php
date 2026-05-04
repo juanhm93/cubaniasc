@@ -22,6 +22,7 @@ class StudentFactory extends Factory
             'dni' => fake()->optional(0.7)->numerify('########'),
             'email' => fake()->unique()->safeEmail(),
             'birthday' => fake()->optional(0.5)->date(),
+            'phone' => fake()->optional(0.8)->numerify('+58##########'),
         ];
     }
 }

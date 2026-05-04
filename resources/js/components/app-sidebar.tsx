@@ -1,5 +1,13 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    BookOpen,
+    CreditCard,
+    FolderGit2,
+    GraduationCap,
+    LayoutGrid,
+    School,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,16 +21,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import admin from '@/routes/admin';
+import { dashboard, levels } from '@/routes';
 import type { NavItem } from '@/types';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -38,6 +39,59 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props as {
+        auth?: {
+            user?: {
+                role?: {
+                    slug?: string;
+                } | null;
+            } | null;
+        };
+    };
+
+    const isAdmin = auth?.user?.role?.slug === 'admin';
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        ...(isAdmin
+            ? [
+                  {
+                      title: 'Levels',
+                      href: levels(),
+                      icon: BookOpen,
+                  },
+                  {
+                      title: 'Pagos',
+                      href: admin.payments.index.url(),
+                      icon: CreditCard,
+                  },
+                  {
+                      title: 'Cursos',
+                      href: admin.courses.index.url(),
+                      icon: GraduationCap,
+                  },
+                  {
+                      title: 'Clases especiales',
+                      href: admin.oneTimeSessions.index.url(),
+                      icon: GraduationCap,
+                  },
+                  {
+                      title: 'Alumnos',
+                      href: admin.students.index.url(),
+                      icon: School,
+                  },
+                  {
+                      title: 'Admin users',
+                      href: '/admin/users',
+                      icon: Users,
+                  },
+              ]
+            : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

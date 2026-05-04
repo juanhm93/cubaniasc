@@ -1,18 +1,24 @@
 <?php
 
+use App\Http\Controllers\Settings\CompanySettingsController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('settings/company', [CompanySettingsController::class, 'edit'])->name('settings.company.edit');
+    Route::patch('settings/company', [CompanySettingsController::class, 'update'])
+        ->middleware('owner')
+        ->name('settings.company.update');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])->name('security.edit');
 

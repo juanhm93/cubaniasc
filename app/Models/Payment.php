@@ -5,13 +5,17 @@ namespace App\Models;
 use App\Enums\PaymentStatus;
 use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'amount',
     'reference',
+    'receipt_path',
     'course_id',
     'student_id',
     'status',
@@ -23,7 +27,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Payment extends Model
 {
     /** @use HasFactory<PaymentFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['receipt_url'];
+
+    protected function receiptUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $path = $this->attributes['receipt_path'] ?? null;
+
+            if ($path === null || $path === '') {
+                return null;
+            }
+
+            return Storage::disk('public')->url($path);
+        });
+    }
 
     protected function casts(): array
     {

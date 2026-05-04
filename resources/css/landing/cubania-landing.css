@@ -797,6 +797,148 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+.cubania-landing .cubania-cta-band__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.cubania-landing .cubania-btn--outline-dark {
+    background: transparent;
+    color: var(--cubania-negro);
+    border: 2px solid var(--cubania-negro);
+    padding: 16px 36px;
+    font-weight: 800;
+}
+
+.cubania-landing .cubania-btn--outline-dark:hover {
+    background: rgba(10, 0, 16, 0.06);
+    transform: translateY(-2px);
+}
+
+/* ---------- Pre-registration (public form) ---------- */
+
+.cubania-landing .cubania-pre-reg {
+    padding: 140px 48px 100px;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.cubania-landing .cubania-pre-reg__title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.25rem, 4vw, 3.25rem);
+    letter-spacing: 0.06em;
+    color: var(--cubania-amarillo);
+    margin: 0 0 12px;
+    line-height: 1.05;
+}
+
+.cubania-landing .cubania-pre-reg__lead {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: rgba(249, 245, 255, 0.7);
+    line-height: 1.6;
+    margin: 0 0 40px;
+}
+
+.cubania-landing .cubania-pre-reg__success {
+    background: rgba(245, 200, 66, 0.12);
+    border: 1px solid rgba(245, 200, 66, 0.45);
+    color: var(--cubania-blanco);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-radius: 2px;
+}
+
+.cubania-landing .cubania-pre-reg__field {
+    margin-bottom: 24px;
+}
+
+.cubania-landing .cubania-pre-reg__label {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(249, 245, 255, 0.55);
+    margin-bottom: 10px;
+}
+
+.cubania-landing .cubania-pre-reg__label-note {
+    opacity: 0.55;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.cubania-landing .cubania-pre-reg__input,
+.cubania-landing .cubania-pre-reg__textarea {
+    width: 100%;
+    background: rgba(249, 245, 255, 0.06);
+    border: 1px solid rgba(249, 245, 255, 0.12);
+    color: var(--cubania-blanco);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    padding: 14px 16px;
+    border-radius: 2px;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+}
+
+.cubania-landing .cubania-pre-reg__input::placeholder,
+.cubania-landing .cubania-pre-reg__textarea::placeholder {
+    color: rgba(249, 245, 255, 0.35);
+}
+
+.cubania-landing .cubania-pre-reg__input:focus,
+.cubania-landing .cubania-pre-reg__textarea:focus {
+    outline: none;
+    border-color: var(--cubania-amarillo);
+    background: rgba(249, 245, 255, 0.09);
+}
+
+.cubania-landing .cubania-pre-reg__textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.cubania-landing .cubania-pre-reg__error {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #fca5a5;
+}
+
+.cubania-landing .cubania-pre-reg__check {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.cubania-landing .cubania-pre-reg__check input {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    flex-shrink: 0;
+    accent-color: var(--cubania-amarillo);
+    cursor: pointer;
+}
+
+.cubania-landing .cubania-pre-reg__check-label {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(249, 245, 255, 0.78);
+    cursor: pointer;
+}
+
+.cubania-landing .cubania-pre-reg__submit {
+    margin-top: 8px;
+}
+
 /* ---------- Testimonials ---------- */
 
 .cubania-landing .cubania-testimonials {
@@ -1051,6 +1193,21 @@
     .cubania-landing .cubania-cta-band {
         flex-direction: column;
         padding: 60px 24px;
+    }
+
+    .cubania-landing .cubania-cta-band__actions {
+        width: 100%;
+        justify-content: stretch;
+        flex-direction: column;
+    }
+
+    .cubania-landing .cubania-cta-band__actions .cubania-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cubania-landing .cubania-pre-reg {
+        padding: 120px 24px 80px;
     }
 
     .cubania-landing .cubania-testimonials__grid {

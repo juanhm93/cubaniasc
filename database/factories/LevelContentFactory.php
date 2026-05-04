@@ -22,6 +22,7 @@ class LevelContentFactory extends Factory
             'level_id' => Level::factory(),
             'name' => fake()->words(2, true),
             'description' => fake()->optional()->sentence(),
+            'video_url' => fake()->optional()->url(),
             'sort_order' => fake()->numberBetween(0, 100),
         ];
     }

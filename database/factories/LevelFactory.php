@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\DanceType;
 use App\Models\Level;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -25,6 +26,7 @@ class LevelFactory extends Factory
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 9999),
             'description' => fake()->optional()->sentence(),
             'sort_order' => fake()->unique()->numberBetween(1, 500),
+            'dance_type_id' => DanceType::factory(),
         ];
     }
 }

@@ -23,6 +23,7 @@ class PaymentFactory extends Factory
         return [
             'amount' => fake()->randomFloat(2, 10, 500),
             'reference' => fake()->optional()->bothify('REF-####-????'),
+            'receipt_path' => null,
             'course_id' => Course::factory(),
             'student_id' => Student::factory(),
             'status' => PaymentStatus::Pending,

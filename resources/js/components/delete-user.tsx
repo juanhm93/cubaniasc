@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
+    const destroyProfile = ProfileController.destroy();
 
     return (
         <div className="space-y-6">
@@ -55,7 +56,8 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            {...ProfileController.destroy.form()}
+                            action={destroyProfile.url}
+                            method={destroyProfile.method}
                             options={{
                                 preserveScroll: true,
                             }}

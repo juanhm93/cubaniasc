@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\DanceType;
 use App\Models\Level;
 use App\Models\LevelContent;
 use Illuminate\Database\Seeder;
@@ -13,6 +14,14 @@ class LevelCatalogSeeder extends Seeder
      */
     public function run(): void
     {
+        $defaultDanceTypeId = DanceType::query()
+            ->where('slug', 'salsa-casino')
+            ->value('id') ?? DanceType::factory()->create([
+                'name' => 'Salsa Casino',
+                'slug' => 'salsa-casino',
+                'sort_order' => 1,
+            ])->id;
+
         $catalog = [
             ['name' => 'Básico 1', 'slug' => 'basico_1', 'sort_order' => 1],
             ['name' => 'Básico 2', 'slug' => 'basico_2', 'sort_order' => 2],
@@ -36,6 +45,7 @@ class LevelCatalogSeeder extends Seeder
                     'name' => $row['name'],
                     'sort_order' => $row['sort_order'],
                     'description' => null,
+                    'dance_type_id' => $defaultDanceTypeId,
                 ]
             );
         }

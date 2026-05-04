@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Company;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Company>
@@ -18,16 +18,18 @@ class CompanyFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'name' => fake()->company(),
-            'user_id' => null,
-        ];
-    }
+        $name = fake()->unique()->company();
 
-    public function withOwner(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'user_id' => User::factory(),
-        ]);
+        return [
+            'rif' => fake()->numerify('J-########-#'),
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 999),
+            'email' => fake()->unique()->companyEmail(),
+            'phone' => fake()->optional()->numerify('+58##########'),
+            'address' => fake()->optional()->address(),
+            'logo' => null,
+            'website' => fake()->optional()->url(),
+            'is_active' => true,
+        ];
     }
 }

@@ -7,12 +7,26 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'dni', 'email', 'birthday'])]
+#[Fillable([
+    'name',
+    'dni',
+    'email',
+    'birthday',
+    'phone',
+    'address',
+    'city',
+    'state',
+    'zip',
+    'country',
+    'emergency_contact_name',
+    'emergency_contact_phone',
+])]
 class Student extends Model
 {
     /** @use HasFactory<StudentFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected function casts(): array
     {

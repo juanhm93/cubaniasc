@@ -17,6 +17,7 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage().props;
+    const updateProfile = ProfileController.update();
 
     return (
         <>
@@ -32,7 +33,8 @@ export default function Profile({
                 />
 
                 <Form
-                    {...ProfileController.update.form()}
+                    action={updateProfile.url}
+                    method={updateProfile.method}
                     options={{
                         preserveScroll: true,
                     }}

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { dashboard, login, register } from '@/routes';
+import preRegistration from '@/routes/pre-registration';
 
 type CubaniaNavProps = {
     isAuthenticated: boolean;
@@ -16,13 +17,13 @@ export function CubaniaNav({
 }: CubaniaNavProps): ReactNode {
     return (
         <nav className="cubania-nav">
-            <a
-                href="#"
+            <Link
+                href="/"
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
                 Cub<span className="cubania-nav__logo-accent">anía</span>
-            </a>
+            </Link>
 
             <ul className="cubania-nav__list cubania-nav__list--primary">
                 <li>
@@ -62,13 +63,13 @@ export function CubaniaNav({
                     </a>
                 </li>
                 <li>
-                    <a
-                        href="#inscripcion"
+                    <Link
+                        href={preRegistration.create.url()}
                         className="cubania-nav__link cubania-nav__link--cta"
                         data-cubania-cursor="interactive"
                     >
                         Inscríbete
-                    </a>
+                    </Link>
                 </li>
             </ul>
 

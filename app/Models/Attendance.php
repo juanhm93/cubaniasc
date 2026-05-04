@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['course_session_id', 'student_id', 'status'])]
+#[Fillable(['course_session_id', 'student_id', 'status', 'notes'])]
 class Attendance extends Model
 {
     /** @use HasFactory<AttendanceFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected function casts(): array
     {
