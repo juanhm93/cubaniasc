@@ -64,6 +64,15 @@ export function CubaniaNav({
                 </li>
                 <li>
                     <Link
+                        href="/repaso"
+                        className="cubania-nav__link cubania-nav__link--cta"
+                        data-cubania-cursor="interactive"
+                    >
+                        Repaso
+                    </Link>
+                </li>
+                <li>
+                    <Link
                         href={preRegistration.create.url()}
                         className="cubania-nav__link cubania-nav__link--cta"
                         data-cubania-cursor="interactive"
