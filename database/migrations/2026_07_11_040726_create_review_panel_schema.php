@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('levels', function (Blueprint $table) {
-            $table->unsignedSmallInteger('review_duration_seconds')->default(300)->after('dance_type_id');
+            $table->unsignedSmallInteger('review_duration_seconds')->default(1800)->after('dance_type_id');
         });
 
         Schema::create('recommended_songs', function (Blueprint $table) {

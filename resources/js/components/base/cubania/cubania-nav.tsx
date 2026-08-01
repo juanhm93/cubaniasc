@@ -4,17 +4,41 @@ import { dashboard, login, register } from '@/routes';
 import preRegistration from '@/routes/pre-registration';
 
 type CubaniaNavProps = {
-    isAuthenticated: boolean;
-    canRegister: boolean;
+    isAuthenticated?: boolean;
+    canRegister?: boolean;
+    variant?: 'full' | 'minimal';
 };
 
 /**
  * Fixed top navigation for the marketing landing.
  */
 export function CubaniaNav({
-    isAuthenticated,
-    canRegister,
+    isAuthenticated = false,
+    canRegister = false,
+    variant = 'full',
 }: CubaniaNavProps): ReactNode {
+    if (variant === 'minimal') {
+        return (
+            <nav className="cubania-nav cubania-nav--minimal">
+                <Link
+                    href="/"
+                    className="cubania-nav__logo"
+                    data-cubania-cursor="interactive"
+                >
+                    Cub<span className="cubania-nav__logo-accent">anía</span>
+                </Link>
+
+                <Link
+                    href="/"
+                    className="cubania-nav__link cubania-nav__link--back"
+                    data-cubania-cursor="interactive"
+                >
+                    Volver a la página principal
+                </Link>
+            </nav>
+        );
+    }
+
     return (
         <nav className="cubania-nav">
             <Link

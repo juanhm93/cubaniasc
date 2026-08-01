@@ -28,7 +28,7 @@ class ReviewPanelSchemaTest extends TestCase
 
         $this->assertDatabaseHas('levels', [
             'id' => $level->id,
-            'review_duration_seconds' => 300,
+            'review_duration_seconds' => 1800,
         ]);
     }
 

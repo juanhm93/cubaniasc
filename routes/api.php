@@ -18,6 +18,7 @@ Route::prefix('review')->name('review.')->group(function (): void {
         Route::get('streak', ReviewStreakController::class)->name('streak');
 
         Route::post('sessions', [ReviewSessionController::class, 'store'])->name('sessions.store');
+        Route::get('sessions/current', [ReviewSessionController::class, 'current'])->name('sessions.current');
         Route::get('sessions/{session}', [ReviewSessionController::class, 'show'])->name('sessions.show');
         Route::get('sessions/{session}/figure-options', [ReviewSessionController::class, 'figureOptions'])
             ->name('sessions.figure-options');

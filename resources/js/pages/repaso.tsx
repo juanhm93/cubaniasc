@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
 import { ReviewCompleteStep, ReviewSongsStep } from '@/components/review/review-songs-step';
@@ -22,7 +22,6 @@ const STEP_ORDER: ReviewStep[] = [
 ];
 
 export default function RepasoPage() {
-  const { auth: inertiaAuth } = usePage().props;
   const panel = useReviewPanel();
 
   const currentStepIndex = STEP_ORDER.indexOf(panel.step);
@@ -38,7 +37,7 @@ export default function RepasoPage() {
       </Head>
 
       <div className="cubania-landing">
-        <CubaniaNav isAuthenticated={Boolean(inertiaAuth.user)} canRegister={false} />
+        <CubaniaNav variant="minimal" />
 
         <main className="cubania-review">
           <header className="cubania-review__header">

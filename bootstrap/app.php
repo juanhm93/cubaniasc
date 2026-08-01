@@ -2,6 +2,7 @@
 
 use App\Exceptions\Review\ActiveEnrollmentNotFoundException;
 use App\Exceptions\Review\InvalidFigureSelectionException;
+use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Exceptions\Review\ReviewSessionExpiredException;
 use App\Exceptions\Review\StudentNotIdentifiableException;
 use App\Http\Middleware\EnsureAdminRole;
@@ -52,6 +53,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ReviewSessionExpiredException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => $exception->getMessage()], 410);
+            }
+        });
+
+        $exceptions->render(function (ReviewDailyLimitException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 409);
             }
         });
 

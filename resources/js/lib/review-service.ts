@@ -158,6 +158,24 @@ export async function createReviewSession(): Promise<ReviewSession> {
   return result.data;
 }
 
+export async function createOrResumeReviewSession(): Promise<ReviewSession> {
+  return createReviewSession();
+}
+
+export async function fetchCurrentReviewSession(): Promise<ReviewSession | null> {
+  try {
+    const result = await request<SessionResponse>('/sessions/current');
+
+    return result.data;
+  } catch (error) {
+    if (error instanceof ReviewApiError && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 export async function fetchReviewSession(sessionId: number): Promise<ReviewSession> {
   const result = await request<SessionResponse>(`/sessions/${sessionId}`);
 

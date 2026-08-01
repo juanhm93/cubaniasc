@@ -278,18 +278,81 @@ class ReviewPanelApiTest extends TestCase
             ->assertUnauthorized();
     }
 
-    public function test_expired_session_endpoints_are_rejected(): void
+    public function test_expired_session_blocks_figures_but_allows_songs_and_complete(): void
     {
         [$student, $level] = $this->createEnrolledStudent();
         $session = ReviewSession::factory()->expired()->create([
             'student_id' => $student->id,
             'level_id' => $level->id,
         ]);
+        $songs = RecommendedSong::factory()->count(4)->create();
+
+        foreach ($songs as $song) {
+            $song->levels()->attach($level);
+        }
 
         Sanctum::actingAs($student);
 
         $this->getJson(route('review.sessions.figure-options', $session))->assertGone();
-        $this->getJson(route('review.sessions.songs', $session))->assertGone();
+        $this->getJson(route('review.sessions.songs', $session))
+            ->assertOk()
+            ->assertJsonCount(3, 'data');
+        $this->postJson(route('review.sessions.complete', $session))
+            ->assertOk()
+            ->assertJsonPath('data.session.completed', true);
+    }
+
+    public function test_create_session_resumes_active_session(): void
+    {
+        [$student, $level] = $this->createEnrolledStudent(['review_duration_seconds' => 1800]);
+        Sanctum::actingAs($student);
+
+        $first = $this->postJson(route('review.sessions.store'))
+            ->assertCreated()
+            ->json('data.id');
+
+        $second = $this->postJson(route('review.sessions.store'))
+            ->assertOk()
+            ->json('data.id');
+
+        $this->assertSame($first, $second);
+        $this->assertSame(1, ReviewSession::query()->where('student_id', $student->id)->count());
+        $this->assertSame($level->id, ReviewSession::query()->find($first)->level_id);
+    }
+
+    public function test_create_session_rejects_second_session_same_day(): void
+    {
+        [$student, $level] = $this->createEnrolledStudent();
+        ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $level->id,
+            'started_at' => now(),
+            'expires_at' => now()->subMinute(),
+            'completed' => true,
+        ]);
+
+        Sanctum::actingAs($student);
+
+        $this->postJson(route('review.sessions.store'))
+            ->assertConflict()
+            ->assertJsonPath('message', 'Ya usaste tu repaso de hoy. Vuelve mañana.');
+    }
+
+    public function test_current_session_endpoint_returns_active_session(): void
+    {
+        [$student, $level] = $this->createEnrolledStudent();
+        $session = ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $level->id,
+            'expires_at' => now()->addMinutes(20),
+            'completed' => false,
+        ]);
+
+        Sanctum::actingAs($student);
+
+        $this->getJson(route('review.sessions.current'))
+            ->assertOk()
+            ->assertJsonPath('data.id', $session->id);
     }
 
     /**

@@ -24,10 +24,10 @@ class ReviewPanelSeeder extends Seeder
             return;
         }
 
-        $basico1->update(['review_duration_seconds' => 300]);
+        $basico1->update(['review_duration_seconds' => 1800]);
 
         if ($basico2 !== null) {
-            $basico2->update(['review_duration_seconds' => 420]);
+            $basico2->update(['review_duration_seconds' => 1800]);
         }
 
         $songs = [

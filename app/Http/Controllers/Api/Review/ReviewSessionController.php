@@ -35,12 +35,39 @@ final class ReviewSessionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $student = $this->authenticatedStudent($request);
-        $session = $this->sessionService->create($student);
-        $session->load('level');
+        $session = $this->sessionService->createOrResume($student);
 
         return ReviewSessionResource::make($session)
             ->response()
-            ->setStatusCode(201);
+            ->setStatusCode($session->wasRecentlyCreated ? 201 : 200);
+    }
+
+    public function current(Request $request): JsonResponse
+    {
+        $student = $this->authenticatedStudent($request);
+        $session = $this->sessionService->findActiveSession($student);
+
+        if ($session === null) {
+            $this->sessionService->closeExpiredIncompleteSessions($student);
+
+            if ($this->sessionService->hasStartedToday($student)) {
+                return response()->json([
+                    'message' => 'Ya usaste tu repaso de hoy. Vuelve mañana.',
+                    'locked' => true,
+                ], 409);
+            }
+
+            return response()->json([
+                'message' => 'No active review session.',
+                'data' => null,
+            ], 404);
+        }
+
+        $session->load('level');
+
+        return response()->json([
+            'data' => ReviewSessionResource::make($session),
+        ]);
     }
 
     public function show(Request $request, ReviewSession $session): ReviewSessionResource
@@ -111,7 +138,6 @@ final class ReviewSessionController extends Controller
     public function songs(Request $request, ReviewSession $session): AnonymousResourceCollection
     {
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
-        $this->ensureSessionIsActive($session);
 
         if ($session->songs()->doesntExist()) {
             $this->songRecommendationService->assignToSession($session);
@@ -126,7 +152,6 @@ final class ReviewSessionController extends Controller
     {
         $student = $this->authenticatedStudent($request);
         $this->authorizeReviewSession($student, $session);
-        $this->ensureSessionIsActive($session);
 
         $session = $this->sessionService->markCompleted($session);
         $streak = $this->streakService->recordCompletion($student);

@@ -58,7 +58,7 @@ class QuizGeneratorServiceTest extends TestCase
         $this->assertTrue($funFact->is($question));
     }
 
-    public function test_cycles_questions_after_pool_is_exhausted(): void
+    public function test_returns_null_after_pool_is_exhausted_without_recycling(): void
     {
         $level = Level::factory()->create();
         $session = ReviewSession::factory()->create([
@@ -74,7 +74,28 @@ class QuizGeneratorServiceTest extends TestCase
         $second = $this->service->nextQuestion($session);
 
         $this->assertTrue($quizItem->is($first));
-        $this->assertTrue($quizItem->is($second));
+        $this->assertNull($second);
+    }
+
+    public function test_returns_null_after_max_quiz_questions(): void
+    {
+        $level = Level::factory()->create();
+        $session = ReviewSession::factory()->create([
+            'level_id' => $level->id,
+            'expires_at' => now()->addMinutes(30),
+        ]);
+
+        for ($i = 0; $i < 5; $i++) {
+            $quizItem = QuizItem::factory()->figure()->for($level)->create();
+            $correctOption = QuizOption::factory()->for($quizItem)->correct()->create();
+            QuizOption::factory()->count(2)->for($quizItem)->create();
+
+            $question = $this->service->nextQuestion($session);
+            $this->assertNotNull($question);
+            $this->service->recordAnswer($session, $question, $correctOption);
+        }
+
+        $this->assertNull($this->service->nextQuestion($session));
     }
 
     public function test_returns_null_when_session_is_expired(): void

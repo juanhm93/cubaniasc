@@ -3,6 +3,7 @@
 namespace Tests\Feature\Review;
 
 use App\Enums\EnrollmentStatus;
+use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Level;
@@ -63,6 +64,44 @@ class ReviewSessionServiceTest extends TestCase
         $completed = $this->service->markCompleted($session);
 
         $this->assertTrue($completed->completed);
+    }
+
+    public function test_create_or_resume_returns_active_session(): void
+    {
+        $student = $this->enrollStudentInLevel(Level::factory()->create(['review_duration_seconds' => 1800]));
+        $first = $this->service->createOrResume($student);
+        $second = $this->service->createOrResume($student);
+
+        $this->assertTrue($first->is($second));
+        $this->assertSame(1, $student->reviewSessions()->count());
+    }
+
+    public function test_create_or_resume_locks_after_session_started_today(): void
+    {
+        $student = $this->enrollStudentInLevel(Level::factory()->create(['review_duration_seconds' => 60]));
+        $session = $this->service->create($student);
+        $session->update([
+            'expires_at' => now()->subSecond(),
+            'completed' => false,
+        ]);
+
+        $this->expectException(ReviewDailyLimitException::class);
+
+        $this->service->createOrResume($student);
+    }
+
+    public function test_create_or_resume_closes_expired_session_before_locking(): void
+    {
+        $student = $this->enrollStudentInLevel(Level::factory()->create(['review_duration_seconds' => 60]));
+        $session = $this->service->create($student);
+        $session->update(['expires_at' => now()->subSecond()]);
+
+        try {
+            $this->service->createOrResume($student);
+            $this->fail('Expected ReviewDailyLimitException');
+        } catch (ReviewDailyLimitException) {
+            $this->assertTrue($session->fresh()->completed);
+        }
     }
 
     private function enrollStudentInLevel(Level $level): Student

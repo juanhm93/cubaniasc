@@ -24,21 +24,16 @@ final class QuizGeneratorService
             return null;
         }
 
+        if ($this->answeredCount($session) >= ReviewSessionService::MAX_QUIZ_QUESTIONS) {
+            return null;
+        }
+
         $answeredIds = ReviewQuizResponse::query()
             ->where('review_session_id', $session->id)
             ->pluck('quiz_item_id');
 
-        $question = $this->basePoolQuery($session)
-            ->whereNotIn('id', $answeredIds)
-            ->inRandomOrder()
-            ->with('options')
-            ->first();
-
-        if ($question !== null) {
-            return $question;
-        }
-
         return $this->basePoolQuery($session)
+            ->whereNotIn('id', $answeredIds)
             ->inRandomOrder()
             ->with('options')
             ->first();
@@ -53,6 +48,10 @@ final class QuizGeneratorService
             throw ReviewSessionExpiredException::forSession();
         }
 
+        if ($this->answeredCount($session) >= ReviewSessionService::MAX_QUIZ_QUESTIONS) {
+            throw new InvalidArgumentException('This review session has already answered the maximum number of quiz questions.');
+        }
+
         if ($quizOption->quiz_item_id !== $quizItem->id) {
             throw new InvalidArgumentException('The selected option does not belong to this quiz item.');
         }
@@ -64,6 +63,13 @@ final class QuizGeneratorService
             'is_correct' => $quizOption->is_correct,
             'answered_at' => now(),
         ]);
+    }
+
+    public function answeredCount(ReviewSession $session): int
+    {
+        return ReviewQuizResponse::query()
+            ->where('review_session_id', $session->id)
+            ->count();
     }
 
     /**
