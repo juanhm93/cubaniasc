@@ -1,0 +1,351 @@
+/**
+ * Cubanía review panel — scoped under .cubania-landing
+ */
+
+.cubania-landing .cubania-review {
+    padding: 120px 24px 80px;
+    max-width: 960px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.cubania-landing .cubania-review__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.cubania-landing .cubania-review__title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    letter-spacing: 0.06em;
+    color: var(--cubania-amarillo);
+    margin: 0;
+    line-height: 1;
+}
+
+.cubania-landing .cubania-review__subtitle {
+    margin: 6px 0 0;
+    font-size: 0.95rem;
+    color: rgba(249, 245, 255, 0.65);
+}
+
+.cubania-landing .cubania-review__timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border: 1px solid rgba(245, 200, 66, 0.45);
+    background: rgba(245, 200, 66, 0.08);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--cubania-amarillo);
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+}
+
+.cubania-landing .cubania-review__timer--urgent {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    animation: cubania-review-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cubania-review-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+.cubania-landing .cubania-review__steps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.cubania-landing .cubania-review__step-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(249, 245, 255, 0.2);
+    transition: background 0.25s, transform 0.25s;
+}
+
+.cubania-landing .cubania-review__step-dot--active {
+    background: var(--cubania-amarillo);
+    transform: scale(1.2);
+}
+
+.cubania-landing .cubania-review__step-dot--done {
+    background: rgba(245, 200, 66, 0.55);
+}
+
+.cubania-landing .cubania-review__panel {
+    background: rgba(249, 245, 255, 0.04);
+    border: 1px solid rgba(249, 245, 255, 0.1);
+    border-radius: 4px;
+    padding: 28px 24px 32px;
+}
+
+.cubania-landing .cubania-review__panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    margin: 0 0 8px;
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-review__panel-lead {
+    margin: 0 0 24px;
+    color: rgba(249, 245, 255, 0.65);
+    line-height: 1.55;
+    font-size: 0.98rem;
+}
+
+.cubania-landing .cubania-review__error {
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.1);
+    color: #fecaca;
+    font-size: 0.92rem;
+    border-radius: 2px;
+}
+
+.cubania-landing .cubania-review__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cubania-landing .cubania-review__card {
+    background: rgba(10, 0, 16, 0.55);
+    border: 2px solid rgba(249, 245, 255, 0.12);
+    padding: 20px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition:
+        border-color 0.2s,
+        transform 0.2s,
+        box-shadow 0.2s;
+    color: inherit;
+    font: inherit;
+}
+
+.cubania-landing .cubania-review__card:hover {
+    border-color: rgba(245, 200, 66, 0.45);
+    transform: translateY(-2px);
+}
+
+.cubania-landing .cubania-review__card--selected {
+    border-color: var(--cubania-amarillo);
+    box-shadow: 0 0 0 1px var(--cubania-amarillo);
+    background: rgba(245, 200, 66, 0.08);
+}
+
+.cubania-landing .cubania-review__card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    letter-spacing: 0.04em;
+    margin: 0 0 8px;
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-review__card-desc {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: rgba(249, 245, 255, 0.6);
+}
+
+.cubania-landing .cubania-review__video {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    margin: 20px 0;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.cubania-landing .cubania-review__video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.cubania-landing .cubania-review__quiz-prompt {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    margin: 0 0 24px;
+    line-height: 1.2;
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-review__quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cubania-landing .cubania-review__quiz-option {
+    width: 100%;
+    text-align: left;
+    padding: 16px 18px;
+    border: 2px solid rgba(249, 245, 255, 0.15);
+    background: rgba(249, 245, 255, 0.04);
+    color: var(--cubania-blanco);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        transform 0.15s;
+}
+
+.cubania-landing .cubania-review__quiz-option:hover:not(:disabled) {
+    border-color: rgba(245, 200, 66, 0.5);
+    transform: translateX(4px);
+}
+
+.cubania-landing .cubania-review__quiz-option:disabled {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.cubania-landing .cubania-review__quiz-option--correct {
+    border-color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+}
+
+.cubania-landing .cubania-review__quiz-option--incorrect {
+    border-color: #f87171;
+    background: rgba(248, 113, 113, 0.12);
+}
+
+.cubania-landing .cubania-review__song-card {
+    display: block;
+    padding: 18px 20px;
+    border: 1px solid rgba(249, 245, 255, 0.12);
+    background: rgba(10, 0, 16, 0.45);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition:
+        border-color 0.2s,
+        transform 0.2s;
+}
+
+.cubania-landing .cubania-review__song-card:hover {
+    border-color: rgba(245, 200, 66, 0.45);
+    transform: translateY(-2px);
+}
+
+.cubania-landing .cubania-review__song-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    margin: 0 0 4px;
+    color: var(--cubania-amarillo);
+}
+
+.cubania-landing .cubania-review__song-artist {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(249, 245, 255, 0.65);
+}
+
+.cubania-landing .cubania-review__streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px;
+    margin-bottom: 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(245, 200, 66, 0.2), rgba(107, 33, 200, 0.35));
+    border: 1px solid rgba(245, 200, 66, 0.5);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-review__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.cubania-landing .cubania-review .cubania-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+}
+
+.cubania-landing .cubania-review__muted {
+    color: rgba(249, 245, 255, 0.5);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.cubania-landing .cubania-review__toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.cubania-landing .cubania-review__toggle-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid rgba(249, 245, 255, 0.15);
+    background: transparent;
+    color: rgba(249, 245, 255, 0.65);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition:
+        border-color 0.2s,
+        color 0.2s,
+        background 0.2s;
+}
+
+.cubania-landing .cubania-review__toggle-btn--active {
+    border-color: var(--cubania-amarillo);
+    color: var(--cubania-amarillo);
+    background: rgba(245, 200, 66, 0.08);
+}
+
+@media (max-width: 640px) {
+    .cubania-landing .cubania-review {
+        padding-top: 100px;
+    }
+
+    .cubania-landing .cubania-review__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

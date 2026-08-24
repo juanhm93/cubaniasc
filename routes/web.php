@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\LevelController as ApiLevelController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
+use App\Http\Controllers\ReviewPanelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -25,6 +26,8 @@ Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
 Route::post('pre-inscripcion', [PreRegistrationController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('pre-registration.store');
+
+Route::get('repaso', ReviewPanelController::class)->name('review-panel');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('account/pending', function () {

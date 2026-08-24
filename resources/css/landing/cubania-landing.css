@@ -141,6 +141,29 @@
     transform: translateY(-1px);
 }
 
+.cubania-landing .cubania-nav--minimal {
+    justify-content: space-between;
+}
+
+.cubania-landing .cubania-nav__link--back {
+    color: var(--cubania-amarillo);
+    border: 1px solid rgba(245, 200, 66, 0.45);
+    padding: 10px 20px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    transition:
+        background 0.2s,
+        color 0.2s,
+        border-color 0.2s;
+}
+
+.cubania-landing .cubania-nav__link--back:hover {
+    background: rgba(245, 200, 66, 0.12);
+    color: var(--cubania-amarillo);
+    border-color: var(--cubania-amarillo);
+}
+
 /* ---------- Hero ---------- */
 
 .cubania-landing .cubania-hero {
