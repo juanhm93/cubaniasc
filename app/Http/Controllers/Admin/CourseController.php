@@ -69,9 +69,16 @@ class CourseController extends Controller
         $companyId = $request->user()?->company_id;
 
         $levels = Level::query()
+            ->with('danceType:id,name')
             ->orderBy('dance_type_id')
             ->orderBy('sort_order')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'dance_type_id'])
+            ->map(fn (Level $level): array => [
+                'id' => $level->id,
+                'name' => $level->danceType !== null
+                    ? $level->danceType->name.' — '.$level->name
+                    : $level->name,
+            ]);
 
         $places = Place::query()
             ->when($companyId !== null, fn ($query) => $query->where('company_id', $companyId))
