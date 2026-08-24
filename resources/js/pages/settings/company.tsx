@@ -67,7 +67,11 @@ function buildFormData(company: CompanyProps | null): CompanyFormFields {
     };
 }
 
-export default function CompanySettings({ company, canEdit }: PageProps) {
+export default function CompanySettings(props: PageProps) {
+    return <CompanySettingsForm key={props.company?.id ?? 'new'} {...props} />;
+}
+
+function CompanySettingsForm({ company, canEdit }: PageProps) {
     const hasCompany = company !== null;
     const [editing, setEditing] = useState(!hasCompany);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -76,16 +80,6 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
     const defaults = useMemo(() => buildFormData(company), [company]);
 
     const form = useForm<CompanyFormFields>(defaults);
-
-    useEffect(() => {
-        form.clearErrors();
-        form.setData(buildFormData(company));
-        setLogoPreview(null);
-        if (logoFileRef.current) {
-            logoFileRef.current.value = '';
-        }
-        setEditing(company === null);
-    }, [company?.id]);
 
     useEffect(() => {
         return () => {
@@ -147,9 +141,11 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 onClick={() => {
                                     form.reset();
                                     setLogoPreview(null);
+
                                     if (logoFileRef.current) {
                                         logoFileRef.current.value = '';
                                     }
+
                                     setEditing(false);
                                 }}
                                 disabled={form.processing}
@@ -294,6 +290,7 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                     if (prev?.startsWith('blob:')) {
                                         URL.revokeObjectURL(prev);
                                     }
+
                                     return file
                                         ? URL.createObjectURL(file)
                                         : null;
