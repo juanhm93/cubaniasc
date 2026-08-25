@@ -8,6 +8,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
 type CompanyProps = {
@@ -68,6 +69,7 @@ function buildFormData(company: CompanyProps | null): CompanyFormFields {
 }
 
 export default function CompanySettings({ company, canEdit }: PageProps) {
+    const { t } = useTranslation();
     const hasCompany = company !== null;
     const [editing, setEditing] = useState(!hasCompany);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -110,23 +112,23 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
         });
     };
 
+    const companyDescription = canEdit
+        ? hasCompany
+            ? t('settings.companyDescriptionEdit')
+            : t('settings.companyDescriptionCreate')
+        : t('settings.companyDescriptionReadOnly');
+
     return (
         <>
-            <Head title="Configuración de la compañía" />
+            <Head title={t('settings.companySettings')} />
 
-            <h1 className="sr-only">Configuración de la compañía</h1>
+            <h1 className="sr-only">{t('settings.companySettings')}</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Compañía"
-                    description={
-                        canEdit
-                            ? hasCompany
-                                ? 'Revisa o actualiza los datos de tu organización.'
-                                : 'Crea el perfil de tu organización.'
-                            : 'Solo lectura: solo el propietario de la plataforma puede modificar estos datos.'
-                    }
+                    title={t('navigation.company')}
+                    description={companyDescription}
                 />
 
                 <form onSubmit={submit} className="space-y-6">
@@ -137,7 +139,7 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 variant="secondary"
                                 onClick={() => setEditing(true)}
                             >
-                                Editar
+                                {t('common.edit')}
                             </Button>
                         ) : null}
                         {canEdit && hasCompany && editing ? (
@@ -154,13 +156,15 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 }}
                                 disabled={form.processing}
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </Button>
                         ) : null}
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-name">Nombre</Label>
+                        <Label htmlFor="company-name">
+                            {t('common.name')}
+                        </Label>
                         <Input
                             id="company-name"
                             name="name"
@@ -177,7 +181,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-slug">Slug</Label>
+                        <Label htmlFor="company-slug">
+                            {t('common.slug')}
+                        </Label>
                         <Input
                             id="company-slug"
                             name="slug"
@@ -185,19 +191,20 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                             onChange={(e) =>
                                 form.setData('slug', e.target.value)
                             }
-                            placeholder="Vacío = mantener el actual"
+                            placeholder={t('settings.slugPlaceholder')}
                             disabled={!fieldsEnabled || form.processing}
                             className={cn(!fieldsEnabled && 'opacity-80')}
                         />
                         <p className="text-xs text-muted-foreground">
-                            Se usa en URLs. Déjalo vacío para conservar el slug
-                            actual al actualizar.
+                            {t('settings.slugHelp')}
                         </p>
                         <InputError message={form.errors.slug} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-email">Correo</Label>
+                        <Label htmlFor="company-email">
+                            {t('common.email')}
+                        </Label>
                         <Input
                             id="company-email"
                             type="email"
@@ -214,7 +221,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-rif">RIF</Label>
+                        <Label htmlFor="company-rif">
+                            {t('settings.rif')}
+                        </Label>
                         <Input
                             id="company-rif"
                             name="rif"
@@ -229,7 +238,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-phone">Teléfono</Label>
+                        <Label htmlFor="company-phone">
+                            {t('common.phone')}
+                        </Label>
                         <Input
                             id="company-phone"
                             name="phone"
@@ -245,7 +256,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-address">Dirección</Label>
+                        <Label htmlFor="company-address">
+                            {t('common.address')}
+                        </Label>
                         <textarea
                             id="company-address"
                             name="address"
@@ -266,7 +279,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-logo-file">Logo</Label>
+                        <Label htmlFor="company-logo-file">
+                            {t('common.logo')}
+                        </Label>
                         {(logoPreview ?? company?.logo_url) ? (
                             <div className="flex max-w-xs flex-col gap-2">
                                 <img
@@ -301,14 +316,15 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                             }}
                         />
                         <p className="text-xs text-muted-foreground">
-                            Imagen — máx. 4&nbsp;MB (JPEG, PNG, WebP o GIF). Si
-                            no eliges archivo, se conserva el logo actual.
+                            {t('settings.logoHelp')}
                         </p>
                         <InputError message={form.errors.logo} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-website">Sitio web</Label>
+                        <Label htmlFor="company-website">
+                            {t('common.website')}
+                        </Label>
                         <Input
                             id="company-website"
                             name="website"
@@ -325,7 +341,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="company-active">Estado</Label>
+                        <Label htmlFor="company-active">
+                            {t('common.status')}
+                        </Label>
                         <select
                             id="company-active"
                             name="is_active"
@@ -342,8 +360,12 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 !fieldsEnabled && 'opacity-80',
                             )}
                         >
-                            <option value="1">Activa</option>
-                            <option value="0">Inactiva</option>
+                            <option value="1">
+                                {t('settings.statusActive')}
+                            </option>
+                            <option value="0">
+                                {t('settings.statusInactive')}
+                            </option>
                         </select>
                         <InputError message={form.errors.is_active} />
                     </div>
@@ -355,7 +377,9 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 disabled={form.processing}
                                 data-test="save-company-button"
                             >
-                                {form.processing ? 'Guardando…' : 'Guardar'}
+                                {form.processing
+                                    ? t('common.saving')
+                                    : t('common.save')}
                             </Button>
                         </div>
                     ) : null}
@@ -368,7 +392,7 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
 CompanySettings.layout = {
     breadcrumbs: [
         {
-            title: 'Compañía',
+            title: 'navigation.company',
             href: companySettingsEdit.url(),
         },
     ],

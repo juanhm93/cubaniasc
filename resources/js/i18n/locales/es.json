@@ -1,0 +1,575 @@
+{
+  "common": {
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "continue": "Continuar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "search": "Buscar",
+    "select": "Selecciona…",
+    "all": "Todos",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "status": "Estado",
+    "action": "Acción",
+    "actions": "Acciones",
+    "name": "Nombre",
+    "fullName": "Nombre completo",
+    "email": "Correo",
+    "emailAddress": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "description": "Descripción",
+    "descriptionOptional": "Descripción (opcional)",
+    "optional": "(opcional)",
+    "video": "Video",
+    "figure": "Figura",
+    "level": "Nivel",
+    "course": "Curso",
+    "teacher": "Profesor",
+    "place": "Lugar",
+    "price": "Precio",
+    "slug": "Slug",
+    "logo": "Logo",
+    "website": "Sitio web",
+    "notes": "Notas",
+    "warning": "Advertencia",
+    "emDash": "—",
+    "pagination": "Paginación",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "noResults": "Sin resultados",
+    "showingRange": "Mostrando {{from}}–{{to}} de {{total}}",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "hide": "Ocultar",
+    "view": "Ver",
+    "somethingWentWrong": "Algo salió mal.",
+    "scroll": "Scroll",
+    "repository": "Repositorio",
+    "documentation": "Documentación",
+    "platform": "Plataforma",
+    "loading": "Cargando"
+  },
+  "auth": {
+    "login": {
+      "headTitle": "Iniciar sesión",
+      "layoutTitle": "Inicia sesión en tu cuenta",
+      "layoutDescription": "Introduce tu correo y contraseña para iniciar sesión",
+      "emailPlaceholder": "correo@ejemplo.com",
+      "passwordPlaceholder": "Contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "rememberMe": "Recordarme",
+      "submit": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "signUp": "Regístrate"
+    },
+    "register": {
+      "headTitle": "Registro",
+      "layoutTitle": "Crea una cuenta",
+      "layoutDescription": "Introduce tus datos para crear tu cuenta",
+      "namePlaceholder": "Nombre completo",
+      "emailPlaceholder": "correo@ejemplo.com",
+      "passwordPlaceholder": "Contraseña",
+      "confirmPasswordPlaceholder": "Confirmar contraseña",
+      "submit": "Crear cuenta",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "logIn": "Iniciar sesión"
+    },
+    "forgotPassword": {
+      "headTitle": "Olvidé mi contraseña",
+      "layoutTitle": "Olvidé mi contraseña",
+      "layoutDescription": "Introduce tu correo para recibir un enlace de restablecimiento",
+      "submit": "Enviar enlace de restablecimiento",
+      "returnTo": "O regresa a",
+      "logIn": "iniciar sesión"
+    },
+    "resetPassword": {
+      "headTitle": "Restablecer contraseña",
+      "layoutTitle": "Restablecer contraseña",
+      "layoutDescription": "Introduce tu nueva contraseña a continuación",
+      "passwordPlaceholder": "Contraseña",
+      "confirmPasswordPlaceholder": "Confirmar contraseña",
+      "submit": "Restablecer contraseña"
+    },
+    "confirmPassword": {
+      "headTitle": "Confirmar contraseña",
+      "layoutTitle": "Confirma tu contraseña",
+      "layoutDescription": "Esta es un área segura de la aplicación. Confirma tu contraseña antes de continuar.",
+      "passwordPlaceholder": "Contraseña",
+      "submit": "Confirmar contraseña"
+    },
+    "verifyEmail": {
+      "headTitle": "Verificación de correo",
+      "layoutTitle": "Verifica tu correo",
+      "layoutDescription": "Verifica tu correo electrónico haciendo clic en el enlace que acabamos de enviarte.",
+      "linkSent": "Se ha enviado un nuevo enlace de verificación al correo que proporcionaste durante el registro.",
+      "resend": "Reenviar correo de verificación",
+      "logOut": "Cerrar sesión"
+    },
+    "twoFactorChallenge": {
+      "headTitle": "Autenticación de dos factores",
+      "recoveryCode": {
+        "title": "Código de recuperación",
+        "description": "Confirma el acceso a tu cuenta introduciendo uno de tus códigos de recuperación de emergencia.",
+        "toggleText": "iniciar sesión con un código de autenticación"
+      },
+      "authCode": {
+        "title": "Código de autenticación",
+        "description": "Introduce el código de autenticación proporcionado por tu aplicación de autenticación.",
+        "toggleText": "iniciar sesión con un código de recuperación"
+      },
+      "recoveryCodePlaceholder": "Introduce el código de recuperación",
+      "orYouCan": "o puedes ",
+      "submit": "Continuar"
+    }
+  },
+  "navigation": {
+    "appName": "Cubanía",
+    "dashboard": "Panel",
+    "levels": "Niveles",
+    "payments": "Pagos",
+    "courses": "Cursos",
+    "oneTimeSessions": "Clases especiales",
+    "students": "Alumnos",
+    "adminUsers": "Usuarios admin",
+    "settings": "Configuración",
+    "logOut": "Cerrar sesión",
+    "profile": "Perfil",
+    "company": "Compañía",
+    "security": "Seguridad",
+    "appearance": "Apariencia",
+    "settingsNavAriaLabel": "Configuración",
+    "settingsTitle": "Configuración",
+    "settingsDescription": "Administra tu perfil y la configuración de tu cuenta",
+    "navigationMenu": "Menú de navegación"
+  },
+  "settings": {
+    "profile": {
+      "headTitle": "Configuración de perfil",
+      "breadcrumb": "Configuración de perfil",
+      "srTitle": "Configuración de perfil",
+      "title": "Información del perfil",
+      "description": "Actualiza tu nombre y correo electrónico",
+      "namePlaceholder": "Nombre completo",
+      "emailPlaceholder": "Correo electrónico",
+      "unverified": "Tu correo electrónico no está verificado.",
+      "resendVerification": "Haz clic aquí para reenviar el correo de verificación.",
+      "verificationLinkSent": "Se ha enviado un nuevo enlace de verificación a tu correo electrónico."
+    },
+    "security": {
+      "headTitle": "Configuración de seguridad",
+      "breadcrumb": "Configuración de seguridad",
+      "srTitle": "Configuración de seguridad",
+      "updatePassword": {
+        "title": "Actualizar contraseña",
+        "description": "Asegúrate de usar una contraseña larga y aleatoria para mantener tu cuenta segura",
+        "currentPasswordPlaceholder": "Contraseña actual",
+        "newPasswordPlaceholder": "Nueva contraseña",
+        "confirmPasswordPlaceholder": "Confirmar contraseña",
+        "savePassword": "Guardar contraseña"
+      },
+      "twoFactor": {
+        "title": "Autenticación de dos factores",
+        "description": "Administra la configuración de autenticación de dos factores",
+        "enabledDescription": "Se te pedirá un pin seguro y aleatorio al iniciar sesión, que puedes obtener de la aplicación TOTP en tu teléfono.",
+        "disabledDescription": "Al activar la autenticación de dos factores, se te pedirá un pin seguro al iniciar sesión. Este pin puede obtenerse de una aplicación TOTP en tu teléfono.",
+        "disable": "Desactivar 2FA",
+        "enable": "Activar 2FA",
+        "continueSetup": "Continuar configuración",
+        "recoveryCodes": {
+          "title": "Códigos de recuperación 2FA",
+          "description": "Los códigos de recuperación te permiten recuperar el acceso si pierdes tu dispositivo 2FA. Guárdalos en un gestor de contraseñas seguro.",
+          "view": "Ver",
+          "hide": "Ocultar",
+          "recoveryCodes": "códigos de recuperación",
+          "regenerateCodes": "Regenerar códigos",
+          "ariaLabel": "Códigos de recuperación",
+          "loadingAriaLabel": "Cargando códigos de recuperación",
+          "regenerateWarning": "Cada código de recuperación puede usarse una vez para acceder a tu cuenta y se eliminará tras su uso. Si necesitas más, haz clic en Regenerar códigos arriba."
+        },
+        "setupModal": {
+          "enabledTitle": "Autenticación de dos factores activada",
+          "enabledDescription": "La autenticación de dos factores está activada. Escanea el código QR o introduce la clave de configuración en tu aplicación de autenticación.",
+          "verifyTitle": "Verificar código de autenticación",
+          "verifyDescription": "Introduce el código de 6 dígitos de tu aplicación de autenticación",
+          "enableTitle": "Activar autenticación de dos factores",
+          "enableDescription": "Para terminar de activar la autenticación de dos factores, escanea el código QR o introduce la clave de configuración en tu aplicación de autenticación",
+          "close": "Cerrar",
+          "continue": "Continuar",
+          "orEnterManually": "o introduce el código manualmente",
+          "back": "Volver",
+          "confirm": "Confirmar"
+        }
+      }
+    },
+    "company": {
+      "headTitle": "Configuración de la compañía",
+      "breadcrumb": "Compañía",
+      "srTitle": "Configuración de la compañía",
+      "title": "Compañía",
+      "descriptionEdit": "Revisa o actualiza los datos de tu organización.",
+      "descriptionCreate": "Crea el perfil de tu organización.",
+      "descriptionReadOnly": "Solo lectura: solo el propietario de la plataforma puede modificar estos datos.",
+      "edit": "Editar",
+      "slugPlaceholder": "Vacío = mantener el actual",
+      "slugHelp": "Se usa en URLs. Déjalo vacío para conservar el slug actual al actualizar.",
+      "logoHelp": "Sube un logo nuevo para reemplazar el actual.",
+      "save": "Guardar compañía",
+      "create": "Crear compañía"
+    },
+    "appearance": {
+      "headTitle": "Configuración de apariencia",
+      "breadcrumb": "Configuración de apariencia",
+      "srTitle": "Configuración de apariencia",
+      "title": "Configuración de apariencia",
+      "description": "Actualiza la configuración de apariencia de tu cuenta"
+    },
+    "deleteAccount": {
+      "title": "Eliminar cuenta",
+      "description": "Elimina tu cuenta y todos sus recursos",
+      "warningTitle": "Advertencia",
+      "warningDescription": "Procede con precaución, esto no se puede deshacer.",
+      "button": "Eliminar cuenta",
+      "dialogTitle": "¿Seguro que quieres eliminar tu cuenta?",
+      "dialogDescription": "Una vez eliminada tu cuenta, todos sus recursos y datos se eliminarán permanentemente. Introduce tu contraseña para confirmar que deseas eliminar tu cuenta permanentemente.",
+      "passwordPlaceholder": "Contraseña",
+      "confirmButton": "Eliminar cuenta"
+    }
+  },
+  "dashboard": {
+    "headTitle": "Panel",
+    "breadcrumb": "Panel",
+    "activeStudents": {
+      "title": "Estudiantes activos",
+      "description": "Con inscripción activa en al menos un curso activo"
+    },
+    "activeCourses": {
+      "title": "Cursos activos",
+      "description": "Grupos marcados como activos en la academia",
+      "goToCourses": "Ir a cursos"
+    },
+    "staff": {
+      "title": "Personal",
+      "description": "Ejemplo ilustrativo",
+      "professors": "Profesores",
+      "administrativeStaff": "Personal administrativo",
+      "administrators": "Administradores"
+    }
+  },
+  "account": {
+    "pending": {
+      "headTitle": "Cuenta pendiente",
+      "layoutTitle": "Cuenta pendiente",
+      "layoutDescription": "Tu registro está en revisión. Te avisaremos cuando puedas acceder.",
+      "created": "Tu cuenta se creó correctamente.",
+      "statusExplanation": "Por ahora tu usuario está en estado",
+      "statusPending": "pendiente",
+      "statusDetails": ": necesita ser aprobado por el propietario o un administrador de la academia antes de que puedas usar el resto de la plataforma.",
+      "activationInfo": "Cuando tu cuenta sea activada, podrás iniciar sesión y acceder al panel, cursos y el resto de herramientas. Si llevas tiempo esperando, escribe a la administración o al contacto que te invitó a registrarte.",
+      "logOut": "Cerrar sesión"
+    }
+  },
+  "levels": {
+    "index": {
+      "headTitle": "Niveles",
+      "breadcrumb": "Niveles",
+      "loadedCount": "{{count}} nivel cargado",
+      "loadedCount_plural": "{{count}} niveles cargados",
+      "danceTypes": "Ritmos",
+      "allDanceTypes": "Todos los ritmos",
+      "addLevelSr": "Agregar nivel",
+      "newLevel": "Nuevo nivel",
+      "newLevelDescription": "Agrega un nombre y una descripción opcional. El slug y el orden de visualización se configuran automáticamente.",
+      "namePlaceholder": "ej. Principiante",
+      "descriptionPlaceholder": "Resumen breve",
+      "levelCreated": "Nivel creado",
+      "couldNotCreate": "No se pudo crear el nivel"
+    },
+    "show": {
+      "headTitle": "Nivel",
+      "breadcrumb": "Nivel",
+      "noContent": "Aún no hay figuras.",
+      "addFigureSr": "Agregar figura",
+      "newFigure": "Nueva figura",
+      "newFigureDescription": "Agrega un nombre y una descripción opcional.",
+      "namePlaceholder": "ej. Figura 1",
+      "descriptionPlaceholder": "Resumen breve",
+      "editFigure": "Editar figura",
+      "editFigureDescription": "Modifica el nombre, la descripción o la URL del video.",
+      "videoUrlOptional": "URL del video (opcional)",
+      "videoUrlPlaceholder": "https://...",
+      "videoPreviewEmpty": "Agrega una URL de video al editar la figura para ver la vista previa.",
+      "videoPreviewTitle": "Vista previa del video",
+      "videoDialogDescription": "Vista previa del video de esta figura.",
+      "contentRemoved": "Figura eliminada",
+      "couldNotRemove": "No se pudo eliminar la figura",
+      "figureUpdated": "Figura actualizada",
+      "couldNotSave": "No se pudo guardar los cambios"
+    }
+  },
+  "admin": {
+    "students": {
+      "index": {
+        "headTitle": "Alumnos",
+        "breadcrumb": "Alumnos",
+        "title": "Alumnos",
+        "description": "Matrículas por curso: filtra por curso, nivel, estado o nombre.",
+        "enrollStudents": "Inscribir alumnos",
+        "filterCourse": "Curso",
+        "filterLevel": "Nivel",
+        "filterStatus": "Estado",
+        "filterSearch": "Nombre o correo",
+        "searchPlaceholder": "Buscar…",
+        "clearFilters": "Limpiar filtros",
+        "showingRange": "Mostrando {{from}}–{{to}} de {{total}}",
+        "columnStudent": "Alumno",
+        "columnEmail": "Correo",
+        "columnCourse": "Curso",
+        "columnLevel": "Nivel",
+        "columnStatus": "Estado",
+        "columnAction": "Acción",
+        "noEnrollments": "No hay matrículas con estos filtros.",
+        "viewStudent": "Ver alumno",
+        "courseFallback": "Curso #{{id}}",
+        "levelFallback": "Nivel #{{id}}"
+      },
+      "show": {
+        "headTitle": "Alumno: {{name}}",
+        "breadcrumbStudent": "Alumno",
+        "breadcrumbPayments": "Pagos"
+      },
+      "enroll": {
+        "headTitle": "Inscribir alumnos",
+        "breadcrumb": "Inscribir"
+      }
+    },
+    "courses": {
+      "index": {
+        "headTitle": "Cursos",
+        "breadcrumb": "Cursos",
+        "title": "Cursos",
+        "description": "Grupos activos en la academia: alumnos, asistencia y figuras por nivel.",
+        "createCourse": "Crear curso",
+        "columnLevel": "Nivel actual",
+        "columnPlace": "Lugar",
+        "columnTeacher": "Profesor",
+        "columnSchedule": "Horario",
+        "columnPrice": "Precio",
+        "columnStatus": "Estado",
+        "columnAction": "Acción",
+        "noCourses": "No hay cursos registrados.",
+        "viewCourse": "Ver curso"
+      },
+      "create": {
+        "headTitle": "Nuevo curso",
+        "breadcrumb": "Nuevo"
+      },
+      "show": {
+        "headTitle": "Curso: {{name}}",
+        "breadcrumbCourse": "Curso"
+      }
+    },
+    "payments": {
+      "headTitle": "Pagos",
+      "breadcrumb": "Pagos",
+      "title": "Pagos",
+      "description": "Registro de pagos por alumno y curso. Filtra por mes y año.",
+      "preRegistrations": "Preinscripciones",
+      "enrollFromPreRegistration": "Inscribir desde preinscripción",
+      "columnStudent": "Alumno",
+      "columnCourse": "Curso",
+      "columnLastPayment": "Último pago",
+      "columnPaymentInMonth": "Pago en mes seleccionado",
+      "columnAction": "Acción",
+      "registerPayment": "Registrar pago",
+      "noRows": "No hay matrículas activas para este mes.",
+      "paymentDialogTitle": "Registrar pago",
+      "paymentDialogDescription": "Registra un pago para {{student}} en {{course}}.",
+      "amount": "Monto",
+      "method": "Método",
+      "methodCash": "Efectivo",
+      "methodTransfer": "Transferencia",
+      "methodOther": "Otro",
+      "reference": "Referencia",
+      "receipt": "Comprobante",
+      "paidAt": "Pagado el",
+      "dueAt": "Vence el",
+      "savePayment": "Guardar pago",
+      "paymentSaved": "Pago registrado",
+      "paymentError": "No se pudo registrar el pago"
+    },
+    "users": {
+      "headTitle": "Usuarios admin",
+      "breadcrumb": "Usuarios admin",
+      "title": "Usuarios y roles",
+      "description": "Asigna roles de plataforma y estado de cuenta para cada usuario.",
+      "clearCaches": "Limpiar cachés de la aplicación",
+      "clearingCaches": "Limpiando…",
+      "runMigrations": "Ejecutar migraciones",
+      "runningMigrations": "Ejecutando…",
+      "cacheCleared": "Cachés de la aplicación limpiados.",
+      "migrationsFinished": "Migraciones de base de datos completadas.",
+      "actionFailed": "No se pudo completar esa acción.",
+      "columnUser": "Usuario",
+      "columnCurrentRole": "Rol actual",
+      "columnAssignRole": "Asignar rol",
+      "columnStatus": "Estado",
+      "saving": "Guardando…",
+      "noRole": "Sin rol",
+      "selectRole": "Seleccionar rol",
+      "roleUpdated": "Rol actualizado",
+      "roleUpdateError": "No se pudo actualizar el rol",
+      "statusUpdated": "Estado actualizado",
+      "statusUpdateError": "No se pudo actualizar el estado",
+      "statusActive": "Activo",
+      "statusPending": "Pendiente"
+    },
+    "oneTimeSessions": {
+      "index": {
+        "headTitle": "Clases especiales",
+        "breadcrumb": "Clases especiales",
+        "title": "Clases especiales",
+        "description": "Talleres, clases personalizadas y eventos de una sola oportunidad, ordenados del más reciente al más viejo.",
+        "create": "Crear clase especial",
+        "columnName": "Nombre",
+        "columnType": "Tipo",
+        "columnStart": "Inicio",
+        "columnEnd": "Fin",
+        "columnPlace": "Lugar",
+        "columnTeacher": "Profesor",
+        "columnAttendees": "Participantes",
+        "columnPrice": "Precio",
+        "columnStatus": "Estado",
+        "noSessions": "No hay clases especiales registradas.",
+        "typeWorkshop": "Taller",
+        "typePrivateClass": "Clase personalizada",
+        "typeEvent": "Evento"
+      },
+      "create": {
+        "headTitle": "Nueva clase especial",
+        "breadcrumb": "Nueva"
+      }
+    },
+    "preRegistrations": {
+      "enroll": {
+        "headTitle": "Inscribir desde preinscripción",
+        "breadcrumbEnroll": "Inscribir",
+        "breadcrumbPayments": "Pagos"
+      }
+    }
+  },
+  "landing": {
+    "welcome": {
+      "headTitle": "Cubanía – Salsa Casino & Bachata"
+    },
+    "nav": {
+      "classes": "Clases",
+      "styles": "Estilos",
+      "schedule": "Horarios",
+      "about": "Nosotros",
+      "enroll": "Inscríbete",
+      "dashboard": "Panel",
+      "logIn": "Entrar",
+      "register": "Registro"
+    },
+    "hero": {
+      "eyebrow": "Salsa Casino & Bachata · Cumaná - Sucre, Venezuela",
+      "titleOutline": "Vive",
+      "titleAccent": "Bailando",
+      "subtitle": "Te hacemos feliz a través del baile. Pasión y educación son nuestros valores.",
+      "startNow": "Empieza ahora",
+      "viewClasses": "Ver clases",
+      "followers": "Seguidores",
+      "yearsPassion": "Años de pasión",
+      "hashtag": "#Cubanízate",
+      "tagSalsaCasino": "Salsa Casino",
+      "tagBachata": "Bachata",
+      "tagRueda": "Rueda",
+      "scroll": "Scroll"
+    },
+    "styles": {
+      "sectionLabel": "Lo que enseñamos",
+      "sectionTitleLine1": "Nuestros",
+      "sectionTitleLine2": "estilos",
+      "salsaCasino": {
+        "name": "Salsa Casino",
+        "description": "El corazón cubano. Ritmo, conexión y arte en cada vuelta."
+      },
+      "bachata": {
+        "name": "Bachata",
+        "description": "Sensualidad y melodía. El lenguaje universal del cuerpo."
+      },
+      "rueda": {
+        "name": "Rueda de Casino",
+        "description": "Sincronía grupal. La magia de bailar en comunidad."
+      }
+    },
+    "cta": {
+      "titleLine1": "¿Listo para",
+      "titleLine2": "moverte?",
+      "subtitle": "Primera clase sin compromiso. Solo trae tus ganas de bailar.",
+      "preRegistration": "Preinscripción web",
+      "whatsapp": "Contáctanos por WhatsApp"
+    },
+    "testimonials": {
+      "sectionLabel": "Lo que dicen",
+      "sectionTitleLine1": "La comunidad",
+      "sectionTitleLine2": "Cubanía",
+      "maria": {
+        "quote": "Llegué sin saber bailar y ahora no puedo imaginar mi semana sin Cubanía. Es más que clases, es una familia.",
+        "authorName": "María G.",
+        "authorRole": "Estudiante · Nivel Intermedio"
+      },
+      "rafael": {
+        "quote": "Los profesores tienen una energía increíble. Aprendes técnica pero también filosofía del baile.",
+        "authorName": "Rafael T.",
+        "authorRole": "Estudiante · Nivel Avanzado"
+      },
+      "laura": {
+        "quote": "La sede en el Ministerio de Cultura es preciosa. Cada clase es una experiencia diferente y auténtica.",
+        "authorName": "Laura P.",
+        "authorRole": "Estudiante · Nivel Principiante"
+      }
+    },
+    "footer": {
+      "tagline": "Sigue bailando, cree en ti.",
+      "academy": "Academia",
+      "classes": "Clases",
+      "schedule": "Horarios",
+      "prices": "Precios",
+      "instructors": "Instructores",
+      "community": "Comunidad",
+      "events": "Eventos",
+      "competitions": "Competencias",
+      "blog": "Blog",
+      "gallery": "Galería",
+      "contact": "Contacto",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "location": "Ubicación",
+      "copyright": "© {{year}} Cubanía · Academia de Salsa Casino y Bachata"
+    },
+    "preRegistration": {
+      "headTitle": "Preinscripción",
+      "title": "Preinscripción",
+      "lead": "Déjanos tus datos y nos pondremos en contacto contigo. No necesitas cuenta para completar este formulario.",
+      "success": "¡Listo! Hemos recibido tu preinscripción. Te contactaremos pronto.",
+      "phoneOptional": "(opcional)",
+      "messageLabel": "¿Tienes algo que decir? (opcional)",
+      "agreeLabel": "Estoy de acuerdo con que Cubanía trate mis datos personales para gestionar mi preinscripción y contactarme.",
+      "submit": "Enviar preinscripción",
+      "submitting": "Enviando…"
+    }
+  }
+}

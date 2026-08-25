@@ -1,20 +1,23 @@
 import { Head } from '@inertiajs/react';
 import AppearanceTabs from '@/components/appearance-tabs';
 import Heading from '@/components/heading';
+import { useTranslation } from '@/i18n/use-translation';
 import { edit as editAppearance } from '@/routes/appearance';
 
 export default function Appearance() {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title="Appearance settings" />
+            <Head title={t('settings.appearanceSettings')} />
 
-            <h1 className="sr-only">Appearance settings</h1>
+            <h1 className="sr-only">{t('settings.appearanceSettings')}</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Appearance settings"
-                    description="Update your account's appearance settings"
+                    title={t('settings.appearanceSettings')}
+                    description={t('settings.appearanceSettingsDescription')}
                 />
                 <AppearanceTabs />
             </div>
@@ -25,7 +28,7 @@ export default function Appearance() {
 Appearance.layout = {
     breadcrumbs: [
         {
-            title: 'Appearance settings',
+            title: 'settings.appearanceSettings',
             href: editAppearance(),
         },
     ],
