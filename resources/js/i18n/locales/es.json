@@ -284,8 +284,8 @@
     "index": {
       "headTitle": "Niveles",
       "breadcrumb": "Niveles",
-      "loadedCount": "{{count}} nivel cargado",
-      "loadedCount_plural": "{{count}} niveles cargados",
+      "loadedCount_one": "{{count}} nivel cargado",
+      "loadedCount_other": "{{count}} niveles cargados",
       "danceTypes": "Ritmos",
       "allDanceTypes": "Todos los ritmos",
       "addLevelSr": "Agregar nivel",

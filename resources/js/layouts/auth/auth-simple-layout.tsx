@@ -10,8 +10,8 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     const { t } = useTranslation();
-    const resolvedTitle = t(title);
-    const resolvedDescription = t(description);
+    const resolvedTitle = title ? t(title) : '';
+    const resolvedDescription = description ? t(description) : '';
 
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
