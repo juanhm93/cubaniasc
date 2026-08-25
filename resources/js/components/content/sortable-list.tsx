@@ -88,7 +88,9 @@ export default function SortableList<T extends { id: number }>({
             }
 
             const nodes =
-                listRef.current.querySelectorAll<HTMLElement>('[data-sortable-id]');
+                listRef.current.querySelectorAll<HTMLElement>(
+                    '[data-sortable-id]',
+                );
             const y = moveEvent.clientY;
 
             for (const node of nodes) {
