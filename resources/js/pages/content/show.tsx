@@ -154,6 +154,7 @@ export default function ContentShow({
             await reorderLevels(detail.id, orderedIds);
         } catch (error) {
             toast.error('No se pudo guardar el orden');
+
             throw error;
         }
     }
