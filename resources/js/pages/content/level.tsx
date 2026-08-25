@@ -203,6 +203,7 @@ export default function ContentLevel({
             await reorderLevelContents(level.id, orderedIds);
         } catch (error) {
             toast.error('No se pudo guardar el orden');
+
             throw error;
         }
     }

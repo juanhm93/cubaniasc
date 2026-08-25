@@ -1,5 +1,6 @@
 import { GripVertical } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 export type SortableHandleProps = {
@@ -31,6 +32,52 @@ function arrayMove<T>(items: T[], from: number, to: number): T[] {
     return next;
 }
 
+function applyGrabbingCursor(): () => void {
+    const body = document.body;
+    const previousCursor = body.style.getPropertyValue('cursor');
+    const previousUserSelect = body.style.getPropertyValue('user-select');
+
+    body.style.setProperty('cursor', 'grabbing');
+    body.style.setProperty('user-select', 'none');
+
+    return () => {
+        body.style.setProperty('cursor', previousCursor);
+        body.style.setProperty('user-select', previousUserSelect);
+    };
+}
+
+function SortableItem<T extends { id: number }>({
+    item,
+    isDragging,
+    disabled,
+    onBeginDrag,
+    renderItem,
+}: {
+    item: T;
+    isDragging: boolean;
+    disabled: boolean;
+    onBeginDrag: (id: number, event: React.PointerEvent) => void;
+    renderItem: (
+        item: T,
+        handleProps: SortableHandleProps,
+        isDragging: boolean,
+    ) => ReactNode;
+}) {
+    return renderItem(
+        item,
+        {
+            onPointerDown: (event) => {
+                if (disabled) {
+                    return;
+                }
+
+                onBeginDrag(item.id, event);
+            },
+        },
+        isDragging,
+    );
+}
+
 export default function SortableList<T extends { id: number }>({
     items,
     onChange,
@@ -58,12 +105,14 @@ export default function SortableList<T extends { id: number }>({
     const draggingIdRef = useRef<number | null>(null);
     const [draggingId, setDraggingId] = useState<number | null>(null);
 
-    itemsRef.current = items;
-    onChangeRef.current = onChange;
-    onReorderRef.current = onReorder;
+    useLayoutEffect(() => {
+        itemsRef.current = items;
+        onChangeRef.current = onChange;
+        onReorderRef.current = onReorder;
+    });
 
     function beginDrag(id: number, event: React.PointerEvent): void {
-        if (disabled || event.button !== 0) {
+        if (event.button !== 0) {
             return;
         }
 
@@ -73,11 +122,7 @@ export default function SortableList<T extends { id: number }>({
         draggingIdRef.current = id;
         setDraggingId(id);
 
-        const previousCursor = document.body.style.cursor;
-        const previousUserSelect = document.body.style.userSelect;
-        document.body.style.cursor = 'grabbing';
-        document.body.style.userSelect = 'none';
-
+        const restoreCursor = applyGrabbingCursor();
         let finished = false;
 
         function handlePointerMove(moveEvent: PointerEvent): void {
@@ -88,7 +133,9 @@ export default function SortableList<T extends { id: number }>({
             }
 
             const nodes =
-                listRef.current.querySelectorAll<HTMLElement>('[data-sortable-id]');
+                listRef.current.querySelectorAll<HTMLElement>(
+                    '[data-sortable-id]',
+                );
             const y = moveEvent.clientY;
 
             for (const node of nodes) {
@@ -105,8 +152,10 @@ export default function SortableList<T extends { id: number }>({
                 }
 
                 const current = itemsRef.current;
-                const from = current.findIndex((item) => item.id === activeId);
-                const to = current.findIndex((item) => item.id === overId);
+                const from = current.findIndex(
+                    (entry) => entry.id === activeId,
+                );
+                const to = current.findIndex((entry) => entry.id === overId);
 
                 if (from < 0 || to < 0 || from === to) {
                     return;
@@ -127,15 +176,14 @@ export default function SortableList<T extends { id: number }>({
             document.removeEventListener('pointermove', handlePointerMove);
             document.removeEventListener('pointerup', finishDrag);
             document.removeEventListener('pointercancel', finishDrag);
-            document.body.style.cursor = previousCursor;
-            document.body.style.userSelect = previousUserSelect;
+            restoreCursor();
             draggingIdRef.current = null;
             setDraggingId(null);
 
-            const nextIds = itemsRef.current.map((item) => item.id);
-            const previousIds = snapshotRef.current.map((item) => item.id);
+            const nextIds = itemsRef.current.map((entry) => entry.id);
+            const previousIds = snapshotRef.current.map((entry) => entry.id);
             const unchanged = nextIds.every(
-                (id, index) => id === previousIds[index],
+                (entryId, index) => entryId === previousIds[index],
             );
 
             if (unchanged) {
@@ -154,15 +202,16 @@ export default function SortableList<T extends { id: number }>({
 
     return (
         <div ref={listRef} className={cn('flex flex-col gap-2', className)}>
-            {items.map((item) =>
-                renderItem(
-                    item,
-                    {
-                        onPointerDown: (event) => beginDrag(item.id, event),
-                    },
-                    item.id === draggingId,
-                ),
-            )}
+            {items.map((item) => (
+                <SortableItem
+                    key={item.id}
+                    item={item}
+                    isDragging={item.id === draggingId}
+                    disabled={disabled}
+                    onBeginDrag={beginDrag}
+                    renderItem={renderItem}
+                />
+            ))}
         </div>
     );
 }

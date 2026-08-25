@@ -176,6 +176,7 @@ export default function ContentIndex({
             await reorderDanceTypes(orderedIds);
         } catch (error) {
             toast.error('No se pudo guardar el orden');
+
             throw error;
         }
     }
