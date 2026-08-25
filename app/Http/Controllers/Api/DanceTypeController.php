@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ReorderSortOrder;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReorderDanceTypesRequest;
 use App\Http\Requests\StoreDanceTypeRequest;
 use App\Http\Requests\UpdateDanceTypeRequest;
 use App\Models\DanceType;
@@ -68,6 +70,13 @@ class DanceTypeController extends Controller
         return response()->json(
             $danceType->fresh()?->loadCount(['levels', 'levelContents as figures_count'])
         );
+    }
+
+    public function reorder(ReorderDanceTypesRequest $request, ReorderSortOrder $reorder): Response
+    {
+        $reorder->execute(DanceType::query(), $request->orderedIds());
+
+        return response()->noContent();
     }
 
     public function destroy(Request $request, DanceType $danceType): JsonResponse|Response

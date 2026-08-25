@@ -50,6 +50,26 @@ class LevelDestroyTest extends TestCase
         $this->assertNotSoftDeleted('levels', ['id' => $level->id]);
     }
 
+    public function test_non_admin_users_cannot_delete_levels(): void
+    {
+        $teacherRole = Role::factory()->create([
+            'name' => 'Teacher',
+            'slug' => 'teacher',
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $teacherRole->id,
+        ]);
+        $level = Level::factory()->create();
+
+        $this->actingAs($user);
+
+        $this->deleteJson(route('api.levels.destroy', [
+            'level' => $level->id,
+        ]))->assertForbidden();
+
+        $this->assertNotSoftDeleted('levels', ['id' => $level->id]);
+    }
+
     private function actingAsAdmin(): User
     {
         $adminRole = Role::factory()->create([

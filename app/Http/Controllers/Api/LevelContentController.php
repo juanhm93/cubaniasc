@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ReorderSortOrder;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReorderLevelContentsRequest;
 use App\Http\Requests\StoreLevelContentRequest;
 use App\Http\Requests\UpdateLevelContentRequest;
 use App\Models\Level;
@@ -32,6 +34,17 @@ class LevelContentController extends Controller
         $levelContent->update($request->validated());
 
         return response()->json($levelContent->fresh());
+    }
+
+    public function reorder(ReorderLevelContentsRequest $request, Level $level, ReorderSortOrder $reorder): Response
+    {
+        $reorder->execute(
+            LevelContent::query()->where('level_id', $level->id),
+            $request->orderedIds(),
+            65535,
+        );
+
+        return response()->noContent();
     }
 
     public function destroy(Request $request, LevelContent $levelContent): Response

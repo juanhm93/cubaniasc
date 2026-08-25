@@ -1,8 +1,12 @@
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { ArrowRight, Music2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
+import SortableList, {
+    SortableHandle,
+} from '@/components/content/sortable-list';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,12 +20,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useIsAdmin } from '@/hooks/use-is-admin';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
 import {
     createDanceType,
     deleteDanceType,
+    reorderDanceTypes,
     updateDanceType,
 } from '@/services/levelService';
 import { normalizeDanceTypeCard } from '@/types/content';
@@ -36,9 +42,13 @@ const textareaClassName = cn(
 
 export default function ContentIndex({
     danceTypes,
+    canDelete = false,
 }: {
     danceTypes: DanceTypeCard[];
+    canDelete?: boolean;
 }) {
+    const isAdmin = useIsAdmin();
+    const showDelete = canDelete && isAdmin;
     const [items, setItems] = useState<DanceTypeCard[]>(() =>
         danceTypes.map(normalizeDanceTypeCard),
     );
@@ -158,6 +168,15 @@ export default function ContentIndex({
             toast.error(message);
         } finally {
             setDeletingId(null);
+        }
+    }
+
+    async function handleReorder(orderedIds: number[]): Promise<void> {
+        try {
+            await reorderDanceTypes(orderedIds);
+        } catch (error) {
+            toast.error('No se pudo guardar el orden');
+            throw error;
         }
     }
 
@@ -287,72 +306,89 @@ export default function ContentIndex({
                         </DialogContent>
                     </Dialog>
 
-                    {items.map((danceType) => (
-                        <div
-                            key={danceType.id}
-                            className="flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border"
-                        >
-                            <Music2
-                                className="size-5 shrink-0 text-muted-foreground"
-                                aria-hidden
-                            />
-                            <div className="min-w-0 flex-1">
-                                <h2 className="truncate font-semibold">
-                                    {danceType.name}
-                                </h2>
-                                <p className="text-sm text-muted-foreground">
-                                    {danceType.levels_count} nivel
-                                    {danceType.levels_count === 1
-                                        ? ''
-                                        : 'es'} · {danceType.figures_count}{' '}
-                                    figura
-                                    {danceType.figures_count === 1 ? '' : 's'}
-                                </p>
-                                {danceType.description ? (
-                                    <p className="line-clamp-2 text-sm text-muted-foreground">
-                                        {danceType.description}
+                    <SortableList
+                        items={items}
+                        onChange={setItems}
+                        onReorder={handleReorder}
+                        renderItem={(danceType, handleProps, isDragging) => (
+                            <div
+                                key={danceType.id}
+                                data-sortable-id={danceType.id}
+                                className={cn(
+                                    'flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border',
+                                    isDragging && 'opacity-70',
+                                )}
+                            >
+                                <SortableHandle
+                                    label={`Reordenar ${danceType.name}`}
+                                    {...handleProps}
+                                />
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="truncate font-semibold">
+                                        {danceType.name}
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        {danceType.levels_count} nivel
+                                        {danceType.levels_count === 1
+                                            ? ''
+                                            : 'es'}{' '}
+                                        · {danceType.figures_count} figura
+                                        {danceType.figures_count === 1
+                                            ? ''
+                                            : 's'}
                                     </p>
-                                ) : null}
+                                    {danceType.description ? (
+                                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                                            {danceType.description}
+                                        </p>
+                                    ) : null}
+                                </div>
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-9 text-muted-foreground"
+                                        aria-label={`Editar ${danceType.name}`}
+                                        onClick={() => beginEdit(danceType)}
+                                    >
+                                        <Pencil className="size-5" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-9 text-muted-foreground"
+                                        aria-label={`Abrir ${danceType.name}`}
+                                        onClick={() =>
+                                            router.visit(
+                                                contentShow.url(danceType.id),
+                                            )
+                                        }
+                                    >
+                                        <ArrowRight className="size-5" />
+                                    </Button>
+                                    {showDelete ? (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="size-9 text-muted-foreground hover:text-destructive"
+                                            aria-label={`Eliminar ${danceType.name}`}
+                                            disabled={
+                                                deletingId === danceType.id
+                                            }
+                                            onClick={() =>
+                                                setDeleting(danceType)
+                                            }
+                                        >
+                                            <Trash2 className="size-5" />
+                                        </Button>
+                                    ) : null}
+                                </div>
                             </div>
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-9 text-muted-foreground"
-                                    aria-label={`Editar ${danceType.name}`}
-                                    onClick={() => beginEdit(danceType)}
-                                >
-                                    <Pencil className="size-5" />
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-9 text-muted-foreground"
-                                    aria-label={`Abrir ${danceType.name}`}
-                                    onClick={() =>
-                                        router.visit(
-                                            contentShow.url(danceType.id),
-                                        )
-                                    }
-                                >
-                                    <ArrowRight className="size-5" />
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-9 text-muted-foreground hover:text-destructive"
-                                    aria-label={`Eliminar ${danceType.name}`}
-                                    disabled={deletingId === danceType.id}
-                                    onClick={() => setDeleting(danceType)}
-                                >
-                                    <Trash2 className="size-5" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                        )}
+                    />
                 </div>
             </div>
 
@@ -435,44 +471,19 @@ export default function ContentIndex({
                 </DialogContent>
             </Dialog>
 
-            <Dialog
+            <ConfirmDeleteDialog
                 open={deleting !== null}
+                title="Eliminar estilo"
+                description="Se eliminarán también sus niveles y figuras. No se puede eliminar si algún curso lo está usando."
+                itemName={deleting?.name}
+                confirming={deletingId !== null}
                 onOpenChange={(open) => {
                     if (!open) {
                         setDeleting(null);
                     }
                 }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Eliminar estilo</DialogTitle>
-                        <DialogDescription>
-                            Se eliminarán también sus niveles y figuras. No se
-                            puede eliminar si algún curso lo está usando.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <p className="text-sm">
-                        ¿Eliminar <strong>{deleting?.name}</strong>?
-                    </p>
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setDeleting(null)}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            disabled={deletingId !== null}
-                            onClick={() => void handleDelete()}
-                        >
-                            {deletingId !== null ? 'Eliminando…' : 'Eliminar'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onConfirm={() => void handleDelete()}
+            />
         </>
     );
 }

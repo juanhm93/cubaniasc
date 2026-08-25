@@ -3,7 +3,9 @@ import axios from 'axios';
 import { Eye, Pencil, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import LevelVideoPreview from '@/components/content/level-video-preview';
+import SortableList from '@/components/content/sortable-list';
 import VisualFiguresCatalog from '@/components/content/visual-figures-catalog';
 import InputError from '@/components/input-error';
 import LevelItem from '@/components/items/level-item';
@@ -20,10 +22,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useIsAdmin } from '@/hooks/use-is-admin';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
-import { createLevel, deleteLevel } from '@/services/levelService';
+import {
+    createLevel,
+    deleteLevel,
+    reorderLevels,
+} from '@/services/levelService';
 import { normalizeDanceTypeDetail, normalizeLevel } from '@/types/content';
 import type {
     ContentLevel,
@@ -42,9 +49,13 @@ const textareaClassName = cn(
 
 export default function ContentShow({
     danceType,
+    canDelete = false,
 }: {
     danceType: DanceTypeDetail;
+    canDelete?: boolean;
 }) {
+    const isAdmin = useIsAdmin();
+    const showDelete = canDelete && isAdmin;
     const [detail, setDetail] = useState<DanceTypeDetail>(() =>
         normalizeDanceTypeDetail(danceType),
     );
@@ -135,6 +146,15 @@ export default function ContentShow({
             toast.error(message);
         } finally {
             setDeletingId(null);
+        }
+    }
+
+    async function handleReorder(orderedIds: number[]): Promise<void> {
+        try {
+            await reorderLevels(detail.id, orderedIds);
+        } catch (error) {
+            toast.error('No se pudo guardar el orden');
+            throw error;
         }
     }
 
@@ -306,62 +326,51 @@ export default function ContentShow({
                             </DialogContent>
                         </Dialog>
 
-                        {detail.levels.map((level) => (
-                            <LevelItem
-                                key={level.id}
-                                danceTypeId={detail.id}
-                                level={{
-                                    id: level.id,
-                                    name: level.name,
-                                    description: level.description,
-                                    figuresCount: level.level_contents.length,
-                                }}
-                                deletingId={deletingId}
-                                onDelete={() => setDeleting(level)}
-                            />
-                        ))}
+                        <SortableList
+                            items={detail.levels}
+                            onChange={(levels) =>
+                                setDetail((prev) => ({ ...prev, levels }))
+                            }
+                            onReorder={handleReorder}
+                            renderItem={(level, handleProps, isDragging) => (
+                                <LevelItem
+                                    key={level.id}
+                                    danceTypeId={detail.id}
+                                    level={{
+                                        id: level.id,
+                                        name: level.name,
+                                        description: level.description,
+                                        figuresCount:
+                                            level.level_contents.length,
+                                    }}
+                                    deletingId={deletingId}
+                                    onDelete={
+                                        showDelete
+                                            ? () => setDeleting(level)
+                                            : undefined
+                                    }
+                                    handleProps={handleProps}
+                                    isDragging={isDragging}
+                                />
+                            )}
+                        />
                     </div>
                 )}
             </div>
 
-            <Dialog
+            <ConfirmDeleteDialog
                 open={deleting !== null}
+                title="Eliminar nivel"
+                description="Se eliminarán también sus figuras. No se puede eliminar si algún curso lo está usando."
+                itemName={deleting?.name}
+                confirming={deletingId !== null}
                 onOpenChange={(open) => {
                     if (!open) {
                         setDeleting(null);
                     }
                 }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Eliminar nivel</DialogTitle>
-                        <DialogDescription>
-                            Se eliminarán también sus figuras. No se puede
-                            eliminar si algún curso lo está usando.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <p className="text-sm">
-                        ¿Eliminar <strong>{deleting?.name}</strong>?
-                    </p>
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setDeleting(null)}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            disabled={deletingId !== null}
-                            onClick={() => void handleDeleteLevel()}
-                        >
-                            {deletingId !== null ? 'Eliminando…' : 'Eliminar'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onConfirm={() => void handleDeleteLevel()}
+            />
 
             <Dialog
                 open={videoFigure !== null}

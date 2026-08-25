@@ -3,7 +3,9 @@ import axios from 'axios';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import LevelVideoPreview from '@/components/content/level-video-preview';
+import SortableList from '@/components/content/sortable-list';
 import InputError from '@/components/input-error';
 import LevelContentItem from '@/components/items/level-content-item';
 import { Button } from '@/components/ui/button';
@@ -18,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useIsAdmin } from '@/hooks/use-is-admin';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -25,6 +28,7 @@ import { show as contentLevelShow } from '@/routes/content/levels';
 import {
     createLevelContent,
     deleteLevelContent,
+    reorderLevelContents,
     updateLevelContent,
 } from '@/services/levelService';
 import { normalizeFigure, normalizeLevel } from '@/types/content';
@@ -40,14 +44,19 @@ const textareaClassName = cn(
 export default function ContentLevel({
     danceType,
     level: initialLevel,
+    canDelete = false,
 }: {
     danceType: DanceTypeCard;
     level: ContentLevel;
+    canDelete?: boolean;
 }) {
+    const isAdmin = useIsAdmin();
+    const showDelete = canDelete && isAdmin;
     const [level, setLevel] = useState<ContentLevel>(() =>
         normalizeLevel(initialLevel),
     );
     const [videoContent, setVideoContent] = useState<FigureItem | null>(null);
+    const [deleting, setDeleting] = useState<FigureItem | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [addOpen, setAddOpen] = useState(false);
     const [name, setName] = useState('');
@@ -74,21 +83,26 @@ export default function ContentLevel({
         setEditingContent(content);
     }
 
-    async function handleRemove(contentId: number): Promise<void> {
-        setDeletingId(contentId);
+    async function handleRemove(): Promise<void> {
+        if (!deleting) {
+            return;
+        }
+
+        setDeletingId(deleting.id);
 
         try {
-            await deleteLevelContent(contentId);
+            await deleteLevelContent(deleting.id);
             setLevel((prev) => ({
                 ...prev,
                 level_contents: prev.level_contents.filter(
-                    (content) => content.id !== contentId,
+                    (content) => content.id !== deleting.id,
                 ),
             }));
             toast.success('Figura eliminada');
             setVideoContent((current) =>
-                current?.id === contentId ? null : current,
+                current?.id === deleting.id ? null : current,
             );
+            setDeleting(null);
         } catch {
             toast.error('No se pudo eliminar la figura');
         } finally {
@@ -181,6 +195,15 @@ export default function ContentLevel({
             }
         } finally {
             setEditSubmitting(false);
+        }
+    }
+
+    async function handleReorder(orderedIds: number[]): Promise<void> {
+        try {
+            await reorderLevelContents(level.id, orderedIds);
+        } catch (error) {
+            toast.error('No se pudo guardar el orden');
+            throw error;
         }
     }
 
@@ -489,21 +512,48 @@ export default function ContentLevel({
                             </DialogContent>
                         </Dialog>
 
-                        <ul className="flex flex-col gap-3">
-                            {contents.map((content) => (
+                        <SortableList
+                            items={contents}
+                            className="gap-3"
+                            onChange={(levelContents) =>
+                                setLevel((prev) => ({
+                                    ...prev,
+                                    level_contents: levelContents,
+                                }))
+                            }
+                            onReorder={handleReorder}
+                            renderItem={(content, handleProps, isDragging) => (
                                 <LevelContentItem
                                     key={content.id.toString()}
                                     levelContent={content}
                                     deletingId={deletingId}
-                                    handleRemove={handleRemove}
+                                    onDelete={
+                                        showDelete ? setDeleting : undefined
+                                    }
                                     setVideoContent={setVideoContent}
                                     onEdit={beginEditContent}
+                                    handleProps={handleProps}
+                                    isDragging={isDragging}
                                 />
-                            ))}
-                        </ul>
+                            )}
+                        />
                     </div>
                 </div>
             </div>
+
+            <ConfirmDeleteDialog
+                open={deleting !== null}
+                title="Eliminar figura"
+                description="Esta acción no se puede deshacer."
+                itemName={deleting?.name}
+                confirming={deletingId !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setDeleting(null);
+                    }
+                }}
+                onConfirm={() => void handleRemove()}
+            />
 
             <Dialog
                 open={videoContent !== null}

@@ -1,6 +1,11 @@
 import { router } from '@inertiajs/react';
-import { ArrowRight, GripVertical, Trash2 } from 'lucide-react';
+import { ArrowRight, Trash2 } from 'lucide-react';
+import {
+    SortableHandle,
+    type SortableHandleProps,
+} from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { show as contentLevelShow } from '@/routes/content/levels';
 
 type LevelItemProps = {
@@ -15,11 +20,15 @@ export default function LevelItem({
     danceTypeId,
     deletingId,
     onDelete,
+    handleProps,
+    isDragging = false,
 }: {
     level: LevelItemProps;
     danceTypeId: number;
     deletingId?: number | null;
     onDelete?: (level: LevelItemProps) => void;
+    handleProps: SortableHandleProps;
+    isDragging?: boolean;
 }) {
     const figuresLabel =
         level.figuresCount === undefined
@@ -27,10 +36,16 @@ export default function LevelItem({
             : `${level.figuresCount} figura${level.figuresCount === 1 ? '' : 's'}`;
 
     return (
-        <div className="flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border">
-            <GripVertical
-                className="size-5 shrink-0 text-muted-foreground"
-                aria-hidden
+        <div
+            data-sortable-id={level.id}
+            className={cn(
+                'flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border',
+                isDragging && 'opacity-70',
+            )}
+        >
+            <SortableHandle
+                label={`Reordenar ${level.name}`}
+                {...handleProps}
             />
             <div className="min-w-0 flex-1">
                 <h2 className="truncate font-semibold">{level.name}</h2>
@@ -75,12 +90,7 @@ export default function LevelItem({
                     >
                         <Trash2 className="size-5" />
                     </Button>
-                ) : (
-                    <Trash2
-                        className="size-5 text-muted-foreground"
-                        aria-hidden
-                    />
-                )}
+                ) : null}
             </div>
         </div>
     );

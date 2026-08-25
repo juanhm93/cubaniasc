@@ -6,12 +6,13 @@ namespace App\Http\Controllers;
 
 use App\Models\DanceType;
 use App\Models\Level;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ContentController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $danceTypes = DanceType::query()
             ->withCount(['levels', 'levelContents as figures_count'])
@@ -20,10 +21,11 @@ class ContentController extends Controller
 
         return Inertia::render('content/index', [
             'danceTypes' => $danceTypes,
+            'canDelete' => $this->canDelete($request),
         ]);
     }
 
-    public function show(DanceType $danceType): Response
+    public function show(Request $request, DanceType $danceType): Response
     {
         $danceType->load([
             'levels' => function ($query): void {
@@ -39,10 +41,11 @@ class ContentController extends Controller
 
         return Inertia::render('content/show', [
             'danceType' => $danceType,
+            'canDelete' => $this->canDelete($request),
         ]);
     }
 
-    public function level(DanceType $danceType, Level $level): Response
+    public function level(Request $request, DanceType $danceType, Level $level): Response
     {
         $level->load([
             'danceType',
@@ -54,6 +57,12 @@ class ContentController extends Controller
         return Inertia::render('content/level', [
             'danceType' => $danceType,
             'level' => $level,
+            'canDelete' => $this->canDelete($request),
         ]);
+    }
+
+    private function canDelete(Request $request): bool
+    {
+        return $request->user()?->isAdmin() ?? false;
     }
 }

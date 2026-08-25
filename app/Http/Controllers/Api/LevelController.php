@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ReorderSortOrder;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReorderLevelsRequest;
 use App\Http\Requests\StoreLevelRequest;
 use App\Http\Requests\UpdateLevelRequest;
+use App\Models\DanceType;
 use App\Models\Level;
 use App\Support\UniqueSlug;
 use Illuminate\Http\JsonResponse;
@@ -61,6 +64,16 @@ class LevelController extends Controller
         $level->update($request->validated());
 
         return response()->json($level->fresh()->load('danceType'));
+    }
+
+    public function reorder(ReorderLevelsRequest $request, DanceType $danceType, ReorderSortOrder $reorder): Response
+    {
+        $reorder->execute(
+            Level::query()->where('dance_type_id', $danceType->id),
+            $request->orderedIds(),
+        );
+
+        return response()->noContent();
     }
 
     public function destroy(Request $request, Level $level): JsonResponse|Response

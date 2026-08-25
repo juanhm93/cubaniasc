@@ -49,6 +49,7 @@ class ContentPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('content/index')
                 ->has('danceTypes', 1)
+                ->where('canDelete', true)
                 ->where('danceTypes.0.name', 'Salsa Casino')
                 ->where('danceTypes.0.levels_count', 2));
     }
@@ -64,6 +65,7 @@ class ContentPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('content/show')
+                ->where('canDelete', true)
                 ->where('danceType.name', 'Salsa Casino')
                 ->has('danceType.levels', 1)
                 ->where('danceType.levels.0.name', 'Básico 1')
@@ -83,6 +85,7 @@ class ContentPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('content/level')
+                ->where('canDelete', true)
                 ->where('level.name', 'Básico 1')
                 ->where('danceType.id', $danceType->id)
                 ->where('danceType.name', $danceType->name));
@@ -120,6 +123,21 @@ class ContentPageTest extends TestCase
                 'danceType' => $danceType->id,
                 'level' => $level->id,
             ]));
+    }
+
+    public function test_non_admin_cannot_view_content_index(): void
+    {
+        $teacherRole = Role::factory()->create([
+            'name' => 'Teacher',
+            'slug' => 'teacher',
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $teacherRole->id,
+        ]);
+
+        $this->actingAs($user);
+
+        $this->get(route('content.index'))->assertForbidden();
     }
 
     private function actingAsAdmin(): User

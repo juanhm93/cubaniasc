@@ -93,9 +93,12 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::prefix('api')->name('api.')->group(function () {
             Route::get('dance-types', [ApiDanceTypeController::class, 'index'])->name('dance-types.index');
             Route::post('dance-types', [ApiDanceTypeController::class, 'store'])->name('dance-types.store');
+            Route::post('dance-types/reorder', [ApiDanceTypeController::class, 'reorder'])->name('dance-types.reorder');
             Route::get('dance-types/{danceType}', [ApiDanceTypeController::class, 'show'])->name('dance-types.show');
             Route::patch('dance-types/{danceType}', [ApiDanceTypeController::class, 'update'])->name('dance-types.update');
             Route::delete('dance-types/{danceType}', [ApiDanceTypeController::class, 'destroy'])->name('dance-types.destroy');
+            Route::post('dance-types/{danceType}/levels/reorder', [ApiLevelController::class, 'reorder'])
+                ->name('dance-types.levels.reorder');
 
             Route::get('levels', [ApiLevelController::class, 'index'])->name('levels.index');
             Route::get('levels/{level}', [ApiLevelController::class, 'show'])->name('levels.show');
@@ -104,6 +107,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
             Route::delete('levels/{level}', [ApiLevelController::class, 'destroy'])->name('levels.destroy');
             Route::post('levels/{level}/contents', [LevelContentController::class, 'store'])
                 ->name('levels.contents.store');
+            Route::post('levels/{level}/contents/reorder', [LevelContentController::class, 'reorder'])
+                ->name('levels.contents.reorder');
             Route::patch('level-contents/{levelContent}', [LevelContentController::class, 'update'])
                 ->name('level-contents.update');
             Route::delete('level-contents/{levelContent}', [LevelContentController::class, 'destroy'])

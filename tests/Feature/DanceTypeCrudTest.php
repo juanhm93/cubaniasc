@@ -114,6 +114,26 @@ class DanceTypeCrudTest extends TestCase
         $this->assertNotSoftDeleted('levels', ['id' => $level->id]);
     }
 
+    public function test_non_admin_users_cannot_delete_dance_types(): void
+    {
+        $teacherRole = Role::factory()->create([
+            'name' => 'Teacher',
+            'slug' => 'teacher',
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $teacherRole->id,
+        ]);
+        $danceType = DanceType::factory()->create();
+
+        $this->actingAs($user);
+
+        $this->deleteJson(route('api.dance-types.destroy', [
+            'danceType' => $danceType->id,
+        ]))->assertForbidden();
+
+        $this->assertNotSoftDeleted('dance_types', ['id' => $danceType->id]);
+    }
+
     private function actingAsAdmin(): User
     {
         $adminRole = Role::factory()->create([

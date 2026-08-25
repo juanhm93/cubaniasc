@@ -28,6 +28,10 @@ export const deleteDanceType = async (id) => {
     await apiClient.delete(`${DANCE_TYPES_API_URL}/${id}`);
 };
 
+export const reorderDanceTypes = async (ids) => {
+    await apiClient.post(`${DANCE_TYPES_API_URL}/reorder`, { ids });
+};
+
 export const getDanceType = async (id) => {
     const response = await apiClient.get(`${DANCE_TYPES_API_URL}/${id}`);
 
@@ -56,6 +60,13 @@ export const deleteLevel = async (id) => {
     await apiClient.delete(`${LEVELS_API_URL}/${id}`);
 };
 
+export const reorderLevels = async (danceTypeId, ids) => {
+    await apiClient.post(
+        `${DANCE_TYPES_API_URL}/${danceTypeId}/levels/reorder`,
+        { ids },
+    );
+};
+
 export const createLevelContent = async (levelId, payload) => {
     const response = await apiClient.post(
         `${LEVELS_API_URL}/${levelId}/contents`,
@@ -73,4 +84,10 @@ export const updateLevelContent = async (id, payload) => {
 
 export const deleteLevelContent = async (id) => {
     await apiClient.delete(`api/level-contents/${id}`);
+};
+
+export const reorderLevelContents = async (levelId, ids) => {
+    await apiClient.post(`${LEVELS_API_URL}/${levelId}/contents/reorder`, {
+        ids,
+    });
 };
