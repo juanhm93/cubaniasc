@@ -84,7 +84,8 @@ class ContentPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('content/level')
                 ->where('level.name', 'Básico 1')
-                ->where('danceType.id', $danceType->id));
+                ->where('danceType.id', $danceType->id)
+                ->where('danceType.name', $danceType->name));
     }
 
     public function test_level_from_another_dance_type_is_not_found(): void

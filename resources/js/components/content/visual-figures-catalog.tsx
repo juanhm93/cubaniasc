@@ -15,15 +15,15 @@ export default function VisualFiguresCatalog({
     );
 
     return (
-        <div className="rounded-xl border border-[#d9cbb3] bg-[#f6f0e4] px-5 py-8 text-[#1c1917] shadow-inner dark:border-[#3a3228] dark:bg-[#221c16] dark:text-[#f5ead7]">
+        <div className="rounded-xl border border-[#D5DBE3] bg-[#F3F5F7] px-5 py-8 text-[#121417] dark:border-[#2A3139] dark:bg-[#161A1F] dark:text-[#EEF1F4]">
             <div className="mb-8 text-center">
-                <p className="text-xs tracking-[0.2em] uppercase opacity-70">
+                <p className="text-xs tracking-[0.2em] text-[#5B6570] uppercase dark:text-[#9AA3AD]">
                     Lista de figuras
                 </p>
                 <h2 className="mt-1 font-serif text-3xl font-semibold tracking-tight">
                     {danceTypeName}
                 </h2>
-                <p className="mt-2 text-sm opacity-70">
+                <p className="mt-2 text-sm text-[#5B6570] dark:text-[#9AA3AD]">
                     {levels.length} nivel
                     {levels.length === 1 ? '' : 'es'} · {figureCount} figura
                     {figureCount === 1 ? '' : 's'}
@@ -31,7 +31,7 @@ export default function VisualFiguresCatalog({
             </div>
 
             {levels.length === 0 ? (
-                <p className="text-center text-sm opacity-70">
+                <p className="text-center text-sm text-[#5B6570] dark:text-[#9AA3AD]">
                     Este estilo todavía no tiene niveles.
                 </p>
             ) : (
@@ -41,11 +41,11 @@ export default function VisualFiguresCatalog({
                             key={level.id}
                             className="mb-8 break-inside-avoid"
                         >
-                            <h3 className="mb-3 border-b border-current/20 pb-1 font-serif text-lg font-semibold">
+                            <h3 className="mb-3 border-b border-[#C45C26]/40 pb-1 font-serif text-lg font-semibold dark:border-[#E07A3A]/50">
                                 {level.name}
                             </h3>
                             {level.level_contents.length === 0 ? (
-                                <p className="text-sm opacity-60">
+                                <p className="text-sm text-[#5B6570] dark:text-[#9AA3AD]">
                                     Sin figuras todavía.
                                 </p>
                             ) : (
@@ -54,7 +54,7 @@ export default function VisualFiguresCatalog({
                                         <li key={figure.id}>
                                             <button
                                                 type="button"
-                                                className="w-full rounded-sm px-1 py-0.5 text-left text-sm leading-snug transition-colors hover:bg-black/5 hover:underline dark:hover:bg-white/10"
+                                                className="w-full rounded-sm px-1 py-0.5 text-left text-sm leading-snug transition-colors hover:bg-[#E8EDF3] hover:underline dark:hover:bg-white/[0.07]"
                                                 onClick={() =>
                                                     onSelectFigure(figure)
                                                 }

@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
+import { show as contentLevelShow } from '@/routes/content/levels';
 import {
     createLevelContent,
     deleteLevelContent,
@@ -192,12 +193,7 @@ export default function ContentLevel({
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="rounded-[4px] border border-sidebar-border/70 bg-card px-4 py-4 shadow-sm dark:border-sidebar-border">
                         <p className="text-sm text-muted-foreground">
-                            <Link
-                                href={contentShow.url(danceType.id)}
-                                className="underline-offset-4 hover:underline"
-                            >
-                                {danceType.name}
-                            </Link>
+                            {danceType.name}
                         </p>
                         <h1 className="mt-1 text-2xl font-bold">
                             {level.name}
@@ -530,11 +526,25 @@ export default function ContentLevel({
     );
 }
 
-ContentLevel.layout = {
+ContentLevel.layout = (props: {
+    danceType: DanceTypeCard;
+    level: ContentLevel;
+}) => ({
     breadcrumbs: [
         {
             title: 'Contenido',
             href: contentIndex.url(),
         },
+        {
+            title: props.danceType.name,
+            href: contentShow.url(props.danceType.id),
+        },
+        {
+            title: props.level.name,
+            href: contentLevelShow.url({
+                danceType: props.danceType.id,
+                level: props.level.id,
+            }),
+        },
     ],
-};
+});

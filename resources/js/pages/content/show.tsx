@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Eye, Pencil, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
-import { index as contentIndex } from '@/routes/content';
+import { index as contentIndex, show as contentShow } from '@/routes/content';
 import { createLevel, deleteLevel } from '@/services/levelService';
 import { normalizeDanceTypeDetail, normalizeLevel } from '@/types/content';
 import type {
@@ -144,15 +144,7 @@ export default function ContentShow({
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p className="text-sm text-muted-foreground">
-                            <Link
-                                href={contentIndex.url()}
-                                className="underline-offset-4 hover:underline"
-                            >
-                                Contenido
-                            </Link>
-                        </p>
-                        <h1 className="mt-1 text-2xl font-semibold">
+                        <h1 className="text-2xl font-semibold">
                             {detail.name}
                         </h1>
                         {detail.description ? (
@@ -392,11 +384,15 @@ export default function ContentShow({
     );
 }
 
-ContentShow.layout = {
+ContentShow.layout = (props: { danceType: DanceTypeDetail }) => ({
     breadcrumbs: [
         {
             title: 'Contenido',
             href: contentIndex.url(),
         },
+        {
+            title: props.danceType.name,
+            href: contentShow.url(props.danceType.id),
+        },
     ],
-};
+});
