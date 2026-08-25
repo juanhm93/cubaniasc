@@ -21,8 +21,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
-import { dashboard, levels } from '@/routes';
+import { index as contentIndex } from '@/routes/content';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -59,8 +60,8 @@ export function AppSidebar() {
         ...(isAdmin
             ? [
                   {
-                      title: 'navigation.levels',
-                      href: levels(),
+                      title: 'Contenido',
+                      href: contentIndex(),
                       icon: BookOpen,
                   },
                   {

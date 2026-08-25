@@ -80,16 +80,6 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
     const form = useForm<CompanyFormFields>(defaults);
 
     useEffect(() => {
-        form.clearErrors();
-        form.setData(buildFormData(company));
-        setLogoPreview(null);
-        if (logoFileRef.current) {
-            logoFileRef.current.value = '';
-        }
-        setEditing(company === null);
-    }, [company?.id]);
-
-    useEffect(() => {
         return () => {
             if (logoPreview?.startsWith('blob:')) {
                 URL.revokeObjectURL(logoPreview);
@@ -149,9 +139,11 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                 onClick={() => {
                                     form.reset();
                                     setLogoPreview(null);
+
                                     if (logoFileRef.current) {
                                         logoFileRef.current.value = '';
                                     }
+
                                     setEditing(false);
                                 }}
                                 disabled={form.processing}
@@ -309,6 +301,7 @@ export default function CompanySettings({ company, canEdit }: PageProps) {
                                     if (prev?.startsWith('blob:')) {
                                         URL.revokeObjectURL(prev);
                                     }
+
                                     return file
                                         ? URL.createObjectURL(file)
                                         : null;

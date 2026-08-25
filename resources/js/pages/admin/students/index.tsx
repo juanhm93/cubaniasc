@@ -1,13 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
-import { useEffect, useState } from 'react';
-import admin from '@/routes/admin';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
+import admin from '@/routes/admin';
 
 type EnrollmentRow = {
     id: number;
@@ -84,10 +84,12 @@ export default function AdminStudentsIndex({
 }: StudentsIndexProps) {
     const { t } = useTranslation();
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
+    const [syncedSearch, setSyncedSearch] = useState(filters.search);
 
-    useEffect(() => {
+    if (filters.search !== syncedSearch) {
+        setSyncedSearch(filters.search);
         setSearchDraft(filters.search ?? '');
-    }, [filters.search]);
+    }
 
     function paginationLabel(raw: string): string {
         return raw
@@ -145,7 +147,7 @@ export default function AdminStudentsIndex({
 
                     <form
                         onSubmit={submitSearch}
-                        className="grid gap-3 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6"
+                        className="grid gap-3 rounded-xl border border-sidebar-border/70 p-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 dark:border-sidebar-border"
                     >
                         <div className="grid gap-1.5">
                             <Label htmlFor="filter-course">
