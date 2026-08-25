@@ -21,6 +21,7 @@ import {
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
 type CalendarOption = {
@@ -75,9 +76,12 @@ function toDatetimeLocalValue(d: Date): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function formatDateEs(iso: string | null): string {
+function formatDateEs(
+    iso: string | null,
+    emptyLabel: string,
+): string {
     if (!iso) {
-        return '—';
+        return emptyLabel;
     }
 
     try {
@@ -87,7 +91,7 @@ function formatDateEs(iso: string | null): string {
             year: 'numeric',
         });
     } catch {
-        return '—';
+        return emptyLabel;
     }
 }
 
@@ -131,6 +135,7 @@ export default function AdminPayments({
     rows,
     preRegistrations,
 }: PaymentsProps) {
+    const { t } = useTranslation();
     const [tab, setTab] = useState<'alumnos' | 'mas'>('alumnos');
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
@@ -189,28 +194,30 @@ export default function AdminPayments({
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Pago registrado.');
+                toast.success(t('admin.payments.paymentRegistered'));
                 closePaymentModal();
             },
             onError: () => {
-                toast.error('No se pudo registrar el pago.');
+                toast.error(t('admin.payments.paymentRegisterFailed'));
             },
         });
     };
 
     const cashMode = form.data.method === 'efectivo';
+    const emptyDateLabel = t('common.emDash');
 
     return (
         <>
-            <Head title="Pagos" />
+            <Head title={t('admin.payments.title')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-2xl font-semibold">Pagos</h1>
+                        <h1 className="text-2xl font-semibold">
+                            {t('admin.payments.title')}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Gestiona cobros y registra comprobantes por alumno y
-                            curso.
+                            {t('admin.payments.description')}
                         </p>
                     </div>
 
@@ -225,7 +232,7 @@ export default function AdminPayments({
                                     : 'text-muted-foreground hover:text-foreground',
                             )}
                         >
-                            Alumnos
+                            {t('admin.payments.tabStudents')}
                         </button>
                         <button
                             type="button"
@@ -237,7 +244,7 @@ export default function AdminPayments({
                                     : 'text-muted-foreground hover:text-foreground',
                             )}
                         >
-                            Preinscritos
+                            {t('admin.payments.tabPreRegistered')}
                         </button>
                     </div>
 
@@ -246,12 +253,12 @@ export default function AdminPayments({
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                 <div className="grid gap-2">
                                     <span className="text-sm font-medium">
-                                        Mes de referencia
+                                        {t('admin.payments.referenceMonth')}
                                     </span>
                                     <div className="flex flex-wrap items-center gap-2">
                                         <div className="grid gap-1">
                                             <Label htmlFor="payments-month-part">
-                                                Mes
+                                                {t('common.month')}
                                             </Label>
                                             <select
                                                 id="payments-month-part"
@@ -276,7 +283,7 @@ export default function AdminPayments({
                                         </div>
                                         <div className="grid gap-1">
                                             <Label htmlFor="payments-year">
-                                                Año
+                                                {t('common.year')}
                                             </Label>
                                             <select
                                                 id="payments-year"
@@ -301,10 +308,7 @@ export default function AdminPayments({
                                         </div>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Por defecto: mes y año actuales. La
-                                        columna «En el mes» usa el periodo
-                                        elegido; «Último pago» es el más
-                                        reciente en general.
+                                        {t('admin.payments.referenceMonthHint')}
                                     </p>
                                 </div>
                             </div>
@@ -314,22 +318,22 @@ export default function AdminPayments({
                                     <thead>
                                         <tr className="border-b border-sidebar-border/70">
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                Alumno
+                                                {t('admin.students.studentLabel')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                Curso
+                                                {t('common.course')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                Correo
+                                                {t('common.email')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                Último pago
+                                                {t('admin.payments.lastPayment')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                En el mes
+                                                {t('admin.payments.inMonth')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                                Acciones
+                                                {t('common.actions')}
                                             </th>
                                         </tr>
                                     </thead>
@@ -340,8 +344,9 @@ export default function AdminPayments({
                                                     colSpan={6}
                                                     className="px-3 py-8 text-center text-muted-foreground"
                                                 >
-                                                    No hay inscripciones
-                                                    activas.
+                                                    {t(
+                                                        'admin.payments.noActiveEnrollments',
+                                                    )}
                                                 </td>
                                             </tr>
                                         ) : (
@@ -360,7 +365,9 @@ export default function AdminPayments({
                                                             )}
                                                             className="text-sm text-primary underline-offset-4 hover:underline"
                                                         >
-                                                            Ver alumno
+                                                            {t(
+                                                                'admin.students.viewStudent',
+                                                            )}
                                                         </Link>
                                                     </td>
                                                     <td className="px-3 py-3 align-middle">
@@ -372,11 +379,13 @@ export default function AdminPayments({
                                                     <td className="px-3 py-3 align-middle whitespace-nowrap">
                                                         {formatDateEs(
                                                             row.last_payment_at,
+                                                            emptyDateLabel,
                                                         )}
                                                     </td>
                                                     <td className="px-3 py-3 align-middle whitespace-nowrap">
                                                         {formatDateEs(
                                                             row.last_payment_in_selected_month_at,
+                                                            emptyDateLabel,
                                                         )}
                                                     </td>
                                                     <td className="px-3 py-3 text-right align-middle">
@@ -391,7 +400,9 @@ export default function AdminPayments({
                                                                     className="gap-1"
                                                                 >
                                                                     <MoreHorizontal className="size-4" />
-                                                                    Acciones
+                                                                    {t(
+                                                                        'common.actions',
+                                                                    )}
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
@@ -402,8 +413,9 @@ export default function AdminPayments({
                                                                         )
                                                                     }
                                                                 >
-                                                                    Registrar
-                                                                    pago
+                                                                    {t(
+                                                                        'admin.payments.registerPayment',
+                                                                    )}
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -418,24 +430,22 @@ export default function AdminPayments({
                     ) : (
                         <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
                             <p className="mb-3 text-sm text-muted-foreground">
-                                Personas que dejaron sus datos antes de
-                                formalizar la inscripción. Usa «Inscribir» para
-                                crear la ficha de alumno.
+                                {t('admin.payments.preRegisteredDescription')}
                             </p>
                             <table className="w-full min-w-[640px] caption-bottom border-collapse text-sm">
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
                                         <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                            Nombre
+                                            {t('common.name')}
                                         </th>
                                         <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                            Correo
+                                            {t('common.email')}
                                         </th>
                                         <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                            Teléfono
+                                            {t('common.phone')}
                                         </th>
                                         <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                            Acción
+                                            {t('common.action')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -446,7 +456,9 @@ export default function AdminPayments({
                                                 colSpan={4}
                                                 className="px-3 py-8 text-center text-muted-foreground"
                                             >
-                                                No hay preinscripciones.
+                                                {t(
+                                                    'admin.payments.noPreRegistrations',
+                                                )}
                                             </td>
                                         </tr>
                                     ) : (
@@ -462,7 +474,8 @@ export default function AdminPayments({
                                                     {pr.email}
                                                 </td>
                                                 <td className="px-3 py-3 align-middle whitespace-nowrap">
-                                                    {pr.phone ?? '—'}
+                                                    {pr.phone ??
+                                                        t('common.emDash')}
                                                 </td>
                                                 <td className="px-3 py-3 text-right align-middle">
                                                     <Button
@@ -476,7 +489,9 @@ export default function AdminPayments({
                                                                 pr.id,
                                                             )}
                                                         >
-                                                            Inscribir
+                                                            {t(
+                                                                'admin.payments.enroll',
+                                                            )}
                                                         </Link>
                                                     </Button>
                                                 </td>
@@ -503,17 +518,19 @@ export default function AdminPayments({
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <form onSubmit={submitPayment}>
                         <DialogHeader>
-                            <DialogTitle>Registrar pago</DialogTitle>
+                            <DialogTitle>
+                                {t('admin.payments.registerPaymentTitle')}
+                            </DialogTitle>
                             <DialogDescription>
-                                Monto obligatorio. Para efectivo no hace falta
-                                referencia ni archivo. Para transferencia u
-                                otro, indica referencia o adjunta comprobante.
+                                {t('admin.payments.registerPaymentDescription')}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="pay-amount">Monto</Label>
+                                <Label htmlFor="pay-amount">
+                                    {t('common.amount')}
+                                </Label>
                                 <Input
                                     id="pay-amount"
                                     name="amount"
@@ -532,7 +549,9 @@ export default function AdminPayments({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="pay-method">Medio</Label>
+                                <Label htmlFor="pay-method">
+                                    {t('admin.payments.method')}
+                                </Label>
                                 <select
                                     id="pay-method"
                                     name="method"
@@ -552,21 +571,27 @@ export default function AdminPayments({
                                     }}
                                     disabled={form.processing}
                                 >
-                                    <option value="efectivo">Efectivo</option>
-                                    <option value="transferencia">
-                                        Transferencia
+                                    <option value="efectivo">
+                                        {t('admin.paymentMethods.cash')}
                                     </option>
-                                    <option value="otro">Otro</option>
+                                    <option value="transferencia">
+                                        {t('admin.paymentMethods.transfer')}
+                                    </option>
+                                    <option value="otro">
+                                        {t('admin.paymentMethods.other')}
+                                    </option>
                                 </select>
                                 <InputError message={form.errors.method} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="pay-reference">
-                                    Referencia{' '}
+                                    {t('admin.payments.reference')}{' '}
                                     {cashMode ? (
                                         <span className="text-muted-foreground">
-                                            (no aplica en efectivo)
+                                            {t(
+                                                'admin.payments.referenceNotApplicableCash',
+                                            )}
                                         </span>
                                     ) : null}
                                 </Label>
@@ -581,14 +606,16 @@ export default function AdminPayments({
                                         )
                                     }
                                     disabled={form.processing || cashMode}
-                                    placeholder="Nº transferencia, etc."
+                                    placeholder={t(
+                                        'admin.payments.referencePlaceholder',
+                                    )}
                                 />
                                 <InputError message={form.errors.reference} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="pay-receipt">
-                                    Comprobante (imagen)
+                                    {t('admin.payments.receiptImage')}
                                 </Label>
                                 <Input
                                     ref={receiptRef}
@@ -609,7 +636,7 @@ export default function AdminPayments({
 
                             <div className="grid gap-2">
                                 <Label htmlFor="pay-paid-at">
-                                    Fecha / hora del pago
+                                    {t('admin.payments.paidAt')}
                                 </Label>
                                 <Input
                                     id="pay-paid-at"
@@ -626,7 +653,7 @@ export default function AdminPayments({
 
                             <div className="grid gap-2">
                                 <Label htmlFor="pay-due-at">
-                                    Vencimiento (opcional)
+                                    {t('admin.payments.dueAtOptional')}
                                 </Label>
                                 <Input
                                     id="pay-due-at"
@@ -642,7 +669,9 @@ export default function AdminPayments({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="pay-notes">Notas</Label>
+                                <Label htmlFor="pay-notes">
+                                    {t('common.notes')}
+                                </Label>
                                 <textarea
                                     id="pay-notes"
                                     name="notes"
@@ -681,12 +710,12 @@ export default function AdminPayments({
                                 onClick={closePaymentModal}
                                 disabled={form.processing}
                             >
-                                Cancelar
+                                {t('common.cancel')}
                             </Button>
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing
-                                    ? 'Guardando…'
-                                    : 'Guardar pago'}
+                                    ? t('common.saving')
+                                    : t('admin.payments.savePayment')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -699,7 +728,7 @@ export default function AdminPayments({
 AdminPayments.layout = {
     breadcrumbs: [
         {
-            title: 'Pagos',
+            title: 'navigation.payments',
             href: admin.payments.index.url(),
         },
     ],

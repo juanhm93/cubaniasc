@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
 type Option = {
@@ -18,14 +19,14 @@ type SlotDraft = {
     ends_at: string;
 };
 
-const WEEKDAY_OPTIONS: { value: number; label: string }[] = [
-    { value: 1, label: 'Lunes' },
-    { value: 2, label: 'Martes' },
-    { value: 3, label: 'Miércoles' },
-    { value: 4, label: 'Jueves' },
-    { value: 5, label: 'Viernes' },
-    { value: 6, label: 'Sábado' },
-    { value: 7, label: 'Domingo' },
+const WEEKDAY_OPTIONS: { value: number; key: string }[] = [
+    { value: 1, key: 'monday' },
+    { value: 2, key: 'tuesday' },
+    { value: 3, key: 'wednesday' },
+    { value: 4, key: 'thursday' },
+    { value: 5, key: 'friday' },
+    { value: 6, key: 'saturday' },
+    { value: 7, key: 'sunday' },
 ];
 
 type CreateCourseProps = {
@@ -39,6 +40,7 @@ export default function AdminCoursesCreate({
     places,
     teachers,
 }: CreateCourseProps) {
+    const { t } = useTranslation();
     const form = useForm({
         level_id: '',
         place_id: '',
@@ -92,42 +94,48 @@ export default function AdminCoursesCreate({
 
     return (
         <>
-            <Head title="Nuevo curso" />
+            <Head title={t('admin.courses.newCourse')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-semibold">Nuevo curso</h1>
+                            <h1 className="text-2xl font-semibold">
+                                {t('admin.courses.newCourse')}
+                            </h1>
                             <p className="text-sm text-muted-foreground">
-                                Define nivel, precio, lugar, profesor y uno o más
-                                horarios (cada fila: día + franja; sin patrón
-                                fijo).
+                                {t('admin.courses.newCourseDescription')}
                             </p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
-                            <Link href={admin.courses.index.url()}>Volver</Link>
+                            <Link href={admin.courses.index.url()}>
+                                {t('common.back')}
+                            </Link>
                         </Button>
                     </div>
 
                     {(placesEmpty || teachersEmpty) && (
                         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
                             {placesEmpty
-                                ? 'No hay lugares para tu academia.'
+                                ? t('admin.courses.noPlacesInAcademy')
                                 : null}{' '}
                             {teachersEmpty
-                                ? 'No hay usuarios/profesores en tu academia.'
+                                ? t('admin.courses.noTeachersInAcademy')
                                 : null}{' '}
-                            Completa datos antes de crear el curso.
+                            {t('admin.courses.completeDataBeforeCreate')}
                         </p>
                     )}
 
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                            <h2 className="text-sm font-medium">Datos generales</h2>
+                            <h2 className="text-sm font-medium">
+                                {t('common.generalData')}
+                            </h2>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="level_id">Nivel</Label>
+                                <Label htmlFor="level_id">
+                                    {t('common.level')}
+                                </Label>
                                 <select
                                     id="level_id"
                                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -138,7 +146,7 @@ export default function AdminCoursesCreate({
                                     required
                                 >
                                     <option value="" disabled>
-                                        Selecciona…
+                                        {t('common.select')}
                                     </option>
                                     {levels.map((l) => (
                                         <option
@@ -154,7 +162,9 @@ export default function AdminCoursesCreate({
 
                             <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="place_id">Lugar</Label>
+                                    <Label htmlFor="place_id">
+                                        {t('common.place')}
+                                    </Label>
                                     <select
                                         id="place_id"
                                         className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -169,7 +179,7 @@ export default function AdminCoursesCreate({
                                         disabled={placesEmpty}
                                     >
                                         <option value="" disabled>
-                                            Selecciona…
+                                            {t('common.select')}
                                         </option>
                                         {places.map((p) => (
                                             <option
@@ -183,7 +193,9 @@ export default function AdminCoursesCreate({
                                     <InputError message={form.errors.place_id} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="user_id">Profesor</Label>
+                                    <Label htmlFor="user_id">
+                                        {t('common.teacher')}
+                                    </Label>
                                     <select
                                         id="user_id"
                                         className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -195,14 +207,14 @@ export default function AdminCoursesCreate({
                                         disabled={teachersEmpty}
                                     >
                                         <option value="" disabled>
-                                            Selecciona…
+                                            {t('common.select')}
                                         </option>
-                                        {teachers.map((t) => (
+                                        {teachers.map((teacher) => (
                                             <option
-                                                key={t.id}
-                                                value={String(t.id)}
+                                                key={teacher.id}
+                                                value={String(teacher.id)}
                                             >
-                                                {t.name}
+                                                {teacher.name}
                                             </option>
                                         ))}
                                     </select>
@@ -212,7 +224,9 @@ export default function AdminCoursesCreate({
 
                             <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="price">Precio</Label>
+                                    <Label htmlFor="price">
+                                        {t('common.price')}
+                                    </Label>
                                     <Input
                                         id="price"
                                         name="price"
@@ -229,7 +243,9 @@ export default function AdminCoursesCreate({
                                     <InputError message={form.errors.price} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="is_active">Estado</Label>
+                                    <Label htmlFor="is_active">
+                                        {t('common.status')}
+                                    </Label>
                                     <select
                                         id="is_active"
                                         className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -241,9 +257,11 @@ export default function AdminCoursesCreate({
                                             )
                                         }
                                     >
-                                        <option value="1">Activo</option>
+                                        <option value="1">
+                                            {t('common.active')}
+                                        </option>
                                         <option value="0">
-                                            Inactivo (borrador)
+                                            {t('common.inactiveDraft')}
                                         </option>
                                     </select>
                                     <InputError message={form.errors.is_active} />
@@ -255,11 +273,10 @@ export default function AdminCoursesCreate({
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
                                     <h2 className="text-sm font-medium">
-                                        Horarios del curso
+                                        {t('admin.courses.courseSchedules')}
                                     </h2>
                                     <p className="text-xs text-muted-foreground">
-                                        Añade las franjas que necesites (ej. Lun y
-                                        Mié 17–18, y otra solo Vie 16–18).
+                                        {t('admin.courses.courseSchedulesHint')}
                                     </p>
                                 </div>
                                 <Button
@@ -268,7 +285,7 @@ export default function AdminCoursesCreate({
                                     size="sm"
                                     onClick={addSlot}
                                 >
-                                    Añadir franja
+                                    {t('admin.courses.addSlot')}
                                 </Button>
                             </div>
 
@@ -285,7 +302,7 @@ export default function AdminCoursesCreate({
                                                 className="text-xs"
                                                 htmlFor={`weekday-${index}`}
                                             >
-                                                Día
+                                                {t('common.day')}
                                             </Label>
                                             <select
                                                 id={`weekday-${index}`}
@@ -304,7 +321,9 @@ export default function AdminCoursesCreate({
                                                         key={w.value}
                                                         value={w.value}
                                                     >
-                                                        {w.label}
+                                                        {t(
+                                                            `admin.weekdays.${w.key}`,
+                                                        )}
                                                     </option>
                                                 ))}
                                             </select>
@@ -314,7 +333,7 @@ export default function AdminCoursesCreate({
                                                 className="text-xs"
                                                 htmlFor={`start-${index}`}
                                             >
-                                                Desde
+                                                {t('common.from')}
                                             </Label>
                                             <Input
                                                 id={`start-${index}`}
@@ -333,7 +352,7 @@ export default function AdminCoursesCreate({
                                                 className="text-xs"
                                                 htmlFor={`end-${index}`}
                                             >
-                                                Hasta
+                                                {t('common.to')}
                                             </Label>
                                             <Input
                                                 id={`end-${index}`}
@@ -355,7 +374,7 @@ export default function AdminCoursesCreate({
                                                 className="text-muted-foreground"
                                                 onClick={() => removeSlot(index)}
                                             >
-                                                Quitar
+                                                {t('common.remove')}
                                             </Button>
                                         ) : null}
                                     </div>
@@ -374,11 +393,13 @@ export default function AdminCoursesCreate({
                                     levels.length === 0
                                 }
                             >
-                                {form.processing ? 'Guardando…' : 'Crear curso'}
+                                {form.processing
+                                    ? t('common.saving')
+                                    : t('admin.courses.createCourse')}
                             </Button>
                             <Button type="button" variant="outline" asChild>
                                 <Link href={admin.courses.index.url()}>
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </Link>
                             </Button>
                         </div>
@@ -392,11 +413,11 @@ export default function AdminCoursesCreate({
 AdminCoursesCreate.layout = {
     breadcrumbs: [
         {
-            title: 'Cursos',
+            title: 'navigation.courses',
             href: admin.courses.index.url(),
         },
         {
-            title: 'Nuevo',
+            title: 'admin.breadcrumbs.new',
             href: admin.courses.create.url(),
         },
     ],

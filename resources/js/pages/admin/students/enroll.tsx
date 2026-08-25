@@ -4,6 +4,7 @@ import admin from '@/routes/admin';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 
 type CourseOption = {
     id: number;
@@ -24,6 +25,7 @@ export default function AdminStudentsEnroll({
     courses,
     students,
 }: EnrollPageProps) {
+    const { t } = useTranslation();
     const form = useForm({
         course_id: '',
         student_id: '',
@@ -42,23 +44,22 @@ export default function AdminStudentsEnroll({
 
     return (
         <>
-            <Head title="Inscribir alumnos" />
+            <Head title={t('admin.students.enrollTitle')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-semibold">
-                                Inscribir alumnos
+                                {t('admin.students.enrollTitle')}
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                                Asocia un alumno existente a un curso de tu
-                                academia.
+                                {t('admin.students.enrollDescription')}
                             </p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
                             <Link href={admin.students.index.url()}>
-                                Volver al listado
+                                {t('admin.students.backToList')}
                             </Link>
                         </Button>
                     </div>
@@ -66,10 +67,10 @@ export default function AdminStudentsEnroll({
                     {(coursesEmpty || studentsEmpty) && (
                         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
                             {coursesEmpty
-                                ? 'No hay cursos en tu academia.'
+                                ? t('admin.students.noCoursesInAcademy')
                                 : null}{' '}
                             {studentsEmpty
-                                ? 'No hay alumnos registrados aún.'
+                                ? t('admin.students.noStudentsYet')
                                 : null}
                         </p>
                     )}
@@ -77,7 +78,9 @@ export default function AdminStudentsEnroll({
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                             <div className="grid gap-2">
-                                <Label htmlFor="course_id">Curso</Label>
+                                <Label htmlFor="course_id">
+                                    {t('common.course')}
+                                </Label>
                                 <select
                                     id="course_id"
                                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -92,7 +95,7 @@ export default function AdminStudentsEnroll({
                                     disabled={coursesEmpty}
                                 >
                                     <option value="" disabled>
-                                        Selecciona…
+                                        {t('common.select')}
                                     </option>
                                     {courses.map((c) => (
                                         <option key={c.id} value={String(c.id)}>
@@ -104,7 +107,9 @@ export default function AdminStudentsEnroll({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="student_id">Alumno</Label>
+                                <Label htmlFor="student_id">
+                                    {t('admin.students.studentLabel')}
+                                </Label>
                                 <select
                                     id="student_id"
                                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -119,7 +124,7 @@ export default function AdminStudentsEnroll({
                                     disabled={studentsEmpty}
                                 >
                                     <option value="" disabled>
-                                        Selecciona…
+                                        {t('common.select')}
                                     </option>
                                     {students.map((s) => (
                                         <option key={s.id} value={String(s.id)}>
@@ -138,7 +143,7 @@ export default function AdminStudentsEnroll({
                                     studentsEmpty
                                 }
                             >
-                                Inscribir en el curso
+                                {t('admin.students.enrollInCourse')}
                             </Button>
                         </div>
                     </form>
@@ -151,11 +156,11 @@ export default function AdminStudentsEnroll({
 AdminStudentsEnroll.layout = {
     breadcrumbs: [
         {
-            title: 'Alumnos',
+            title: 'navigation.students',
             href: admin.students.index.url(),
         },
         {
-            title: 'Inscribir',
+            title: 'admin.breadcrumbs.enroll',
             href: admin.students.enroll.url(),
         },
     ],

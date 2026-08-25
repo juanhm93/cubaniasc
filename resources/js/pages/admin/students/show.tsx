@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import admin from '@/routes/admin';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 
 type LevelRef = {
     id: number;
@@ -40,48 +41,74 @@ type StudentShowProps = {
 function Field({
     label,
     value,
+    emptyLabel,
 }: {
     label: string;
     value: string | null | undefined;
+    emptyLabel: string;
 }) {
     return (
         <div className="grid gap-1">
             <dt className="text-xs font-medium text-muted-foreground">
                 {label}
             </dt>
-            <dd className="text-sm">{value && value !== '' ? value : '—'}</dd>
+            <dd className="text-sm">
+                {value && value !== '' ? value : emptyLabel}
+            </dd>
         </div>
     );
 }
 
 export default function AdminStudentShow({ student }: StudentShowProps) {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title={`Alumno: ${student.name}`} />
+            <Head
+                title={t('admin.students.headTitleStudent', {
+                    name: student.name,
+                })}
+            />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl font-semibold">{student.name}</h1>
+                        <h1 className="text-2xl font-semibold">
+                            {student.name}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Ficha del alumno (solo lectura)
+                            {t('admin.students.studentReadOnly')}
                         </p>
                     </div>
                     <Button variant="outline" size="sm" asChild>
                         <Link href={admin.students.index.url()}>
-                            Lista de alumnos
+                            {t('admin.students.studentList')}
                         </Link>
                     </Button>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                    <h2 className="mb-4 text-lg font-medium">Datos generales</h2>
+                    <h2 className="mb-4 text-lg font-medium">
+                        {t('common.generalData')}
+                    </h2>
                     <dl className="grid gap-4 sm:grid-cols-2">
-                        <Field label="Correo" value={student.email} />
-                        <Field label="DNI" value={student.dni} />
-                        <Field label="Teléfono" value={student.phone} />
                         <Field
-                            label="Fecha de nacimiento"
+                            label={t('common.email')}
+                            value={student.email}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.dni')}
+                            value={student.dni}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.phone')}
+                            value={student.phone}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.birthday')}
                             value={
                                 student.birthday
                                     ? new Date(
@@ -89,25 +116,50 @@ export default function AdminStudentShow({ student }: StudentShowProps) {
                                       ).toLocaleDateString('es')
                                     : null
                             }
+                            emptyLabel={t('common.emDash')}
                         />
-                        <Field label="Dirección" value={student.address} />
-                        <Field label="Ciudad" value={student.city} />
-                        <Field label="Estado / provincia" value={student.state} />
-                        <Field label="Código postal" value={student.zip} />
-                        <Field label="País" value={student.country} />
                         <Field
-                            label="Contacto de emergencia"
+                            label={t('common.address')}
+                            value={student.address}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.city')}
+                            value={student.city}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.stateProvince')}
+                            value={student.state}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.zipCode')}
+                            value={student.zip}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('common.country')}
+                            value={student.country}
+                            emptyLabel={t('common.emDash')}
+                        />
+                        <Field
+                            label={t('admin.students.emergencyContact')}
                             value={student.emergency_contact_name}
+                            emptyLabel={t('common.emDash')}
                         />
                         <Field
-                            label="Teléfono de emergencia"
+                            label={t('admin.students.emergencyPhone')}
                             value={student.emergency_contact_phone}
+                            emptyLabel={t('common.emDash')}
                         />
                     </dl>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                    <h2 className="mb-4 text-lg font-medium">Inscripciones</h2>
+                    <h2 className="mb-4 text-lg font-medium">
+                        {t('admin.students.enrollments')}
+                    </h2>
                     {student.enrollments && student.enrollments.length > 0 ? (
                         <ul className="space-y-2">
                             {student.enrollments.map((enrollment) => (
@@ -117,7 +169,11 @@ export default function AdminStudentShow({ student }: StudentShowProps) {
                                 >
                                     <span>
                                         {enrollment.course?.level?.name ??
-                                            `Curso #${enrollment.course?.id ?? ''}`}
+                                            t('admin.students.courseNumber', {
+                                                id:
+                                                    enrollment.course?.id ??
+                                                    '',
+                                            })}
                                     </span>
                                     <span className="text-muted-foreground">
                                         {enrollment.status}
@@ -127,7 +183,7 @@ export default function AdminStudentShow({ student }: StudentShowProps) {
                         </ul>
                     ) : (
                         <p className="text-sm text-muted-foreground">
-                            Sin inscripciones cargadas.
+                            {t('admin.students.noEnrollments')}
                         </p>
                     )}
                 </div>
@@ -139,11 +195,11 @@ export default function AdminStudentShow({ student }: StudentShowProps) {
 AdminStudentShow.layout = {
     breadcrumbs: [
         {
-            title: 'Pagos',
+            title: 'navigation.payments',
             href: admin.payments.index.url(),
         },
         {
-            title: 'Alumno',
+            title: 'admin.breadcrumbs.student',
             href: '#',
         },
     ],

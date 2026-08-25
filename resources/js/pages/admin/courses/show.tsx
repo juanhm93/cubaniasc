@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import admin from '@/routes/admin';
 
 type LocationOption = {
@@ -133,11 +134,21 @@ type CourseShowProps = {
     teachers: LocationOption[];
 };
 
-const ATT_STATUSES = [
-    { value: 'present', label: 'Presente' },
-    { value: 'absent', label: 'Ausente' },
-    { value: 'late', label: 'Tarde' },
-    { value: 'excused', label: 'Justificado' },
+const ATT_STATUS_VALUES = [
+    'present',
+    'absent',
+    'late',
+    'excused',
+] as const;
+
+const WEEKDAY_SHORT_KEYS = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
 ] as const;
 
 function formatDateEs(isoDate: string): string {
@@ -150,14 +161,6 @@ function formatDateEs(isoDate: string): string {
     } catch {
         return isoDate;
     }
-}
-
-function attendanceLabel(status: string | undefined): string {
-    if (!status) {
-        return 'Sin marcar';
-    }
-
-    return ATT_STATUSES.find((s) => s.value === status)?.label ?? status;
 }
 
 function attendanceDotClass(status: string | undefined): string {
@@ -222,6 +225,7 @@ export default function AdminCourseShow({
     places,
     teachers,
 }: CourseShowProps) {
+    const { t } = useTranslation();
     const { props } = usePage<{ errors?: Record<string, string> }>();
     const formErrors = props.errors ?? {};
     const [modalStudentId, setModalStudentId] = useState<number | null>(null);
@@ -231,6 +235,23 @@ export default function AdminCourseShow({
     const now = new Date();
     const [calYear, setCalYear] = useState(now.getFullYear());
     const [calMonth, setCalMonth] = useState(now.getMonth() + 1);
+
+    function attendanceLabel(status: string | undefined): string {
+        if (!status) {
+            return t('admin.attendance.unmarked');
+        }
+
+        if (
+            status === 'present' ||
+            status === 'absent' ||
+            status === 'late' ||
+            status === 'excused'
+        ) {
+            return t(`admin.attendance.${status}`);
+        }
+
+        return status;
+    }
 
     const modalStudent = enrollments.find(
         (e) => e.student_id === modalStudentId,
@@ -301,7 +322,9 @@ export default function AdminCourseShow({
 
         if (
             !confirm(
-                `¿Pasar el curso al nivel «${nextLevel?.name ?? ''}»? Los alumnos seguirán viendo el progreso guardado en niveles anteriores.`,
+                t('admin.courses.advanceLevelConfirm', {
+                    name: nextLevel?.name ?? '',
+                }),
             )
         ) {
             return;
@@ -314,22 +337,31 @@ export default function AdminCourseShow({
         );
     };
 
+    const courseLevelName = course.level?.name ?? t('common.course');
+    const emDash = t('common.emDash');
+
     return (
         <>
-            <Head title={`Curso: ${course.level?.name ?? course.id}`} />
+            <Head
+                title={t('admin.courses.headTitleCourse', {
+                    name: course.level?.name ?? String(course.id),
+                })}
+            />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            {course.level?.name ?? 'Curso'}{' '}
+                            {courseLevelName}{' '}
                             <span className="font-normal text-muted-foreground">
-                                · {course.place?.name ?? '—'}
+                                · {course.place?.name ?? emDash}
                             </span>
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Prof. {course.teacher?.name ?? '—'} · Precio{' '}
-                            {course.price}
+                            {t('admin.courses.professorPrice', {
+                                teacher: course.teacher?.name ?? emDash,
+                                price: course.price,
+                            })}
                         </p>
                         {course.schedule_slots.length > 0 ? (
                             <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -351,15 +383,20 @@ export default function AdminCourseShow({
                         ) : null}
                         {levelsPath.length > 0 ? (
                             <p className="mt-2 text-xs text-muted-foreground">
-                                Recorrido de niveles:{' '}
-                                {levelsPath.map((l) => l.name).join(' → ')}
+                                {t('admin.courses.levelPath', {
+                                    path: levelsPath
+                                        .map((l) => l.name)
+                                        .join(' → '),
+                                })}
                             </p>
                         ) : null}
                     </div>
                     <div className="flex max-w-full flex-col gap-3 sm:max-w-none">
                         <div className="flex flex-wrap items-end gap-3">
                             <div className="grid min-w-[12rem] gap-1">
-                                <Label htmlFor="course-teacher">Profesor</Label>
+                                <Label htmlFor="course-teacher">
+                                    {t('common.teacher')}
+                                </Label>
                                 <select
                                     id="course-teacher"
                                     className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -377,16 +414,23 @@ export default function AdminCourseShow({
                                 >
                                     {teachers.length === 0 ? (
                                         <option value="">
-                                            No hay usuarios en la academia
+                                            {t(
+                                                'admin.courses.noUsersInAcademy',
+                                            )}
                                         </option>
                                     ) : (
                                         <>
                                             <option value="" disabled>
-                                                Selecciona profesor…
+                                                {t(
+                                                    'admin.courses.selectTeacher',
+                                                )}
                                             </option>
-                                            {teachers.map((t) => (
-                                                <option key={t.id} value={t.id}>
-                                                    {t.name}
+                                            {teachers.map((teacher) => (
+                                                <option
+                                                    key={teacher.id}
+                                                    value={teacher.id}
+                                                >
+                                                    {teacher.name}
                                                 </option>
                                             ))}
                                         </>
@@ -395,7 +439,9 @@ export default function AdminCourseShow({
                                 <InputError message={formErrors.user_id} />
                             </div>
                             <div className="grid min-w-[12rem] gap-1">
-                                <Label htmlFor="course-place">Lugar</Label>
+                                <Label htmlFor="course-place">
+                                    {t('common.place')}
+                                </Label>
                                 <select
                                     id="course-place"
                                     className="h-9 rounded-md border border-input bg-background px-3 text-sm"
@@ -412,11 +458,15 @@ export default function AdminCourseShow({
                                     }}
                                 >
                                     {places.length === 0 ? (
-                                        <option value="">No hay lugares</option>
+                                        <option value="">
+                                            {t('admin.courses.noPlaces')}
+                                        </option>
                                     ) : (
                                         <>
                                             <option value="" disabled>
-                                                Selecciona lugar…
+                                                {t(
+                                                    'admin.courses.selectPlace',
+                                                )}
                                             </option>
                                             {places.map((p) => (
                                                 <option key={p.id} value={p.id}>
@@ -430,7 +480,7 @@ export default function AdminCourseShow({
                             </div>
                             <div className="grid min-w-[10rem] gap-1">
                                 <Label htmlFor="course-active">
-                                    Estado del curso
+                                    {t('admin.courses.courseStatus')}
                                 </Label>
                                 <select
                                     id="course-active"
@@ -442,8 +492,12 @@ export default function AdminCourseShow({
                                         });
                                     }}
                                 >
-                                    <option value="1">Activo</option>
-                                    <option value="0">Inactivo</option>
+                                    <option value="1">
+                                        {t('common.active')}
+                                    </option>
+                                    <option value="0">
+                                        {t('common.inactive')}
+                                    </option>
                                 </select>
                                 <InputError message={formErrors.is_active} />
                             </div>
@@ -451,7 +505,7 @@ export default function AdminCourseShow({
                         <div>
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={admin.courses.index.url()}>
-                                    Lista de cursos
+                                    {t('admin.courses.courseList')}
                                 </Link>
                             </Button>
                         </div>
@@ -461,10 +515,12 @@ export default function AdminCourseShow({
                 <div className="grid gap-6 lg:grid-cols-2">
                     <section className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <h2 className="mb-3 text-lg font-medium">
-                            Alumnos y asistencia
+                            {t('admin.courses.studentsAndAttendance')}
                         </h2>
                         <div className="mb-4 grid gap-2">
-                            <Label htmlFor="session-pick">Clase (fecha)</Label>
+                            <Label htmlFor="session-pick">
+                                {t('admin.courses.sessionDate')}
+                            </Label>
                             <select
                                 id="session-pick"
                                 className="h-9 max-w-md rounded-md border border-input bg-background px-3 text-sm"
@@ -480,7 +536,9 @@ export default function AdminCourseShow({
                             >
                                 {sessions.length === 0 ? (
                                     <option value="">
-                                        No hay clases registradas
+                                        {t(
+                                            'admin.courses.noSessionsRegistered',
+                                        )}
                                     </option>
                                 ) : (
                                     sessions.map((s) => (
@@ -500,13 +558,15 @@ export default function AdminCourseShow({
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
                                         <th className="py-2 text-left font-medium text-muted-foreground">
-                                            Alumno
+                                            {t('admin.students.studentLabel')}
                                         </th>
                                         <th className="py-2 text-left font-medium text-muted-foreground">
-                                            Asistencia (esta clase)
+                                            {t(
+                                                'admin.courses.attendanceThisSession',
+                                            )}
                                         </th>
                                         <th className="py-2 text-right font-medium text-muted-foreground">
-                                            Historial
+                                            {t('admin.courses.history')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -517,7 +577,9 @@ export default function AdminCourseShow({
                                                 colSpan={3}
                                                 className="py-6 text-center text-muted-foreground"
                                             >
-                                                No hay alumnos inscritos.
+                                                {t(
+                                                    'admin.courses.noEnrolledStudents',
+                                                )}
                                             </td>
                                         </tr>
                                     ) : (
@@ -575,28 +637,30 @@ export default function AdminCourseShow({
                                                             }}
                                                         >
                                                             <option value="">
-                                                                Marcar…
+                                                                {t(
+                                                                    'admin.attendance.mark',
+                                                                )}
                                                             </option>
-                                                            {ATT_STATUSES.map(
-                                                                (s) => (
+                                                            {ATT_STATUS_VALUES.map(
+                                                                (value) => (
                                                                     <option
                                                                         key={
-                                                                            s.value
+                                                                            value
                                                                         }
                                                                         value={
-                                                                            s.value
+                                                                            value
                                                                         }
                                                                     >
-                                                                        {
-                                                                            s.label
-                                                                        }
+                                                                        {t(
+                                                                            `admin.attendance.${value}`,
+                                                                        )}
                                                                     </option>
                                                                 ),
                                                             )}
                                                         </select>
                                                     ) : (
                                                         <span className="text-muted-foreground">
-                                                            —
+                                                            {emDash}
                                                         </span>
                                                     )}
                                                 </td>
@@ -618,7 +682,9 @@ export default function AdminCourseShow({
                                                             );
                                                         }}
                                                     >
-                                                        Ver asistencias
+                                                        {t(
+                                                            'admin.courses.viewAttendance',
+                                                        )}
                                                     </Button>
                                                 </td>
                                             </tr>
@@ -633,32 +699,34 @@ export default function AdminCourseShow({
                         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <h2 className="text-lg font-medium">
-                                    Figuras ({course.level?.name ?? 'nivel'})
+                                    {t('admin.courses.figuresTitle', {
+                                        level:
+                                            course.level?.name ??
+                                            t('common.level'),
+                                    })}
                                 </h2>
                                 <p className="text-xs text-muted-foreground">
-                                    Marca qué figuras ha trabajado el grupo en
-                                    este nivel (un solo checklist para el
-                                    curso). Al pasar de nivel, el historial de
-                                    figuras por nivel se conserva en la base de
-                                    datos.
+                                    {t('admin.courses.figuresDescription')}
                                 </p>
                             </div>
                             {nextLevel ? (
                                 <form onSubmit={submitAdvance}>
                                     <Button type="submit" size="sm">
-                                        Pasar a {nextLevel.name}
+                                        {t('admin.courses.advanceToLevel', {
+                                            name: nextLevel.name,
+                                        })}
                                     </Button>
                                 </form>
                             ) : (
                                 <span className="text-xs text-muted-foreground">
-                                    No hay nivel siguiente en esta modalidad.
+                                    {t('admin.courses.noNextLevel')}
                                 </span>
                             )}
                         </div>
 
                         {levelContents.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                                Este nivel no tiene figuras en el catálogo.
+                                {t('admin.courses.noFiguresInCatalog')}
                             </p>
                         ) : (
                             <ul className="divide-y divide-sidebar-border/70 rounded-lg border border-sidebar-border/70">
@@ -684,7 +752,10 @@ export default function AdminCourseShow({
                                                     },
                                                 );
                                             }}
-                                            aria-label={`Figura vista: ${lc.name}`}
+                                            aria-label={t(
+                                                'admin.courses.figureViewedAria',
+                                                { name: lc.name },
+                                            )}
                                         />
                                         <span className="min-w-0 flex-1 text-sm">
                                             {lc.name}
@@ -695,7 +766,10 @@ export default function AdminCourseShow({
                                                 variant="ghost"
                                                 size="icon"
                                                 className="size-9 shrink-0 text-muted-foreground"
-                                                aria-label={`Ver figura: ${lc.name}`}
+                                                aria-label={t(
+                                                    'admin.courses.viewFigureAria',
+                                                    { name: lc.name },
+                                                )}
                                                 onClick={() =>
                                                     setPreviewFigure(lc)
                                                 }
@@ -725,11 +799,10 @@ export default function AdminCourseShow({
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {previewFigure?.name ?? 'Figura'}
+                            {previewFigure?.name ?? t('common.figure')}
                         </DialogTitle>
                         <DialogDescription>
-                            Vista previa del video asociado a esta figura en el
-                            catálogo del nivel.
+                            {t('admin.courses.figurePreviewDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     {previewFigure?.video_url ? (
@@ -767,8 +840,9 @@ export default function AdminCourseShow({
                                         controls
                                         className="w-full rounded-md"
                                     >
-                                        Tu navegador no reproduce este formato
-                                        de video.
+                                        {t(
+                                            'admin.courses.videoFormatUnsupported',
+                                        )}
                                     </video>
                                 );
                             }
@@ -781,8 +855,7 @@ export default function AdminCourseShow({
                                         rel="noopener noreferrer"
                                         className="font-medium text-primary underline underline-offset-4"
                                     >
-                                        Abrir enlace del video en una nueva
-                                        pestaña
+                                        {t('admin.courses.openVideoLink')}
                                     </a>
                                 </p>
                             );
@@ -802,7 +875,9 @@ export default function AdminCourseShow({
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            Asistencias — {modalStudent?.student_name ?? ''}
+                            {t('admin.courses.attendanceModalTitle', {
+                                name: modalStudent?.student_name ?? '',
+                            })}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -850,12 +925,12 @@ export default function AdminCourseShow({
                         </div>
 
                         <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
+                            {WEEKDAY_SHORT_KEYS.map((key) => (
                                 <div
-                                    key={d}
+                                    key={key}
                                     className="font-medium text-muted-foreground"
                                 >
-                                    {d}
+                                    {t(`admin.weekdaysShort.${key}`)}
                                 </div>
                             ))}
                             {calendarCells.map((cell, idx) =>
@@ -896,12 +971,14 @@ export default function AdminCourseShow({
 
                         <div>
                             <p className="mb-2 text-xs font-medium text-muted-foreground">
-                                Clases del mes
+                                {t('admin.courses.sessionsThisMonth')}
                             </p>
                             <ul className="max-h-48 space-y-2 overflow-y-auto text-sm">
                                 {sessionsInMonth.length === 0 ? (
                                     <li className="text-muted-foreground">
-                                        No hay clases en este mes.
+                                        {t(
+                                            'admin.courses.noSessionsThisMonth',
+                                        )}
                                     </li>
                                 ) : (
                                     sessionsInMonth.map((s) => {
@@ -945,11 +1022,11 @@ export default function AdminCourseShow({
 AdminCourseShow.layout = {
     breadcrumbs: [
         {
-            title: 'Cursos',
+            title: 'navigation.courses',
             href: admin.courses.index.url(),
         },
         {
-            title: 'Curso',
+            title: 'admin.breadcrumbs.course',
             href: '#',
         },
     ],
