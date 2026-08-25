@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from '@/i18n/use-translation';
 
 type CubaniaStyleCardProps = {
     highlight?: boolean;
@@ -21,6 +22,7 @@ export function CubaniaStyleCard({
     description,
     onActivate,
 }: CubaniaStyleCardProps): ReactNode {
+    const { t } = useTranslation();
     const className = `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
 
     const body = (
@@ -48,7 +50,7 @@ export function CubaniaStyleCard({
                 className={className}
                 data-cubania-cursor="interactive"
                 onClick={onActivate}
-                aria-label={`Ver video: ${name}`}
+                aria-label={t('landing.styleCard.watchVideo', { name })}
             >
                 {body}
             </button>

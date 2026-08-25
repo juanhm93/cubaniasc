@@ -1,42 +1,47 @@
 import type { ReactNode } from 'react';
 import { CubaniaReveal } from '@/components/base/cubania/cubania-reveal';
 import { CubaniaTestimonialCard } from '@/components/base/cubania/cubania-testimonial-card';
+import { useTranslation } from '@/i18n/use-translation';
 
 /**
  * Community quotes section.
  */
 export function CubaniaTestimonialsSection(): ReactNode {
+    const { t } = useTranslation();
+
     return (
         <section className="cubania-testimonials" id="testimonios">
-            <div className="cubania-section-header__label">Lo que dicen</div>
+            <div className="cubania-section-header__label">
+                {t('landing.testimonials.sectionLabel')}
+            </div>
             <h2 className="cubania-section-header__title">
-                La comunidad
+                {t('landing.testimonials.sectionTitleLine1')}
                 <br />
-                Cubanía
+                {t('landing.testimonials.sectionTitleLine2')}
             </h2>
 
             <div className="cubania-testimonials__grid">
                 <CubaniaReveal delayMs={0}>
                     <CubaniaTestimonialCard
-                        quote="Llegué sin saber bailar y ahora no puedo imaginar mi semana sin Cubanía. Es más que clases, es una familia."
-                        authorName="María G."
-                        authorRole="Estudiante · Nivel Intermedio"
+                        quote={t('landing.testimonials.maria.quote')}
+                        authorName={t('landing.testimonials.maria.authorName')}
+                        authorRole={t('landing.testimonials.maria.authorRole')}
                         avatarLetter="M"
                     />
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={100}>
                     <CubaniaTestimonialCard
-                        quote="Los profesores tienen una energía increíble. Aprendes técnica pero también filosofía del baile."
-                        authorName="Rafael T."
-                        authorRole="Estudiante · Nivel Avanzado"
+                        quote={t('landing.testimonials.rafael.quote')}
+                        authorName={t('landing.testimonials.rafael.authorName')}
+                        authorRole={t('landing.testimonials.rafael.authorRole')}
                         avatarLetter="R"
                     />
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={200}>
                     <CubaniaTestimonialCard
-                        quote="La sede en el Ministerio de Cultura es preciosa. Cada clase es una experiencia diferente y auténtica."
-                        authorName="Laura P."
-                        authorRole="Estudiante · Nivel Principiante"
+                        quote={t('landing.testimonials.laura.quote')}
+                        authorName={t('landing.testimonials.laura.authorName')}
+                        authorRole={t('landing.testimonials.laura.authorRole')}
                         avatarLetter="L"
                     />
                 </CubaniaReveal>

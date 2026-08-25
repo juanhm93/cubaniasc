@@ -1,5 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { CubaniaLandingPage } from '@/components/base/cubania';
+import { useTranslation } from '@/i18n/use-translation';
 
 export default function Welcome({
     canRegister = true,
@@ -7,10 +8,11 @@ export default function Welcome({
     canRegister?: boolean;
 }) {
     const { auth } = usePage().props;
+    const { t } = useTranslation();
 
     return (
         <>
-            <Head title="Cubanía – Salsa Casino & Bachata">
+            <Head title={t('landing.welcome.headTitle')}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                     rel="stylesheet"

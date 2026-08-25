@@ -1,7 +1,8 @@
-import { FormEventHandler } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import type { FormEventHandler } from 'react';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
+import { useTranslation } from '@/i18n/use-translation';
 import preRegistration from '@/routes/pre-registration';
 
 import '../../css/landing/cubania-landing.css';
@@ -16,6 +17,7 @@ export default function PreRegistrationPage({
     status = null,
 }: PreRegistrationPageProps) {
     const { auth } = usePage().props;
+    const { t } = useTranslation();
 
     const form = useForm({
         name: '',
@@ -38,7 +40,7 @@ export default function PreRegistrationPage({
 
     return (
         <>
-            <Head title="Preinscripción">
+            <Head title={t('landing.preRegistration.headTitle')}>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                     rel="stylesheet"
@@ -48,20 +50,21 @@ export default function PreRegistrationPage({
             <div className="cubania-landing">
                 <CubaniaNav isAuthenticated={Boolean(auth.user)} canRegister={canRegister} />
                 <main className="cubania-pre-reg">
-                    <h1 className="cubania-pre-reg__title">Preinscripción</h1>
+                    <h1 className="cubania-pre-reg__title">
+                        {t('landing.preRegistration.title')}
+                    </h1>
                     <p className="cubania-pre-reg__lead">
-                        Déjanos tus datos y nos pondremos en contacto contigo. No necesitas cuenta para
-                        completar este formulario.
+                        {t('landing.preRegistration.lead')}
                     </p>
                     {status === 'pre-registration-created' ? (
                         <p className="cubania-pre-reg__success" role="status">
-                            ¡Listo! Hemos recibido tu preinscripción. Te contactaremos pronto.
+                            {t('landing.preRegistration.success')}
                         </p>
                     ) : null}
                     <form onSubmit={submit} noValidate>
                         <div className="cubania-pre-reg__field">
                             <label className="cubania-pre-reg__label" htmlFor="pre-reg-name">
-                                Nombre completo
+                                {t('common.fullName')}
                             </label>
                             <input
                                 id="pre-reg-name"
@@ -79,7 +82,7 @@ export default function PreRegistrationPage({
                         </div>
                         <div className="cubania-pre-reg__field">
                             <label className="cubania-pre-reg__label" htmlFor="pre-reg-email">
-                                Correo electrónico
+                                {t('common.emailAddress')}
                             </label>
                             <input
                                 id="pre-reg-email"
@@ -97,8 +100,10 @@ export default function PreRegistrationPage({
                         </div>
                         <div className="cubania-pre-reg__field">
                             <label className="cubania-pre-reg__label" htmlFor="pre-reg-phone">
-                                Teléfono{' '}
-                                <span className="cubania-pre-reg__label-note">(opcional)</span>
+                                {t('common.phone')}{' '}
+                                <span className="cubania-pre-reg__label-note">
+                                    {t('landing.preRegistration.phoneOptional')}
+                                </span>
                             </label>
                             <input
                                 id="pre-reg-phone"
@@ -115,7 +120,7 @@ export default function PreRegistrationPage({
                         </div>
                         <div className="cubania-pre-reg__field">
                             <label className="cubania-pre-reg__label" htmlFor="pre-reg-message">
-                                ¿Tienes algo que decir? (opcional)
+                                {t('landing.preRegistration.messageLabel')}
                             </label>
                             <textarea
                                 id="pre-reg-message"
@@ -140,8 +145,7 @@ export default function PreRegistrationPage({
                                     onChange={(e) => form.setData('agree', e.target.checked)}
                                 />
                                 <label className="cubania-pre-reg__check-label" htmlFor="pre-reg-agree">
-                                    Estoy de acuerdo con que Cubanía trate mis datos personales para gestionar mi
-                                    preinscripción y contactarme.
+                                    {t('landing.preRegistration.agreeLabel')}
                                 </label>
                             </div>
                             {form.errors.agree ? (
@@ -155,7 +159,9 @@ export default function PreRegistrationPage({
                                 disabled={form.processing}
                                 data-cubania-cursor="interactive"
                             >
-                                {form.processing ? 'Enviando…' : 'Enviar preinscripción'}
+                                {form.processing
+                                    ? t('landing.preRegistration.submitting')
+                                    : t('landing.preRegistration.submit')}
                             </button>
                         </div>
                     </form>

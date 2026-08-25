@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useTranslation } from '@/i18n/use-translation';
 import { dashboard, login, register } from '@/routes';
 import preRegistration from '@/routes/pre-registration';
 
@@ -15,6 +16,8 @@ export function CubaniaNav({
     isAuthenticated,
     canRegister,
 }: CubaniaNavProps): ReactNode {
+    const { t } = useTranslation();
+
     return (
         <nav className="cubania-nav">
             <Link
@@ -22,7 +25,10 @@ export function CubaniaNav({
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
-                Cub<span className="cubania-nav__logo-accent">anía</span>
+                {t('landing.nav.logoCub')}
+                <span className="cubania-nav__logo-accent">
+                    {t('landing.nav.logoAnia')}
+                </span>
             </Link>
 
             <ul className="cubania-nav__list cubania-nav__list--primary">
@@ -32,7 +38,7 @@ export function CubaniaNav({
                         className="cubania-nav__link"
                         data-cubania-cursor="interactive"
                     >
-                        Clases
+                        {t('landing.nav.classes')}
                     </a>
                 </li>
                 <li>
@@ -41,7 +47,7 @@ export function CubaniaNav({
                         className="cubania-nav__link"
                         data-cubania-cursor="interactive"
                     >
-                        Estilos
+                        {t('landing.nav.styles')}
                     </a>
                 </li>
                 <li>
@@ -50,7 +56,7 @@ export function CubaniaNav({
                         className="cubania-nav__link"
                         data-cubania-cursor="interactive"
                     >
-                        Horarios
+                        {t('landing.nav.schedule')}
                     </a>
                 </li>
                 <li>
@@ -59,7 +65,7 @@ export function CubaniaNav({
                         className="cubania-nav__link"
                         data-cubania-cursor="interactive"
                     >
-                        Nosotros
+                        {t('landing.nav.about')}
                     </a>
                 </li>
                 <li>
@@ -68,7 +74,7 @@ export function CubaniaNav({
                         className="cubania-nav__link cubania-nav__link--cta"
                         data-cubania-cursor="interactive"
                     >
-                        Inscríbete
+                        {t('landing.nav.enroll')}
                     </Link>
                 </li>
             </ul>
@@ -81,7 +87,7 @@ export function CubaniaNav({
                             className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
                             data-cubania-cursor="interactive"
                         >
-                            Panel
+                            {t('landing.nav.dashboard')}
                         </Link>
                     </li>
                 ) : (
@@ -92,7 +98,7 @@ export function CubaniaNav({
                                 className="cubania-nav__link cubania-nav__link--compact"
                                 data-cubania-cursor="interactive"
                             >
-                                Entrar
+                                {t('landing.nav.logIn')}
                             </Link>
                         </li>
                         {canRegister && (
@@ -102,7 +108,7 @@ export function CubaniaNav({
                                     className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Registro
+                                    {t('landing.nav.register')}
                                 </Link>
                             </li>
                         )}

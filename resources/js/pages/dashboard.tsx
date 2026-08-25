@@ -9,6 +9,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { useTranslation } from '@/i18n/use-translation';
 import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
 
@@ -30,16 +31,18 @@ export default function Dashboard({
     staffExample,
     canManageCourses,
 }: DashboardProps) {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title={t('dashboard.headTitle')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between gap-2">
                                 <CardTitle className="text-base font-medium">
-                                    Estudiantes activos
+                                    {t('dashboard.activeStudents.title')}
                                 </CardTitle>
                                 <Users
                                     className="size-5 text-muted-foreground"
@@ -47,8 +50,7 @@ export default function Dashboard({
                                 />
                             </div>
                             <CardDescription>
-                                Con inscripción activa en al menos un curso
-                                activo
+                                {t('dashboard.activeStudents.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -62,7 +64,7 @@ export default function Dashboard({
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between gap-2">
                                 <CardTitle className="text-base font-medium">
-                                    Cursos activos
+                                    {t('dashboard.activeCourses.title')}
                                 </CardTitle>
                                 <BookOpen
                                     className="size-5 text-muted-foreground"
@@ -70,7 +72,7 @@ export default function Dashboard({
                                 />
                             </div>
                             <CardDescription>
-                                Grupos marcados como activos en la academia
+                                {t('dashboard.activeCourses.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-3">
@@ -80,7 +82,7 @@ export default function Dashboard({
                             {canManageCourses ? (
                                 <Button variant="secondary" size="sm" asChild>
                                     <Link href={admin.courses.index.url()}>
-                                        Ir a cursos
+                                        {t('dashboard.activeCourses.goToCourses')}
                                     </Link>
                                 </Button>
                             ) : null}
@@ -91,20 +93,22 @@ export default function Dashboard({
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between gap-2">
                                 <CardTitle className="text-base font-medium">
-                                    Personal
+                                    {t('dashboard.staff.title')}
                                 </CardTitle>
                                 <UserCog
                                     className="size-5 text-muted-foreground"
                                     aria-hidden
                                 />
                             </div>
-                            <CardDescription>Ejemplo ilustrativo</CardDescription>
+                            <CardDescription>
+                                {t('dashboard.staff.description')}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-2 text-sm">
                                 <li className="flex justify-between gap-4">
                                     <span className="text-muted-foreground">
-                                        Profesores
+                                        {t('dashboard.staff.professors')}
                                     </span>
                                     <span className="font-medium tabular-nums">
                                         {staffExample.professors}
@@ -112,7 +116,7 @@ export default function Dashboard({
                                 </li>
                                 <li className="flex justify-between gap-4">
                                     <span className="text-muted-foreground">
-                                        Personal administrativo
+                                        {t('dashboard.staff.administrativeStaff')}
                                     </span>
                                     <span className="font-medium tabular-nums">
                                         {staffExample.administrativeStaff}
@@ -120,7 +124,7 @@ export default function Dashboard({
                                 </li>
                                 <li className="flex justify-between gap-4">
                                     <span className="text-muted-foreground">
-                                        Administradores
+                                        {t('dashboard.staff.administrators')}
                                     </span>
                                     <span className="font-medium tabular-nums">
                                         {staffExample.administrators}
@@ -141,7 +145,7 @@ export default function Dashboard({
 Dashboard.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            title: 'dashboard.breadcrumb',
             href: dashboard(),
         },
     ],

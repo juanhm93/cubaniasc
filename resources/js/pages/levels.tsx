@@ -17,9 +17,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
-import { levels as levelsIndexRoute } from '@/routes';
 import { createLevel, getLevels } from '@/services/levelService';
+import { levels as levelsIndexRoute } from '@/routes';
 
 type LevelItem = {
     id: number;
@@ -62,6 +63,7 @@ export default function Levels({
     danceTypes: DanceType[];
     levels: LevelItem[];
 }) {
+    const { t } = useTranslation();
     const [levelItems, setLevelItems] = useState<LevelItem[]>(() => levels);
     const [addOpen, setAddOpen] = useState(false);
     const [name, setName] = useState('');
@@ -121,7 +123,7 @@ export default function Levels({
                 name,
                 description: description || null,
             });
-            toast.success('Level created');
+            toast.success(t('levels.index.levelCreated'));
             setAddOpen(false);
             await refreshLevels();
         } catch (error) {
@@ -131,10 +133,10 @@ export default function Levels({
                 if (mapped) {
                     setFormErrors(mapped);
                 } else {
-                    toast.error('Could not create level');
+                    toast.error(t('levels.index.couldNotCreate'));
                 }
             } else {
-                toast.error('Could not create level');
+                toast.error(t('levels.index.couldNotCreate'));
             }
         } finally {
             setSubmitting(false);
@@ -149,14 +151,14 @@ export default function Levels({
 
     return (
         <>
-            <Head title="Levels" />
+            <Head title={t('levels.index.headTitle')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <p className="text-sm text-muted-foreground">
-                    {`${levelItems.length} level${levelItems.length === 1 ? '' : 's'} loaded`}
+                    {t('levels.index.loadedCount', { count: levelItems.length })}
                 </p>
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-2 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="grid gap-1.5">
-                        <p>Ritmos</p>
+                        <p>{t('levels.index.danceTypes')}</p>
                         <select
                             id="filter-dance-type"
                             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -167,7 +169,9 @@ export default function Levels({
                             }
                             onChange={handleFilterDanceType}
                         >
-                            <option value="">Todos los ritmos</option>
+                            <option value="">
+                                {t('levels.index.allDanceTypes')}
+                            </option>
                             {danceTypes.map((danceType) => (
                                 <option key={danceType.id} value={danceType.id}>
                                     {danceType.name}
@@ -200,22 +204,26 @@ export default function Levels({
                                     strokeWidth={1.5}
                                     aria-hidden
                                 />
-                                <span className="sr-only">Add level</span>
+                                <span className="sr-only">
+                                    {t('levels.index.addLevelSr')}
+                                </span>
                             </button>
                         </DialogTrigger>
                         <DialogContent>
                             <form onSubmit={handleCreateLevel}>
                                 <DialogHeader>
-                                    <DialogTitle>New level</DialogTitle>
+                                    <DialogTitle>
+                                        {t('levels.index.newLevel')}
+                                    </DialogTitle>
                                     <DialogDescription>
-                                        Add a name and optional description.
-                                        Slug and display order are set
-                                        automatically.
+                                        {t('levels.index.newLevelDescription')}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-2">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="level-name">Name</Label>
+                                        <Label htmlFor="level-name">
+                                            {t('common.name')}
+                                        </Label>
                                         <Input
                                             id="level-name"
                                             name="name"
@@ -223,7 +231,9 @@ export default function Levels({
                                             onChange={(ev) =>
                                                 setName(ev.target.value)
                                             }
-                                            placeholder="e.g. Beginner"
+                                            placeholder={t(
+                                                'levels.index.namePlaceholder',
+                                            )}
                                             required
                                             autoComplete="off"
                                             disabled={submitting}
@@ -238,7 +248,7 @@ export default function Levels({
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="level-description">
-                                            Description (optional)
+                                            {t('common.descriptionOptional')}
                                         </Label>
                                         <textarea
                                             id="level-description"
@@ -247,7 +257,9 @@ export default function Levels({
                                             onChange={(ev) =>
                                                 setDescription(ev.target.value)
                                             }
-                                            placeholder="Short summary"
+                                            placeholder={t(
+                                                'levels.index.descriptionPlaceholder',
+                                            )}
                                             rows={3}
                                             disabled={submitting}
                                             maxLength={500}
@@ -275,10 +287,12 @@ export default function Levels({
                                         disabled={submitting}
                                         onClick={() => setAddOpen(false)}
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </Button>
                                     <Button type="submit" disabled={submitting}>
-                                        {submitting ? 'Saving…' : 'Create'}
+                                        {submitting
+                                            ? t('common.saving')
+                                            : t('common.create')}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -300,7 +314,7 @@ export default function Levels({
 Levels.layout = {
     breadcrumbs: [
         {
-            title: 'Levels',
+            title: 'levels.index.breadcrumb',
             href: levelsIndexRoute.url(),
         },
     ],

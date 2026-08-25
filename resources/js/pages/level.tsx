@@ -17,13 +17,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
-import { levels as levelsIndexRoute } from '@/routes';
 import {
     deleteLevelContent,
     getLevel,
     updateLevelContent,
 } from '@/services/levelService';
+import { levels as levelsIndexRoute } from '@/routes';
 
 type LevelContentItem = {
     id: number;
@@ -69,7 +70,15 @@ function normalizeLevel(data: unknown): LevelWithContents {
     };
 }
 
-function LevelVideoPreview({ url }: { url: string | null | undefined }) {
+function LevelVideoPreview({
+    url,
+    emptyMessage,
+    previewTitle,
+}: {
+    url: string | null | undefined;
+    emptyMessage: string;
+    previewTitle: string;
+}) {
     const trimmed = url?.trim() ?? '';
 
     if (trimmed === '') {
@@ -78,8 +87,7 @@ function LevelVideoPreview({ url }: { url: string | null | undefined }) {
                 className="flex aspect-video items-center justify-center rounded-md border bg-muted px-4 text-center text-sm text-muted-foreground"
                 role="status"
             >
-                Agrega una URL de video al editar la figura para ver la vista
-                previa.
+                {emptyMessage}
             </div>
         );
     }
@@ -91,7 +99,7 @@ function LevelVideoPreview({ url }: { url: string | null | undefined }) {
     if (ytMatch) {
         return (
             <iframe
-                title="Vista previa del video"
+                title={previewTitle}
                 className="aspect-video w-full rounded-md border-0"
                 src={`https://www.youtube.com/embed/${ytMatch[1]}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -111,6 +119,7 @@ function LevelVideoPreview({ url }: { url: string | null | undefined }) {
 }
 
 export default function Level() {
+    const { t } = useTranslation();
     const levelId = usePage().props.level as string | undefined;
 
     const [level, setLevel] = useState<LevelWithContents | null>(null);
@@ -174,12 +183,12 @@ export default function Level() {
                       }
                     : null,
             );
-            toast.success('Content removed');
+            toast.success(t('levels.show.contentRemoved'));
             setVideoContent((current) =>
                 current?.id === contentId ? null : current,
             );
         } catch {
-            toast.error('Could not remove content');
+            toast.error(t('levels.show.couldNotRemove'));
         } finally {
             setDeletingId(null);
         }
@@ -242,7 +251,7 @@ export default function Level() {
                 current?.id === editingContent.id ? merged : current,
             );
             setEditingContent(null);
-            toast.success('Figura actualizada');
+            toast.success(t('levels.show.figureUpdated'));
         } catch (err: unknown) {
             const ax = err as {
                 response?: {
@@ -267,7 +276,7 @@ export default function Level() {
 
                 setEditFormErrors(flat);
             } else {
-                toast.error('No se pudo guardar los cambios');
+                toast.error(t('levels.show.couldNotSave'));
             }
         } finally {
             setEditSubmitting(false);
@@ -278,7 +287,13 @@ export default function Level() {
 
     return (
         <>
-            <Head title={level?.name ? level.name : 'Level'} />
+            <Head
+                title={
+                    level?.name
+                        ? level.name
+                        : t('levels.show.headTitle')
+                }
+            />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div
                     className={cn(
@@ -298,7 +313,7 @@ export default function Level() {
 
                     {contents.length === 0 && level ? (
                         <p className="text-sm text-muted-foreground">
-                            No content items yet.
+                            {t('levels.show.noContent')}
                         </p>
                     ) : null}
 
@@ -329,23 +344,24 @@ export default function Level() {
                                         aria-hidden
                                     />
                                     <span className="sr-only">
-                                        Agregar figura
+                                        {t('levels.show.addFigureSr')}
                                     </span>
                                 </button>
                             </DialogTrigger>
                             <DialogContent>
                                 <form onSubmit={handleCreateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>Nueva figura</DialogTitle>
+                                        <DialogTitle>
+                                            {t('levels.show.newFigure')}
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            Agrega un nombre y una descripción
-                                            opcional.
+                                            {t('levels.show.newFigureDescription')}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-2">
                                         <div className="grid gap-2">
                                             <Label htmlFor="level-name">
-                                                Nombre
+                                                {t('common.name')}
                                             </Label>
                                             <Input
                                                 id="level-name"
@@ -354,7 +370,9 @@ export default function Level() {
                                                 onChange={(ev) =>
                                                     setName(ev.target.value)
                                                 }
-                                                placeholder="e.g. Figura 1"
+                                                placeholder={t(
+                                                    'levels.show.namePlaceholder',
+                                                )}
                                                 required
                                                 autoComplete="off"
                                                 disabled={submitting}
@@ -371,7 +389,9 @@ export default function Level() {
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="level-description">
-                                                Description (optional)
+                                                {t(
+                                                    'common.descriptionOptional',
+                                                )}
                                             </Label>
                                             <textarea
                                                 id="level-description"
@@ -382,7 +402,9 @@ export default function Level() {
                                                         ev.target.value,
                                                     )
                                                 }
-                                                placeholder="Resumen breve"
+                                                placeholder={t(
+                                                    'levels.show.descriptionPlaceholder',
+                                                )}
                                                 rows={3}
                                                 disabled={submitting}
                                                 maxLength={500}
@@ -410,13 +432,15 @@ export default function Level() {
                                             disabled={submitting}
                                             onClick={() => setAddOpen(false)}
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                         <Button
                                             type="submit"
                                             disabled={submitting}
                                         >
-                                            {submitting ? 'Saving…' : 'Create'}
+                                            {submitting
+                                                ? t('common.saving')
+                                                : t('common.create')}
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -434,16 +458,17 @@ export default function Level() {
                             <DialogContent>
                                 <form onSubmit={handleUpdateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>Editar figura</DialogTitle>
+                                        <DialogTitle>
+                                            {t('levels.show.editFigure')}
+                                        </DialogTitle>
                                         <DialogDescription>
-                                            Modifica el nombre, la descripción
-                                            o la URL del video.
+                                            {t('levels.show.editFigureDescription')}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-2">
                                         <div className="grid gap-2">
                                             <Label htmlFor="edit-level-name">
-                                                Nombre
+                                                {t('common.name')}
                                             </Label>
                                             <Input
                                                 id="edit-level-name"
@@ -452,7 +477,9 @@ export default function Level() {
                                                 onChange={(ev) =>
                                                     setEditName(ev.target.value)
                                                 }
-                                                placeholder="e.g. Figura 1"
+                                                placeholder={t(
+                                                    'levels.show.namePlaceholder',
+                                                )}
                                                 required
                                                 autoComplete="off"
                                                 disabled={editSubmitting}
@@ -469,7 +496,9 @@ export default function Level() {
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="edit-level-description">
-                                                Descripción (opcional)
+                                                {t(
+                                                    'common.descriptionOptional',
+                                                )}
                                             </Label>
                                             <textarea
                                                 id="edit-level-description"
@@ -480,7 +509,9 @@ export default function Level() {
                                                         ev.target.value,
                                                     )
                                                 }
-                                                placeholder="Resumen breve"
+                                                placeholder={t(
+                                                    'levels.show.descriptionPlaceholder',
+                                                )}
                                                 rows={3}
                                                 disabled={editSubmitting}
                                                 maxLength={500}
@@ -504,7 +535,7 @@ export default function Level() {
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="edit-level-video-url">
-                                                URL del video (opcional)
+                                                {t('levels.show.videoUrlOptional')}
                                             </Label>
                                             <Input
                                                 id="edit-level-video-url"
@@ -517,7 +548,9 @@ export default function Level() {
                                                         ev.target.value,
                                                     )
                                                 }
-                                                placeholder="https://..."
+                                                placeholder={t(
+                                                    'levels.show.videoUrlPlaceholder',
+                                                )}
                                                 autoComplete="off"
                                                 disabled={editSubmitting}
                                                 maxLength={255}
@@ -543,15 +576,15 @@ export default function Level() {
                                                 setEditingContent(null)
                                             }
                                         >
-                                            Cancelar
+                                            {t('common.cancel')}
                                         </Button>
                                         <Button
                                             type="submit"
                                             disabled={editSubmitting}
                                         >
                                             {editSubmitting
-                                                ? 'Guardando…'
-                                                : 'Guardar'}
+                                                ? t('common.saving')
+                                                : t('common.save')}
                                         </Button>
                                     </DialogFooter>
                                 </form>
@@ -585,15 +618,19 @@ export default function Level() {
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            {videoContent?.name ?? 'Video'}
+                            {videoContent?.name ?? t('common.video')}
                         </DialogTitle>
                         {!videoContent?.video_url?.trim() ? (
                             <DialogDescription>
-                                Vista previa del video de esta figura.
+                                {t('levels.show.videoDialogDescription')}
                             </DialogDescription>
                         ) : null}
                     </DialogHeader>
-                    <LevelVideoPreview url={videoContent?.video_url} />
+                    <LevelVideoPreview
+                        url={videoContent?.video_url}
+                        emptyMessage={t('levels.show.videoPreviewEmpty')}
+                        previewTitle={t('levels.show.videoPreviewTitle')}
+                    />
                 </DialogContent>
             </Dialog>
         </>
@@ -603,7 +640,7 @@ export default function Level() {
 Level.layout = {
     breadcrumbs: [
         {
-            title: 'Level',
+            title: 'levels.show.breadcrumb',
             href: levelsIndexRoute.url(),
         },
     ],

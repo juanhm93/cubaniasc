@@ -1,5 +1,6 @@
 import { GripVertical, Pencil, Play, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 
 const rowClassName =
     'flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border';
@@ -30,11 +31,13 @@ export default function LevelContentItem({
     setVideoContent: setVideoContentProps;
     onEdit: onEditProps;
 }) {
+    const { t } = useTranslation();
+
     return (
         <li key={levelContent.id.toString()} className={rowClassName}>
             <span
                 className="inline-flex shrink-0 text-muted-foreground"
-                title="Reorder"
+                title={t('levels.item.reorder')}
                 aria-hidden
             >
                 <GripVertical className="size-5" />
@@ -53,7 +56,9 @@ export default function LevelContentItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground"
-                    aria-label={`Play ${levelContent.name}`}
+                    aria-label={t('levels.item.playContent', {
+                        name: levelContent.name,
+                    })}
                     onClick={() => setVideoContent(levelContent)}
                 >
                     <Play className="size-5 fill-current" />
@@ -63,7 +68,9 @@ export default function LevelContentItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground"
-                    aria-label={`Edit ${levelContent.name}`}
+                    aria-label={t('levels.item.editContent', {
+                        name: levelContent.name,
+                    })}
                     onClick={() => onEdit(levelContent)}
                 >
                     <Pencil className="size-5" />
@@ -73,7 +80,9 @@ export default function LevelContentItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground hover:text-destructive"
-                    aria-label={`Remove ${levelContent.name}`}
+                    aria-label={t('levels.item.removeContent', {
+                        name: levelContent.name,
+                    })}
                     disabled={deletingId === levelContent.id}
                     onClick={() => void handleRemove(levelContent.id)}
                 >

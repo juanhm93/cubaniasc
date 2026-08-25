@@ -7,6 +7,7 @@ import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
 import { CubaniaStylesSection } from '@/components/base/cubania/cubania-styles-section';
 import { CubaniaTestimonialsSection } from '@/components/base/cubania/cubania-testimonials-section';
 import { useCubaniaSmoothScroll } from '@/components/base/cubania/use-cubania-smooth-scroll';
+import { useTranslation } from '@/i18n/use-translation';
 
 import '../../../../css/landing/cubania-landing.css';
 
@@ -25,6 +26,7 @@ export function CubaniaLandingPage({
     canRegister,
     customCursor = false,
 }: CubaniaLandingPageProps): ReactNode {
+    const { t } = useTranslation();
     useCubaniaSmoothScroll();
 
     return (
@@ -41,7 +43,7 @@ export function CubaniaLandingPage({
             <section
                 id="horarios"
                 className="cubania-section-anchor"
-                aria-label="Horarios"
+                aria-label={t('landing.page.scheduleAriaLabel')}
             />
             <CubaniaCtaBand />
             <CubaniaTestimonialsSection />

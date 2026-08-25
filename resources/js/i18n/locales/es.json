@@ -316,6 +316,13 @@
       "couldNotRemove": "No se pudo eliminar la figura",
       "figureUpdated": "Figura actualizada",
       "couldNotSave": "No se pudo guardar los cambios"
+    },
+    "item": {
+      "openLevel": "Abrir {{name}}",
+      "reorder": "Reordenar",
+      "playContent": "Reproducir {{name}}",
+      "editContent": "Editar {{name}}",
+      "removeContent": "Eliminar {{name}}"
     }
   },
   "admin": {
@@ -474,6 +481,8 @@
       "headTitle": "Cubanía – Salsa Casino & Bachata"
     },
     "nav": {
+      "logoCub": "Cub",
+      "logoAnia": "anía",
       "classes": "Clases",
       "styles": "Estilos",
       "schedule": "Horarios",
@@ -559,6 +568,12 @@
       "instagram": "Instagram",
       "location": "Ubicación",
       "copyright": "© {{year}} Cubanía · Academia de Salsa Casino y Bachata"
+    },
+    "page": {
+      "scheduleAriaLabel": "Horarios"
+    },
+    "styleCard": {
+      "watchVideo": "Ver video: {{name}}"
     },
     "preRegistration": {
       "headTitle": "Preinscripción",

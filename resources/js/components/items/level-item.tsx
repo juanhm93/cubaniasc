@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { ArrowRight, GripVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 import { show as levelShow } from '@/routes/levels';
 
 type LevelItemProps = {
@@ -16,6 +17,8 @@ type DanceType = {
 };
 
 export default function LevelItem({ level }: { level: LevelItemProps }) {
+    const { t } = useTranslation();
+
     return (
         <div
             key={level.id.toString()}
@@ -42,7 +45,7 @@ export default function LevelItem({ level }: { level: LevelItemProps }) {
                     variant="ghost"
                     size="icon"
                     className="size-9 shrink-0 text-muted-foreground"
-                    aria-label={`Open ${level.name}`}
+                    aria-label={t('levels.item.openLevel', { name: level.name })}
                     onClick={() => router.visit(levelShow.url(level.id))}
                 >
                     <ArrowRight className="size-5" />

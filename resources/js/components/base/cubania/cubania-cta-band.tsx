@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useTranslation } from '@/i18n/use-translation';
 import preRegistration from '@/routes/pre-registration';
 
 const WHATSAPP_URL = 'https://wa.me/+584122801334';
@@ -8,16 +9,18 @@ const WHATSAPP_URL = 'https://wa.me/+584122801334';
  * Full-width yellow CTA strip above testimonials.
  */
 export function CubaniaCtaBand(): ReactNode {
+    const { t } = useTranslation();
+
     return (
         <div className="cubania-cta-band" id="inscripcion">
             <div className="cubania-cta-band__text">
                 <div className="cubania-cta-band__title">
-                    ¿Listo para
+                    {t('landing.cta.titleLine1')}
                     <br />
-                    moverte?
+                    {t('landing.cta.titleLine2')}
                 </div>
                 <p className="cubania-cta-band__sub">
-                    Primera clase sin compromiso. Solo trae tus ganas de bailar.
+                    {t('landing.cta.subtitle')}
                 </p>
             </div>
             <div className="cubania-cta-band__actions">
@@ -26,7 +29,7 @@ export function CubaniaCtaBand(): ReactNode {
                     className="cubania-btn cubania-btn--outline-dark"
                     data-cubania-cursor="interactive"
                 >
-                    Preinscripción web
+                    {t('landing.cta.preRegistration')}
                 </Link>
                 <a
                     href={WHATSAPP_URL}
@@ -35,7 +38,7 @@ export function CubaniaCtaBand(): ReactNode {
                     className="cubania-btn cubania-btn--dark"
                     data-cubania-cursor="interactive"
                 >
-                    Contáctanos por WhatsApp
+                    {t('landing.cta.whatsapp')}
                 </a>
             </div>
         </div>
