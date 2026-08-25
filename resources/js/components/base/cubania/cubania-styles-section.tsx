@@ -9,7 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-
+import { useTranslation } from '@/i18n/use-translation';
 
 const SALSA_CASINO_VIDEO = 'https://www.youtube.com/watch?v=s4DT0BFxDEk';
 const BACHATA_VIDEO = 'https://www.youtube.com/watch?v=2Fdz_9UI3Oo';
@@ -24,6 +24,7 @@ type ActiveVideo = {
  * “Lo que enseñamos” section with three style cards.
  */
 export function CubaniaStylesSection(): ReactNode {
+    const { t } = useTranslation();
     const [activeVideo, setActiveVideo] = useState<ActiveVideo | null>(null);
 
     const openVideo = (title: string, watchUrl: string): void => {
@@ -35,11 +36,13 @@ export function CubaniaStylesSection(): ReactNode {
 
     return (
         <section className="cubania-styles" id="estilos">
-            <div className="cubania-section-header__label">Lo que enseñamos</div>
+            <div className="cubania-section-header__label">
+                {t('landing.styles.sectionLabel')}
+            </div>
             <h2 className="cubania-section-header__title">
-                Nuestros
+                {t('landing.styles.sectionTitleLine1')}
                 <br />
-                estilos
+                {t('landing.styles.sectionTitleLine2')}
             </h2>
 
             <div className="cubania-styles__grid">
@@ -47,10 +50,13 @@ export function CubaniaStylesSection(): ReactNode {
                     <CubaniaStyleCard
                         highlight
                         icon="💃"
-                        name="Salsa Casino"
-                        description="El corazón cubano. Ritmo, conexión y arte en cada vuelta."
+                        name={t('landing.styles.salsaCasino.name')}
+                        description={t('landing.styles.salsaCasino.description')}
                         onActivate={() =>
-                            openVideo('Salsa Casino', SALSA_CASINO_VIDEO)
+                            openVideo(
+                                t('landing.styles.salsaCasino.name'),
+                                SALSA_CASINO_VIDEO,
+                            )
                         }
                     />
                 </CubaniaReveal>
@@ -58,19 +64,27 @@ export function CubaniaStylesSection(): ReactNode {
                     <CubaniaStyleCard
                         bgGradient="linear-gradient(135deg, #1A0330 0%, #350A6A 100%)"
                         icon="🕺"
-                        name="Bachata"
-                        description="Sensualidad y melodía. El lenguaje universal del cuerpo."
-                        onActivate={() => openVideo('Bachata', BACHATA_VIDEO)}
+                        name={t('landing.styles.bachata.name')}
+                        description={t('landing.styles.bachata.description')}
+                        onActivate={() =>
+                            openVideo(
+                                t('landing.styles.bachata.name'),
+                                BACHATA_VIDEO,
+                            )
+                        }
                     />
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={200}>
                     <CubaniaStyleCard
                         bgGradient="linear-gradient(135deg, #0A001A 0%, #250860 100%)"
                         icon="⭕"
-                        name="Rueda de Casino"
-                        description="Sincronía grupal. La magia de bailar en comunidad."
+                        name={t('landing.styles.rueda.name')}
+                        description={t('landing.styles.rueda.description')}
                         onActivate={() =>
-                            openVideo('Rueda de Casino', RUEDA_VIDEO)
+                            openVideo(
+                                t('landing.styles.rueda.name'),
+                                RUEDA_VIDEO,
+                            )
                         }
                     />
                 </CubaniaReveal>

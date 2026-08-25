@@ -270,7 +270,9 @@ export default function ContentLevel({
                             <DialogContent>
                                 <form onSubmit={handleCreateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>Nueva figura</DialogTitle>
+                                        <DialogTitle>
+                                            Nueva figura
+                                        </DialogTitle>
                                         <DialogDescription>
                                             Agrega un nombre, una descripción
                                             opcional y la URL del video.
@@ -394,7 +396,9 @@ export default function ContentLevel({
                             <DialogContent>
                                 <form onSubmit={handleUpdateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>Editar figura</DialogTitle>
+                                        <DialogTitle>
+                                            Editar figura
+                                        </DialogTitle>
                                         <DialogDescription>
                                             Modifica el nombre, la descripción o
                                             la URL del video.

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 import admin from '@/routes/admin';
 
@@ -53,15 +54,6 @@ type StudentsIndexProps = {
     levelOptions: Option[];
 };
 
-function paginationLabel(raw: string): string {
-    return raw
-        .replace('&laquo;', '«')
-        .replace('&raquo;', '»')
-        .replace(/Previous/i, 'Anterior')
-        .replace(/Next/i, 'Siguiente')
-        .replace(/<[^>]*>/g, '');
-}
-
 function queryFromFilters(f: FiltersState): Record<string, string> {
     const q: Record<string, string> = {};
 
@@ -90,12 +82,22 @@ export default function AdminStudentsIndex({
     courseOptions,
     levelOptions,
 }: StudentsIndexProps) {
+    const { t } = useTranslation();
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
     const [syncedSearch, setSyncedSearch] = useState(filters.search);
 
     if (filters.search !== syncedSearch) {
         setSyncedSearch(filters.search);
         setSearchDraft(filters.search ?? '');
+    }
+
+    function paginationLabel(raw: string): string {
+        return raw
+            .replace('&laquo;', '«')
+            .replace('&raquo;', '»')
+            .replace(/Previous/i, t('common.previous'))
+            .replace(/Next/i, t('common.next'))
+            .replace(/<[^>]*>/g, '');
     }
 
     function visitFilters(next: FiltersState): void {
@@ -123,21 +125,22 @@ export default function AdminStudentsIndex({
 
     return (
         <>
-            <Head title="Alumnos" />
+            <Head title={t('admin.students.title')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-semibold">Alumnos</h1>
+                            <h1 className="text-2xl font-semibold">
+                                {t('admin.students.title')}
+                            </h1>
                             <p className="text-sm text-muted-foreground">
-                                Matrículas por curso: filtra por curso, nivel,
-                                estado o nombre.
+                                {t('admin.students.description')}
                             </p>
                         </div>
                         <Button asChild>
                             <Link href={admin.students.enroll.url()}>
-                                Inscribir alumnos
+                                {t('admin.students.enrollStudents')}
                             </Link>
                         </Button>
                     </div>
@@ -147,7 +150,9 @@ export default function AdminStudentsIndex({
                         className="grid gap-3 rounded-xl border border-sidebar-border/70 p-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 dark:border-sidebar-border"
                     >
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-course">Curso</Label>
+                            <Label htmlFor="filter-course">
+                                {t('common.course')}
+                            </Label>
                             <select
                                 id="filter-course"
                                 className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -163,16 +168,21 @@ export default function AdminStudentsIndex({
                                     });
                                 }}
                             >
-                                <option value="">Todos</option>
+                                <option value="">{t('common.all')}</option>
                                 {courseOptions.map((c) => (
                                     <option key={c.id} value={c.id}>
-                                        {c.label ?? `Curso #${c.id}`}
+                                        {c.label ??
+                                            t('admin.students.courseNumber', {
+                                                id: c.id,
+                                            })}
                                     </option>
                                 ))}
                             </select>
                         </div>
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-level">Nivel</Label>
+                            <Label htmlFor="filter-level">
+                                {t('common.level')}
+                            </Label>
                             <select
                                 id="filter-level"
                                 className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -188,16 +198,21 @@ export default function AdminStudentsIndex({
                                     });
                                 }}
                             >
-                                <option value="">Todos</option>
+                                <option value="">{t('common.all')}</option>
                                 {levelOptions.map((l) => (
                                     <option key={l.id} value={l.id}>
-                                        {l.name ?? `Nivel #${l.id}`}
+                                        {l.name ??
+                                            t('admin.students.levelNumber', {
+                                                id: l.id,
+                                            })}
                                     </option>
                                 ))}
                             </select>
                         </div>
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-status">Estado</Label>
+                            <Label htmlFor="filter-status">
+                                {t('common.status')}
+                            </Label>
                             <select
                                 id="filter-status"
                                 className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -209,14 +224,18 @@ export default function AdminStudentsIndex({
                                     });
                                 }}
                             >
-                                <option value="">Todos</option>
-                                <option value="active">Activo</option>
-                                <option value="inactive">Inactivo</option>
+                                <option value="">{t('common.all')}</option>
+                                <option value="active">
+                                    {t('common.active')}
+                                </option>
+                                <option value="inactive">
+                                    {t('common.inactive')}
+                                </option>
                             </select>
                         </div>
                         <div className="grid gap-1.5 md:col-span-2 lg:col-span-1 xl:col-span-2">
                             <Label htmlFor="filter-search">
-                                Nombre o correo
+                                {t('admin.students.nameOrEmail')}
                             </Label>
                             <div className="flex gap-2">
                                 <Input
@@ -226,11 +245,11 @@ export default function AdminStudentsIndex({
                                     onChange={(e) =>
                                         setSearchDraft(e.target.value)
                                     }
-                                    placeholder="Buscar…"
+                                    placeholder={t('common.search')}
                                     className="h-9"
                                 />
                                 <Button type="submit" size="sm" className="h-9">
-                                    Buscar
+                                    {t('common.search')}
                                 </Button>
                             </div>
                         </div>
@@ -242,15 +261,19 @@ export default function AdminStudentsIndex({
                                 className="h-9"
                                 onClick={clearFilters}
                             >
-                                Limpiar filtros
+                                {t('admin.students.clearFilters')}
                             </Button>
                         </div>
                     </form>
 
                     <p className="text-xs text-muted-foreground">
                         {total === 0
-                            ? 'Sin resultados'
-                            : `Mostrando ${from ?? 0}–${to ?? 0} de ${total}`}
+                            ? t('common.noResults')
+                            : t('common.showingRange', {
+                                  from: from ?? 0,
+                                  to: to ?? 0,
+                                  total,
+                              })}
                     </p>
 
                     <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
@@ -258,22 +281,22 @@ export default function AdminStudentsIndex({
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Alumno
+                                        {t('admin.students.studentLabel')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Correo
+                                        {t('common.email')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Curso
+                                        {t('common.course')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Nivel
+                                        {t('common.level')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Estado
+                                        {t('common.status')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                        Acción
+                                        {t('common.action')}
                                     </th>
                                 </tr>
                             </thead>
@@ -284,7 +307,9 @@ export default function AdminStudentsIndex({
                                             colSpan={6}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
-                                            No hay matrículas con estos filtros.
+                                            {t(
+                                                'admin.students.noEnrollmentsWithFilters',
+                                            )}
                                         </td>
                                     </tr>
                                 ) : (
@@ -294,16 +319,19 @@ export default function AdminStudentsIndex({
                                             className="border-b border-sidebar-border/70 last:border-0"
                                         >
                                             <td className="px-3 py-3 align-middle font-medium">
-                                                {row.student_name || '—'}
+                                                {row.student_name ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="max-w-[220px] truncate px-3 py-3 align-middle text-muted-foreground">
-                                                {row.student_email || '—'}
+                                                {row.student_email ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 {row.course_label}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {row.level_name || '—'}
+                                                {row.level_name ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 {row.status === 'active' ? (
@@ -323,7 +351,9 @@ export default function AdminStudentsIndex({
                                                     )}
                                                     className="text-sm text-primary underline-offset-4 hover:underline"
                                                 >
-                                                    Ver alumno
+                                                    {t(
+                                                        'admin.students.viewStudent',
+                                                    )}
                                                 </Link>
                                             </td>
                                         </tr>
@@ -336,7 +366,7 @@ export default function AdminStudentsIndex({
                     {lastPage > 1 ? (
                         <nav
                             className="flex flex-wrap items-center justify-center gap-1 border-t border-sidebar-border/70 pt-4"
-                            aria-label="Paginación"
+                            aria-label={t('common.pagination')}
                         >
                             {links.map((link, i) => {
                                 const label = paginationLabel(link.label);
@@ -384,7 +414,7 @@ export default function AdminStudentsIndex({
 AdminStudentsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Alumnos',
+            title: 'navigation.students',
             href: admin.students.index.url(),
         },
     ],

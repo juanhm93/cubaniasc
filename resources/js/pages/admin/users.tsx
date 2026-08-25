@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import admin from '@/routes/admin';
+import { useTranslation } from '@/i18n/use-translation';
 
 type Role = {
     id: number;
@@ -30,19 +31,10 @@ type AdminUsersProps = {
     can_run_owner_maintenance: boolean;
 };
 
-const STATUS_OPTIONS = [
-    { value: 'active', label: 'Active' },
-    { value: 'pending', label: 'Pending' },
-] as const;
+const STATUS_VALUES = ['active', 'pending'] as const;
 
 function userIsOwner(user: UserItem): boolean {
     return Boolean(user.is_owner);
-}
-
-function statusLabel(status: string): string {
-    const match = STATUS_OPTIONS.find((opt) => opt.value === status);
-
-    return match?.label ?? status;
 }
 
 export default function AdminUsers({
@@ -50,10 +42,19 @@ export default function AdminUsers({
     roles,
     can_run_owner_maintenance: canRunOwnerMaintenance,
 }: AdminUsersProps) {
+    const { t } = useTranslation();
     const [savingUserId, setSavingUserId] = useState<number | null>(null);
     const [maintenanceAction, setMaintenanceAction] = useState<
         'cache' | 'migrate' | null
     >(null);
+
+    function statusLabel(status: string): string {
+        if (status === 'active' || status === 'pending') {
+            return t(`admin.userStatus.${status}`);
+        }
+
+        return status;
+    }
 
     function updateRole(userId: number, roleId: number): void {
         setSavingUserId(userId);
@@ -64,10 +65,10 @@ export default function AdminUsers({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Role updated');
+                    toast.success(t('admin.users.roleUpdated'));
                 },
                 onError: () => {
-                    toast.error('Could not update role');
+                    toast.error(t('admin.users.roleUpdateFailed'));
                 },
                 onFinish: () => {
                     setSavingUserId(null);
@@ -85,10 +86,10 @@ export default function AdminUsers({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Status updated');
+                    toast.success(t('admin.users.statusUpdated'));
                 },
                 onError: () => {
-                    toast.error('Could not update status');
+                    toast.error(t('admin.users.statusUpdateFailed'));
                 },
                 onFinish: () => {
                     setSavingUserId(null);
@@ -104,8 +105,8 @@ export default function AdminUsers({
                 : admin.maintenance.migrate.url();
         const successMessage =
             kind === 'cache'
-                ? 'Application caches cleared.'
-                : 'Database migrations finished.';
+                ? t('admin.users.cachesCleared')
+                : t('admin.users.migrationsFinished');
 
         setMaintenanceAction(kind);
 
@@ -118,7 +119,7 @@ export default function AdminUsers({
                     toast.success(successMessage);
                 },
                 onError: () => {
-                    toast.error('That action could not be completed.');
+                    toast.error(t('admin.users.actionFailed'));
                 },
                 onFinish: () => {
                     setMaintenanceAction(null);
@@ -129,17 +130,16 @@ export default function AdminUsers({
 
     return (
         <>
-            <Head title="Admin users" />
+            <Head title={t('admin.users.title')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-3 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-6">
                         <div className="min-w-0 space-y-1">
                             <h1 className="text-2xl font-semibold">
-                                Users and roles
+                                {t('admin.users.title')}
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                                Assign platform roles and account status for
-                                each user.
+                                {t('admin.users.description')}
                             </p>
                         </div>
                         {canRunOwnerMaintenance ? (
@@ -154,8 +154,8 @@ export default function AdminUsers({
                                     }
                                 >
                                     {maintenanceAction === 'cache'
-                                        ? 'Clearing…'
-                                        : 'Clear application caches'}
+                                        ? t('admin.users.clearingCaches')
+                                        : t('admin.users.clearApplicationCaches')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -167,8 +167,8 @@ export default function AdminUsers({
                                     }
                                 >
                                     {maintenanceAction === 'migrate'
-                                        ? 'Running…'
-                                        : 'Run migrations'}
+                                        ? t('admin.users.running')
+                                        : t('admin.users.runMigrations')}
                                 </Button>
                             </div>
                         ) : null}
@@ -179,16 +179,16 @@ export default function AdminUsers({
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        User
+                                        {t('admin.users.user')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Current role
+                                        {t('admin.users.currentRole')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Assign role
+                                        {t('admin.users.assignRole')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Status
+                                        {t('common.status')}
                                     </th>
                                 </tr>
                             </thead>
@@ -197,124 +197,139 @@ export default function AdminUsers({
                                     const isOwnerUser = userIsOwner(user);
 
                                     return (
-                                    <tr
-                                        key={user.id}
-                                        className="border-b border-sidebar-border/70 last:border-0"
-                                    >
-                                        <td className="px-3 py-3 align-middle">
-                                            <p className="font-medium">
-                                                {user.name}
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                {user.email}
-                                            </p>
-                                        </td>
-                                        <td className="px-3 py-3 align-middle">
-                                            <span className="inline-flex h-9 max-w-[min(100%,16rem)] items-center truncate rounded-md border border-sidebar-border px-3">
-                                                {savingUserId === user.id
-                                                    ? 'Saving...'
-                                                    : (user.role?.name ??
-                                                      'No role')}
-                                            </span>
-                                        </td>
-                                        <td className="w-[min(100%,14rem)] min-w-[12rem] px-3 py-3 align-middle">
-                                            {user.role?.slug === 'admin' ||
-                                            isOwnerUser ? (
-                                                <span className="text-muted-foreground">
-                                                    —
+                                        <tr
+                                            key={user.id}
+                                            className="border-b border-sidebar-border/70 last:border-0"
+                                        >
+                                            <td className="px-3 py-3 align-middle">
+                                                <p className="font-medium">
+                                                    {user.name}
+                                                </p>
+                                                <p className="text-muted-foreground">
+                                                    {user.email}
+                                                </p>
+                                            </td>
+                                            <td className="px-3 py-3 align-middle">
+                                                <span className="inline-flex h-9 max-w-[min(100%,16rem)] items-center truncate rounded-md border border-sidebar-border px-3">
+                                                    {savingUserId === user.id
+                                                        ? t(
+                                                              'admin.users.saving',
+                                                          )
+                                                        : (user.role?.name ??
+                                                          t(
+                                                              'admin.users.noRole',
+                                                          ))}
                                                 </span>
-                                            ) : (
-                                                <select
-                                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                                                    defaultValue={
-                                                        user.role_id ?? ''
-                                                    }
-                                                    onChange={(event) => {
-                                                        const roleId = Number(
-                                                            event.target.value,
-                                                        );
-
-                                                        if (
-                                                            !Number.isNaN(
-                                                                roleId,
-                                                            ) &&
-                                                            roleId > 0
-                                                        ) {
-                                                            updateRole(
-                                                                user.id,
-                                                                roleId,
-                                                            );
+                                            </td>
+                                            <td className="w-[min(100%,14rem)] min-w-[12rem] px-3 py-3 align-middle">
+                                                {user.role?.slug === 'admin' ||
+                                                isOwnerUser ? (
+                                                    <span className="text-muted-foreground">
+                                                        {t('common.emDash')}
+                                                    </span>
+                                                ) : (
+                                                    <select
+                                                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                                        defaultValue={
+                                                            user.role_id ?? ''
                                                         }
-                                                    }}
-                                                    disabled={
-                                                        savingUserId === user.id
-                                                    }
-                                                >
-                                                    <option value="" disabled>
-                                                        Select role
-                                                    </option>
-                                                    {roles.map((role) => (
+                                                        onChange={(event) => {
+                                                            const roleId =
+                                                                Number(
+                                                                    event.target
+                                                                        .value,
+                                                                );
+
+                                                            if (
+                                                                !Number.isNaN(
+                                                                    roleId,
+                                                                ) &&
+                                                                roleId > 0
+                                                            ) {
+                                                                updateRole(
+                                                                    user.id,
+                                                                    roleId,
+                                                                );
+                                                            }
+                                                        }}
+                                                        disabled={
+                                                            savingUserId ===
+                                                            user.id
+                                                        }
+                                                    >
                                                         <option
-                                                            key={role.id}
-                                                            value={role.id}
+                                                            value=""
+                                                            disabled
                                                         >
-                                                            {role.name}
+                                                            {t(
+                                                                'admin.users.selectRole',
+                                                            )}
                                                         </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                        </td>
-                                        <td className="w-36 min-w-[9rem] px-3 py-3 align-middle">
-                                            {isOwnerUser ? (
-                                                <span className="inline-flex h-9 w-full items-center rounded-md border border-sidebar-border px-3 capitalize">
-                                                    {statusLabel(user.status)}
-                                                </span>
-                                            ) : (
-                                                <select
-                                                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm capitalize"
-                                                    defaultValue={
-                                                        user.status ===
-                                                        'pending'
-                                                            ? 'pending'
-                                                            : 'active'
-                                                    }
-                                                    onChange={(event) => {
-                                                        const status =
-                                                            event.target.value;
-
-                                                        if (
-                                                            status ===
-                                                                'active' ||
-                                                            status === 'pending'
-                                                        ) {
-                                                            updateStatus(
-                                                                user.id,
-                                                                status,
-                                                            );
-                                                        }
-                                                    }}
-                                                    disabled={
-                                                        savingUserId === user.id
-                                                    }
-                                                >
-                                                    {STATUS_OPTIONS.map(
-                                                        (opt) => (
+                                                        {roles.map((role) => (
                                                             <option
-                                                                key={
-                                                                    opt.value
-                                                                }
-                                                                value={
-                                                                    opt.value
-                                                                }
+                                                                key={role.id}
+                                                                value={role.id}
                                                             >
-                                                                {opt.label}
+                                                                {role.name}
                                                             </option>
-                                                        ),
-                                                    )}
-                                                </select>
-                                            )}
-                                        </td>
-                                    </tr>
+                                                        ))}
+                                                    </select>
+                                                )}
+                                            </td>
+                                            <td className="w-36 min-w-[9rem] px-3 py-3 align-middle">
+                                                {isOwnerUser ? (
+                                                    <span className="inline-flex h-9 w-full items-center rounded-md border border-sidebar-border px-3 capitalize">
+                                                        {statusLabel(
+                                                            user.status,
+                                                        )}
+                                                    </span>
+                                                ) : (
+                                                    <select
+                                                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm capitalize"
+                                                        defaultValue={
+                                                            user.status ===
+                                                            'pending'
+                                                                ? 'pending'
+                                                                : 'active'
+                                                        }
+                                                        onChange={(event) => {
+                                                            const status =
+                                                                event.target
+                                                                    .value;
+
+                                                            if (
+                                                                status ===
+                                                                    'active' ||
+                                                                status ===
+                                                                    'pending'
+                                                            ) {
+                                                                updateStatus(
+                                                                    user.id,
+                                                                    status,
+                                                                );
+                                                            }
+                                                        }}
+                                                        disabled={
+                                                            savingUserId ===
+                                                            user.id
+                                                        }
+                                                    >
+                                                        {STATUS_VALUES.map(
+                                                            (value) => (
+                                                                <option
+                                                                    key={value}
+                                                                    value={value}
+                                                                >
+                                                                    {t(
+                                                                        `admin.userStatus.${value}`,
+                                                                    )}
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                )}
+                                            </td>
+                                        </tr>
                                     );
                                 })}
                             </tbody>
@@ -329,7 +344,7 @@ export default function AdminUsers({
 AdminUsers.layout = {
     breadcrumbs: [
         {
-            title: 'Admin users',
+            title: 'navigation.adminUsers',
             href: '/admin/users',
         },
     ],

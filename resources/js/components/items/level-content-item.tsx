@@ -4,6 +4,7 @@ import {
     type SortableHandleProps,
 } from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
 const rowClassName =
@@ -34,6 +35,8 @@ export default function LevelContentItem({
     handleProps: SortableHandleProps;
     isDragging?: boolean;
 }) {
+    const { t } = useTranslation();
+
     return (
         <div
             data-sortable-id={levelContent.id}
@@ -57,7 +60,9 @@ export default function LevelContentItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground"
-                    aria-label={`Play ${levelContent.name}`}
+                    aria-label={t('levels.item.playContent', {
+                        name: levelContent.name,
+                    })}
                     onClick={() => setVideoContent(levelContent)}
                 >
                     <Play className="size-5 fill-current" />
@@ -67,7 +72,9 @@ export default function LevelContentItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground"
-                    aria-label={`Edit ${levelContent.name}`}
+                    aria-label={t('levels.item.editContent', {
+                        name: levelContent.name,
+                    })}
                     onClick={() => onEdit(levelContent)}
                 >
                     <Pencil className="size-5" />

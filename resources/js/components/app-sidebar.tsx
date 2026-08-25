@@ -26,19 +26,6 @@ import admin from '@/routes/admin';
 import { index as contentIndex } from '@/routes/content';
 import type { NavItem } from '@/types';
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
     const { auth } = usePage().props as {
         auth?: {
@@ -50,10 +37,23 @@ export function AppSidebar() {
         };
     };
 
+    const footerNavItems: NavItem[] = [
+        {
+            title: 'common.repository',
+            href: 'https://github.com/laravel/react-starter-kit',
+            icon: FolderGit2,
+        },
+        {
+            title: 'common.documentation',
+            href: 'https://laravel.com/docs/starter-kits#react',
+            icon: BookOpen,
+        },
+    ];
+
     const isAdmin = auth?.user?.role?.slug === 'admin';
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'navigation.dashboard',
             href: dashboard(),
             icon: LayoutGrid,
         },
@@ -65,27 +65,27 @@ export function AppSidebar() {
                       icon: BookOpen,
                   },
                   {
-                      title: 'Pagos',
+                      title: 'navigation.payments',
                       href: admin.payments.index.url(),
                       icon: CreditCard,
                   },
                   {
-                      title: 'Cursos',
+                      title: 'navigation.courses',
                       href: admin.courses.index.url(),
                       icon: GraduationCap,
                   },
                   {
-                      title: 'Clases especiales',
+                      title: 'navigation.oneTimeSessions',
                       href: admin.oneTimeSessions.index.url(),
                       icon: GraduationCap,
                   },
                   {
-                      title: 'Alumnos',
+                      title: 'navigation.students',
                       href: admin.students.index.url(),
                       icon: School,
                   },
                   {
-                      title: 'Admin users',
+                      title: 'navigation.adminUsers',
                       href: '/admin/users',
                       icon: Users,
                   },
