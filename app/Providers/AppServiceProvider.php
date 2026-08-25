@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\DanceType;
 use App\Models\Level;
+use App\Policies\DanceTypePolicy;
 use App\Policies\LevelPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Gate::policy(Level::class, LevelPolicy::class);
+        Gate::policy(DanceType::class, DanceTypePolicy::class);
 
         Date::use(CarbonImmutable::class);
 

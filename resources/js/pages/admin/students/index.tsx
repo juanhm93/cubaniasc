@@ -1,12 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
-import { useEffect, useState } from 'react';
-import admin from '@/routes/admin';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import admin from '@/routes/admin';
 
 type EnrollmentRow = {
     id: number;
@@ -91,10 +91,12 @@ export default function AdminStudentsIndex({
     levelOptions,
 }: StudentsIndexProps) {
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
+    const [syncedSearch, setSyncedSearch] = useState(filters.search);
 
-    useEffect(() => {
+    if (filters.search !== syncedSearch) {
+        setSyncedSearch(filters.search);
         setSearchDraft(filters.search ?? '');
-    }, [filters.search]);
+    }
 
     function visitFilters(next: FiltersState): void {
         router.get(admin.students.index.url(), queryFromFilters(next), {
@@ -142,7 +144,7 @@ export default function AdminStudentsIndex({
 
                     <form
                         onSubmit={submitSearch}
-                        className="grid gap-3 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6"
+                        className="grid gap-3 rounded-xl border border-sidebar-border/70 p-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 dark:border-sidebar-border"
                     >
                         <div className="grid gap-1.5">
                             <Label htmlFor="filter-course">Curso</Label>
@@ -213,7 +215,9 @@ export default function AdminStudentsIndex({
                             </select>
                         </div>
                         <div className="grid gap-1.5 md:col-span-2 lg:col-span-1 xl:col-span-2">
-                            <Label htmlFor="filter-search">Nombre o correo</Label>
+                            <Label htmlFor="filter-search">
+                                Nombre o correo
+                            </Label>
                             <div className="flex gap-2">
                                 <Input
                                     id="filter-search"

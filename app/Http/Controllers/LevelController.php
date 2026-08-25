@@ -2,29 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DanceType;
 use App\Models\Level;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
 
 class LevelController extends Controller
 {
-    public function index(Request $request)
+    public function index(): RedirectResponse
     {
-        $levels = Level::query()->with('danceType')->orderBy('sort_order')->get();
-        $danceTypes = DanceType::query()->orderBy('sort_order')->get();
-
-        return Inertia::render('levels', [
-            'levels' => $levels,
-            'danceTypes' => $danceTypes,
-        ]);
+        return redirect()->route('content.index');
     }
 
-    public function show(Request $request, string $level)
+    public function show(Level $level): RedirectResponse
     {
-        $level = Level::query()->findOrFail($level);
-
-        return Inertia::render('level', [
+        return redirect()->route('content.levels.show', [
+            'danceType' => $level->dance_type_id,
             'level' => $level,
         ]);
     }

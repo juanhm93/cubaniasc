@@ -1,5 +1,10 @@
-import { GripVertical, Pencil, Play, Trash2 } from 'lucide-react';
+import { Pencil, Play, Trash2 } from 'lucide-react';
+import {
+    SortableHandle,
+    type SortableHandleProps,
+} from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const rowClassName =
     'flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border';
@@ -12,33 +17,32 @@ type LevelContentItemProps = {
     video_url: string | null;
 };
 
-type deletingIdProps = number | null;
-type handleRemoveProps = (id: number) => void;
-type setVideoContentProps = (levelContent: LevelContentItemProps) => void;
-type onEditProps = (levelContent: LevelContentItemProps) => void;
-
 export default function LevelContentItem({
     levelContent,
     deletingId,
-    handleRemove,
+    onDelete,
     setVideoContent,
     onEdit,
+    handleProps,
+    isDragging = false,
 }: {
     levelContent: LevelContentItemProps;
-    deletingId: deletingIdProps;
-    handleRemove: handleRemoveProps;
-    setVideoContent: setVideoContentProps;
-    onEdit: onEditProps;
+    deletingId: number | null;
+    onDelete?: (levelContent: LevelContentItemProps) => void;
+    setVideoContent: (levelContent: LevelContentItemProps) => void;
+    onEdit: (levelContent: LevelContentItemProps) => void;
+    handleProps: SortableHandleProps;
+    isDragging?: boolean;
 }) {
     return (
-        <li key={levelContent.id.toString()} className={rowClassName}>
-            <span
-                className="inline-flex shrink-0 text-muted-foreground"
-                title="Reorder"
-                aria-hidden
-            >
-                <GripVertical className="size-5" />
-            </span>
+        <div
+            data-sortable-id={levelContent.id}
+            className={cn(rowClassName, isDragging && 'opacity-70')}
+        >
+            <SortableHandle
+                label={`Reordenar ${levelContent.name}`}
+                {...handleProps}
+            />
             <div className="min-w-0 flex-1">
                 <h2 className="truncate font-semibold">{levelContent.name}</h2>
                 {levelContent.description ? (
@@ -68,18 +72,20 @@ export default function LevelContentItem({
                 >
                     <Pencil className="size-5" />
                 </Button>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-9 text-muted-foreground hover:text-destructive"
-                    aria-label={`Remove ${levelContent.name}`}
-                    disabled={deletingId === levelContent.id}
-                    onClick={() => void handleRemove(levelContent.id)}
-                >
-                    <Trash2 className="size-5" />
-                </Button>
+                {onDelete ? (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 text-muted-foreground hover:text-destructive"
+                        aria-label={`Eliminar ${levelContent.name}`}
+                        disabled={deletingId === levelContent.id}
+                        onClick={() => onDelete(levelContent)}
+                    >
+                        <Trash2 className="size-5" />
+                    </Button>
+                ) : null}
             </div>
-        </li>
+        </div>
     );
 }

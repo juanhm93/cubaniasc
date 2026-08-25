@@ -1,35 +1,59 @@
 import { router } from '@inertiajs/react';
-import { ArrowRight, GripVertical, Trash2 } from 'lucide-react';
+import { ArrowRight, Trash2 } from 'lucide-react';
+import {
+    SortableHandle,
+    type SortableHandleProps,
+} from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
-import { show as levelShow } from '@/routes/levels';
+import { cn } from '@/lib/utils';
+import { show as contentLevelShow } from '@/routes/content/levels';
 
 type LevelItemProps = {
     id: number;
     name: string;
     description: string | null;
-    dance_type: DanceType;
+    figuresCount?: number;
 };
 
-type DanceType = {
-    id: number;
-    name: string;
-};
+export default function LevelItem({
+    level,
+    danceTypeId,
+    deletingId,
+    onDelete,
+    handleProps,
+    isDragging = false,
+}: {
+    level: LevelItemProps;
+    danceTypeId: number;
+    deletingId?: number | null;
+    onDelete?: (level: LevelItemProps) => void;
+    handleProps: SortableHandleProps;
+    isDragging?: boolean;
+}) {
+    const figuresLabel =
+        level.figuresCount === undefined
+            ? null
+            : `${level.figuresCount} figura${level.figuresCount === 1 ? '' : 's'}`;
 
-export default function LevelItem({ level }: { level: LevelItemProps }) {
     return (
         <div
-            key={level.id.toString()}
-            className="flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border"
+            data-sortable-id={level.id}
+            className={cn(
+                'flex items-center gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm dark:border-sidebar-border',
+                isDragging && 'opacity-70',
+            )}
         >
-            <GripVertical
-                className="size-5 shrink-0 text-muted-foreground"
-                aria-hidden
+            <SortableHandle
+                label={`Reordenar ${level.name}`}
+                {...handleProps}
             />
             <div className="min-w-0 flex-1">
                 <h2 className="truncate font-semibold">{level.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                    {level.dance_type.name}
-                </p>
+                {figuresLabel ? (
+                    <p className="text-sm text-muted-foreground">
+                        {figuresLabel}
+                    </p>
+                ) : null}
                 {level.description ? (
                     <p className="line-clamp-2 text-sm text-muted-foreground">
                         {level.description}
@@ -42,12 +66,31 @@ export default function LevelItem({ level }: { level: LevelItemProps }) {
                     variant="ghost"
                     size="icon"
                     className="size-9 shrink-0 text-muted-foreground"
-                    aria-label={`Open ${level.name}`}
-                    onClick={() => router.visit(levelShow.url(level.id))}
+                    aria-label={`Abrir ${level.name}`}
+                    onClick={() =>
+                        router.visit(
+                            contentLevelShow.url({
+                                danceType: danceTypeId,
+                                level: level.id,
+                            }),
+                        )
+                    }
                 >
                     <ArrowRight className="size-5" />
                 </Button>
-                <Trash2 className="size-5 text-muted-foreground" aria-hidden />
+                {onDelete ? (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                        aria-label={`Eliminar ${level.name}`}
+                        disabled={deletingId === level.id}
+                        onClick={() => onDelete(level)}
+                    >
+                        <Trash2 className="size-5" />
+                    </Button>
+                ) : null}
             </div>
         </div>
     );
