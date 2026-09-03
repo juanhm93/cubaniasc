@@ -18,7 +18,7 @@ return [
 
         'staging' => [
             'branch' => 'develop',
-            'app_url' => env('STAGING_APP_URL', 'https://cubania.purphura.com/'),
+            'app_url' => env('STAGING_APP_URL', 'https://cubania.purphura.com'),
             'ftp_server_dir' => env('FTP_STAGING_SERVER_DIR', '/'),
             'secrets' => [
                 'server' => 'FTP_STAGING_SERVER',

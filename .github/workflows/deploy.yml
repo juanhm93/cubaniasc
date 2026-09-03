@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: "${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
-      url: "${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com/' }}"
+      url: "${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com' }}"
     services:
       mysql:
         image: mysql:8.0
@@ -67,7 +67,7 @@ jobs:
           npm cache clean --force
       - name: Build Frontend Assets
         env:
-          APP_URL: ${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com/' }}
+          APP_URL: ${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com' }}
           APP_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
         run: npm run build
       - name: Deploy staging to Purphura subdomain
