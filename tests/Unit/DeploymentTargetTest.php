@@ -14,7 +14,8 @@ class DeploymentTargetTest extends TestCase
 
         $this->assertNotNull($target);
         $this->assertSame('staging', $target->name);
-        $this->assertSame('https://cubania.purphura.com/', $target->appUrl);
+        $this->assertSame('develop', $target->branch);
+        $this->assertStringEndsNotWith('/', $target->appUrl);
         $this->assertSame('FTP_STAGING_SERVER', $target->ftpServerSecret);
         $this->assertSame('FTP_STAGING_USERNAME', $target->ftpUsernameSecret);
         $this->assertSame('FTP_STAGING_PASSWORD', $target->ftpPasswordSecret);
@@ -27,7 +28,8 @@ class DeploymentTargetTest extends TestCase
 
         $this->assertNotNull($target);
         $this->assertSame('production', $target->name);
-        $this->assertSame('https://cubaniasc.com', $target->appUrl);
+        $this->assertSame('main', $target->branch);
+        $this->assertStringEndsNotWith('/', $target->appUrl);
         $this->assertSame('FTP_PRODUCTION_SERVER', $target->ftpServerSecret);
         $this->assertSame('FTP_PRODUCTION_USERNAME', $target->ftpUsernameSecret);
         $this->assertSame('FTP_PRODUCTION_PASSWORD', $target->ftpPasswordSecret);
@@ -61,17 +63,27 @@ class DeploymentTargetTest extends TestCase
         $this->assertSame('${{ secrets.FTP_PRODUCTION_USERNAME }}', $production['with']['username']);
         $this->assertSame('${{ secrets.FTP_PRODUCTION_PASSWORD }}', $production['with']['password']);
         $this->assertSame('${{ secrets.FTP_PRODUCTION_SERVER_DIR }}', $production['with']['server-dir']);
-        $this->assertStringContainsString('production', (string) $workflow['jobs']['laravel-tests']['environment']['name']);
-        $this->assertStringContainsString('staging', (string) $workflow['jobs']['laravel-tests']['environment']['name']);
+        $this->assertStringContainsString('https://cubania.purphura.com', (string) $workflow['jobs']['laravel-tests']['environment']['url']);
+        $this->assertStringNotContainsString('https://cubania.purphura.com/', (string) $workflow['jobs']['laravel-tests']['environment']['url']);
+        $this->assertStringContainsString('https://cubaniasc.com', (string) $workflow['jobs']['laravel-tests']['environment']['url']);
     }
 
     public function test_environment_example_files_match_deploy_urls(): void
     {
+        $config = (string) file_get_contents(base_path('config/deploy.php'));
+        $example = (string) file_get_contents(base_path('.env.example'));
+
+        $this->assertStringContainsString("'https://cubania.purphura.com'", $config);
+        $this->assertStringNotContainsString("'https://cubania.purphura.com/'", $config);
+        $this->assertStringContainsString('STAGING_APP_URL=https://cubania.purphura.com', $example);
+        $this->assertStringNotContainsString('STAGING_APP_URL=https://cubania.purphura.com/', $example);
+
         $staging = (string) file_get_contents(base_path('.env.staging.example'));
         $production = (string) file_get_contents(base_path('.env.production.example'));
 
         $this->assertStringContainsString('APP_ENV=staging', $staging);
-        $this->assertStringContainsString('APP_URL=https://cubania.purphura.com/', $staging);
+        $this->assertStringContainsString('APP_URL=https://cubania.purphura.com', $staging);
+        $this->assertStringNotContainsString('APP_URL=https://cubania.purphura.com/', $staging);
         $this->assertStringContainsString('APP_DEBUG=false', $staging);
 
         $this->assertStringContainsString('APP_ENV=production', $production);
