@@ -14,7 +14,7 @@ class DeploymentTargetTest extends TestCase
 
         $this->assertNotNull($target);
         $this->assertSame('staging', $target->name);
-        $this->assertSame('https://cubaniasc.purphura.com', $target->appUrl);
+        $this->assertSame('https://cubania.purphura.com/', $target->appUrl);
         $this->assertSame('FTP_STAGING_SERVER', $target->ftpServerSecret);
         $this->assertSame('FTP_STAGING_USERNAME', $target->ftpUsernameSecret);
         $this->assertSame('FTP_STAGING_PASSWORD', $target->ftpPasswordSecret);
@@ -71,7 +71,7 @@ class DeploymentTargetTest extends TestCase
         $production = (string) file_get_contents(base_path('.env.production.example'));
 
         $this->assertStringContainsString('APP_ENV=staging', $staging);
-        $this->assertStringContainsString('APP_URL=https://cubaniasc.purphura.com', $staging);
+        $this->assertStringContainsString('APP_URL=https://cubania.purphura.com/', $staging);
         $this->assertStringContainsString('APP_DEBUG=false', $staging);
 
         $this->assertStringContainsString('APP_ENV=production', $production);
