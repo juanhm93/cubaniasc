@@ -16,11 +16,8 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+Route::inertia('/', 'welcome')->name('home');
 
 Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
     ->name('pre-registration.create');

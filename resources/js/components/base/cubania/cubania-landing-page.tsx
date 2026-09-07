@@ -13,6 +13,7 @@ import '../../../../css/landing/cubania-landing.css';
 
 export type CubaniaLandingPageProps = {
     isAuthenticated: boolean;
+    canLogin: boolean;
     canRegister: boolean;
     /** When `true`, hides the system cursor and shows the Cubanía dot + ring. */
     customCursor?: boolean;
@@ -23,6 +24,7 @@ export type CubaniaLandingPageProps = {
  */
 export function CubaniaLandingPage({
     isAuthenticated,
+    canLogin,
     canRegister,
     customCursor = false,
 }: CubaniaLandingPageProps): ReactNode {
@@ -36,6 +38,7 @@ export function CubaniaLandingPage({
             {customCursor ? <CubaniaCursor /> : null}
             <CubaniaNav
                 isAuthenticated={isAuthenticated}
+                canLogin={canLogin}
                 canRegister={canRegister}
             />
             <CubaniaHero />

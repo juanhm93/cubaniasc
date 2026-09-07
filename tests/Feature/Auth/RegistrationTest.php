@@ -41,4 +41,29 @@ class RegistrationTest extends TestCase
             'status' => 'pending',
         ]);
     }
+
+    public function test_registration_screen_redirects_to_home_when_disabled()
+    {
+        config(['fortify.registration_enabled' => false]);
+
+        $this->get(route('register'))
+            ->assertRedirect(route('home'));
+    }
+
+    public function test_registration_cannot_be_submitted_when_disabled()
+    {
+        config(['fortify.registration_enabled' => false]);
+
+        $this->post(route('register.store'), [
+            'name' => 'Test User',
+            'email' => 'blocked@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('home'));
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', [
+            'email' => 'blocked@example.com',
+        ]);
+    }
 }

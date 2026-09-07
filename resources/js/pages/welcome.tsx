@@ -3,8 +3,10 @@ import { CubaniaLandingPage } from '@/components/base/cubania';
 import { useTranslation } from '@/i18n/use-translation';
 
 export default function Welcome({
+    canLogin = true,
     canRegister = true,
 }: {
+    canLogin?: boolean;
     canRegister?: boolean;
 }) {
     const { auth } = usePage().props;
@@ -21,6 +23,7 @@ export default function Welcome({
             </Head>
             <CubaniaLandingPage
                 isAuthenticated={Boolean(auth.user)}
+                canLogin={canLogin}
                 canRegister={canRegister}
             />
         </>
