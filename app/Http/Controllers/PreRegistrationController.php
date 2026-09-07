@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Fortify\Features;
 
 class PreRegistrationController extends Controller
 {
@@ -18,7 +17,6 @@ class PreRegistrationController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('pre-registration', [
-            'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
         ]);
     }

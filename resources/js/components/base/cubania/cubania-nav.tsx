@@ -6,6 +6,7 @@ import preRegistration from '@/routes/pre-registration';
 
 type CubaniaNavProps = {
     isAuthenticated: boolean;
+    canLogin: boolean;
     canRegister: boolean;
 };
 
@@ -14,6 +15,7 @@ type CubaniaNavProps = {
  */
 export function CubaniaNav({
     isAuthenticated,
+    canLogin,
     canRegister,
 }: CubaniaNavProps): ReactNode {
     const { t } = useTranslation();
@@ -79,42 +81,46 @@ export function CubaniaNav({
                 </li>
             </ul>
 
-            <ul className="cubania-nav__auth">
-                {isAuthenticated ? (
-                    <li>
-                        <Link
-                            href={dashboard()}
-                            className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
-                            data-cubania-cursor="interactive"
-                        >
-                            {t('landing.nav.dashboard')}
-                        </Link>
-                    </li>
-                ) : (
-                    <>
+            {(isAuthenticated || canLogin || canRegister) && (
+                <ul className="cubania-nav__auth">
+                    {isAuthenticated ? (
                         <li>
                             <Link
-                                href={login()}
-                                className="cubania-nav__link cubania-nav__link--compact"
+                                href={dashboard()}
+                                className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
                                 data-cubania-cursor="interactive"
                             >
-                                {t('landing.nav.logIn')}
+                                {t('landing.nav.dashboard')}
                             </Link>
                         </li>
-                        {canRegister && (
-                            <li>
-                                <Link
-                                    href={register()}
-                                    className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.nav.register')}
-                                </Link>
-                            </li>
-                        )}
-                    </>
-                )}
-            </ul>
+                    ) : (
+                        <>
+                            {canLogin && (
+                                <li>
+                                    <Link
+                                        href={login()}
+                                        className="cubania-nav__link cubania-nav__link--compact"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.nav.logIn')}
+                                    </Link>
+                                </li>
+                            )}
+                            {canRegister && (
+                                <li>
+                                    <Link
+                                        href={register()}
+                                        className="cubania-nav__link cubania-nav__link--cta cubania-nav__link--compact"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.nav.register')}
+                                    </Link>
+                                </li>
+                            )}
+                        </>
+                    )}
+                </ul>
+            )}
         </nav>
     );
 }

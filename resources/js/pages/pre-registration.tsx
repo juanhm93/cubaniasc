@@ -8,11 +8,13 @@ import preRegistration from '@/routes/pre-registration';
 import '../../css/landing/cubania-landing.css';
 
 type PreRegistrationPageProps = {
+    canLogin?: boolean;
     canRegister?: boolean;
     status?: string | null;
 };
 
 export default function PreRegistrationPage({
+    canLogin = true,
     canRegister = true,
     status = null,
 }: PreRegistrationPageProps) {
@@ -48,7 +50,11 @@ export default function PreRegistrationPage({
                 />
             </Head>
             <div className="cubania-landing">
-                <CubaniaNav isAuthenticated={Boolean(auth.user)} canRegister={canRegister} />
+                <CubaniaNav
+                    isAuthenticated={Boolean(auth.user)}
+                    canLogin={canLogin}
+                    canRegister={canRegister}
+                />
                 <main className="cubania-pre-reg">
                     <h1 className="cubania-pre-reg__title">
                         {t('landing.preRegistration.title')}
