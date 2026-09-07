@@ -6,6 +6,7 @@ import { CubaniaHero } from '@/components/base/cubania/cubania-hero';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
 import { CubaniaStylesSection } from '@/components/base/cubania/cubania-styles-section';
 import { CubaniaTestimonialsSection } from '@/components/base/cubania/cubania-testimonials-section';
+import { CubaniaWhatsappFloat } from '@/components/base/cubania/cubania-whatsapp-float';
 import { useCubaniaSmoothScroll } from '@/components/base/cubania/use-cubania-smooth-scroll';
 import { useTranslation } from '@/i18n/use-translation';
 
@@ -33,7 +34,7 @@ export function CubaniaLandingPage({
 
     return (
         <div
-            className={`cubania-landing${customCursor ? ' cubania-landing--custom-cursor' : ''}`.trim()}
+            className={`cubania-landing${customCursor ? 'cubania-landing--custom-cursor' : ''}`.trim()}
         >
             {customCursor ? <CubaniaCursor /> : null}
             <CubaniaNav
@@ -51,6 +52,7 @@ export function CubaniaLandingPage({
             <CubaniaCtaBand />
             <CubaniaTestimonialsSection />
             <CubaniaFooter />
+            <CubaniaWhatsappFloat />
         </div>
     );
 }

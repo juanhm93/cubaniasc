@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\AuthAccess;
+use App\Support\CubaniaLanding;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'canLogin' => AuthAccess::canLogin(),
             'canRegister' => AuthAccess::canRegister(),
+            'cubania' => CubaniaLanding::shared(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

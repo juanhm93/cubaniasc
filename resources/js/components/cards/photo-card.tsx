@@ -5,14 +5,8 @@ type PhotoVariant = 'a' | 'b' | 'c';
 type CubaniaPhotoCardProps = {
     variant: PhotoVariant;
     gradient: string;
-    emoji: string;
+    image: string;
     tag: string;
-};
-
-const emojiClass: Record<PhotoVariant, string> = {
-    a: 'cubania-photo-card__emoji',
-    b: 'cubania-photo-card__emoji cubania-photo-card__emoji--sm',
-    c: 'cubania-photo-card__emoji cubania-photo-card__emoji--xs',
 };
 
 const variantClass: Record<PhotoVariant, string> = {
@@ -22,23 +16,31 @@ const variantClass: Record<PhotoVariant, string> = {
 };
 
 /**
- * Floating gradient “photo” tile used in the hero collage.
+ * Floating instructor tile used in the hero collage.
  */
 export function CubaniaPhotoCard({
     variant,
     gradient,
-    emoji,
+    image,
     tag,
 }: CubaniaPhotoCardProps): ReactNode {
     return (
         <div
             className={`cubania-photo-card ${variantClass[variant]}`}
-            style={{ background: gradient }}
             data-cubania-cursor="interactive"
         >
-            <span className={emojiClass[variant]} aria-hidden>
-                {emoji}
-            </span>
+            <img
+                className="cubania-photo-card__media"
+                src={image}
+                alt=""
+                loading="lazy"
+            />
+            <div
+                className="cubania-photo-card__tint"
+                style={{ background: gradient }}
+            />
+            <div className="cubania-photo-card__stripes" aria-hidden />
+            <div className="cubania-photo-card__lines" aria-hidden />
             <div className="cubania-photo-card__wash" />
             <span className="cubania-photo-card__tag">{tag}</span>
         </div>
