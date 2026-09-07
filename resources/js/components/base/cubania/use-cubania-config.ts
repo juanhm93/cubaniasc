@@ -14,13 +14,13 @@ const fallbackCubania: CubaniaShared = {
     },
     instructors: [
         {
-            image: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=800&q=80',
+            image: '/cubania-assets/juan.webp',
         },
         {
             image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
         },
         {
-            image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+            image: '/cubania-assets/javier.webp',
         },
     ],
 };

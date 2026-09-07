@@ -35,7 +35,8 @@ class LandingCubaniaConfigTest extends TestCase
                 ->where('cubania.hero.youtubeId', 's4DT0BFxDEk')
                 ->where('cubania.hero.playbackRate', 0.75)
                 ->has('cubania.instructors', 3)
-                ->where('cubania.instructors.0.image', $shared['instructors'][0]['image']));
+                ->where('cubania.instructors.0.image', '/cubania-assets/juan.webp')
+                ->where('cubania.instructors.2.image', '/cubania-assets/javier.webp'));
     }
 
     public function test_landing_uses_overridden_cubania_config_values(): void

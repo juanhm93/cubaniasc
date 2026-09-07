@@ -39,6 +39,7 @@ export function CubaniaHero(): ReactNode {
                     <CubaniaHeroVideo
                         videoId={hero.youtubeId}
                         playbackRate={hero.playbackRate}
+                        showControls={false}
                     />
                 ) : null}
                 <div className="cubania-hero__overlay" />

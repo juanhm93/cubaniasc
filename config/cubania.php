@@ -16,7 +16,7 @@ return [
 
     'social' => [
         'instagram' => env('CUBANIA_INSTAGRAM_URL', 'https://www.instagram.com/cubania.sc'),
-        'tiktok' => env('CUBANIA_TIKTOK_URL', 'https://www.tiktok.com/@cubania.sc'),
+        'tiktok' => env('CUBANIA_TIKTOK_URL', 'https://www.tiktok.com/@cubania.salsac'),
         'whatsapp' => env('CUBANIA_WHATSAPP_URL', 'https://wa.me/+584122801334'),
     ],
 
@@ -41,8 +41,8 @@ return [
     | Hero instructor cards
     |--------------------------------------------------------------------------
     |
-    | Placeholder portraits for the floating hero cards. Replace these URLs
-    | with the academy instructor photos when they are ready.
+    | Portraits for the floating hero cards (Juan, Carlos, Javier). Override
+    | with CUBANIA_INSTRUCTOR_*_IMAGE when a card should use a different URL.
     |
     */
 
@@ -50,7 +50,7 @@ return [
         [
             'image' => env(
                 'CUBANIA_INSTRUCTOR_1_IMAGE',
-                'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=800&q=80',
+                '/cubania-assets/juan.webp',
             ),
         ],
         [
@@ -62,7 +62,7 @@ return [
         [
             'image' => env(
                 'CUBANIA_INSTRUCTOR_3_IMAGE',
-                'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+                '/cubania-assets/javier.webp',
             ),
         ],
     ],
