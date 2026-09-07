@@ -134,6 +134,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Registration
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, visiting or submitting /register redirects to the landing
+    | page and the register button is hidden. Fortify still registers the
+    | route so Wayfinder imports remain valid.
+    |
+    */
+
+    'registration_enabled' => filter_var(env('AUTH_REGISTRATION_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Landing Login Button
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, the landing page hides the login button. The /login
+    | route remains available for administrators.
+    |
+    */
+
+    'login_visible' => filter_var(env('AUTH_LOGIN_VISIBLE', true), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
     | Features
     |--------------------------------------------------------------------------
     |
