@@ -529,7 +529,15 @@
       "tagSalsaCasino": "Salsa Casino",
       "tagBachata": "Bachata",
       "tagRueda": "Rueda",
+      "instructorA": "Yadira",
+      "instructorB": "Carlos",
+      "instructorC": "Ana",
       "scroll": "Scroll"
+    },
+    "social": {
+      "instagramAria": "Instagram de Cubanía",
+      "tiktokAria": "TikTok de Cubanía",
+      "whatsappAria": "Escribir por WhatsApp"
     },
     "styles": {
       "sectionLabel": "Lo que enseñamos",
@@ -590,6 +598,7 @@
       "contact": "Contacto",
       "whatsapp": "WhatsApp",
       "instagram": "Instagram",
+      "tiktok": "TikTok",
       "location": "Ubicación",
       "copyright": "© {{year}} Cubanía · Academia de Salsa Casino y Bachata"
     },

@@ -2,6 +2,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
+import { CubaniaWhatsappFloat } from '@/components/base/cubania/cubania-whatsapp-float';
 import { useTranslation } from '@/i18n/use-translation';
 import preRegistration from '@/routes/pre-registration';
 
@@ -69,7 +70,10 @@ export default function PreRegistrationPage({
                     ) : null}
                     <form onSubmit={submit} noValidate>
                         <div className="cubania-pre-reg__field">
-                            <label className="cubania-pre-reg__label" htmlFor="pre-reg-name">
+                            <label
+                                className="cubania-pre-reg__label"
+                                htmlFor="pre-reg-name"
+                            >
                                 {t('common.fullName')}
                             </label>
                             <input
@@ -78,16 +82,23 @@ export default function PreRegistrationPage({
                                 type="text"
                                 name="name"
                                 value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('name', e.target.value)
+                                }
                                 autoComplete="name"
                                 required
                             />
                             {form.errors.name ? (
-                                <p className="cubania-pre-reg__error">{form.errors.name}</p>
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.name}
+                                </p>
                             ) : null}
                         </div>
                         <div className="cubania-pre-reg__field">
-                            <label className="cubania-pre-reg__label" htmlFor="pre-reg-email">
+                            <label
+                                className="cubania-pre-reg__label"
+                                htmlFor="pre-reg-email"
+                            >
                                 {t('common.emailAddress')}
                             </label>
                             <input
@@ -96,16 +107,23 @@ export default function PreRegistrationPage({
                                 type="email"
                                 name="email"
                                 value={form.data.email}
-                                onChange={(e) => form.setData('email', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('email', e.target.value)
+                                }
                                 autoComplete="email"
                                 required
                             />
                             {form.errors.email ? (
-                                <p className="cubania-pre-reg__error">{form.errors.email}</p>
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.email}
+                                </p>
                             ) : null}
                         </div>
                         <div className="cubania-pre-reg__field">
-                            <label className="cubania-pre-reg__label" htmlFor="pre-reg-phone">
+                            <label
+                                className="cubania-pre-reg__label"
+                                htmlFor="pre-reg-phone"
+                            >
                                 {t('common.phone')}{' '}
                                 <span className="cubania-pre-reg__label-note">
                                     {t('landing.preRegistration.phoneOptional')}
@@ -117,15 +135,22 @@ export default function PreRegistrationPage({
                                 type="tel"
                                 name="phone"
                                 value={form.data.phone}
-                                onChange={(e) => form.setData('phone', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('phone', e.target.value)
+                                }
                                 autoComplete="tel"
                             />
                             {form.errors.phone ? (
-                                <p className="cubania-pre-reg__error">{form.errors.phone}</p>
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.phone}
+                                </p>
                             ) : null}
                         </div>
                         <div className="cubania-pre-reg__field">
-                            <label className="cubania-pre-reg__label" htmlFor="pre-reg-message">
+                            <label
+                                className="cubania-pre-reg__label"
+                                htmlFor="pre-reg-message"
+                            >
                                 {t('landing.preRegistration.messageLabel')}
                             </label>
                             <textarea
@@ -133,12 +158,16 @@ export default function PreRegistrationPage({
                                 className="cubania-pre-reg__textarea"
                                 name="message"
                                 value={form.data.message}
-                                onChange={(e) => form.setData('message', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('message', e.target.value)
+                                }
                                 rows={4}
                                 maxLength={5000}
                             />
                             {form.errors.message ? (
-                                <p className="cubania-pre-reg__error">{form.errors.message}</p>
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.message}
+                                </p>
                             ) : null}
                         </div>
                         <div className="cubania-pre-reg__field">
@@ -148,14 +177,21 @@ export default function PreRegistrationPage({
                                     type="checkbox"
                                     name="agree"
                                     checked={form.data.agree}
-                                    onChange={(e) => form.setData('agree', e.target.checked)}
+                                    onChange={(e) =>
+                                        form.setData('agree', e.target.checked)
+                                    }
                                 />
-                                <label className="cubania-pre-reg__check-label" htmlFor="pre-reg-agree">
+                                <label
+                                    className="cubania-pre-reg__check-label"
+                                    htmlFor="pre-reg-agree"
+                                >
                                     {t('landing.preRegistration.agreeLabel')}
                                 </label>
                             </div>
                             {form.errors.agree ? (
-                                <p className="cubania-pre-reg__error">{form.errors.agree}</p>
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.agree}
+                                </p>
                             ) : null}
                         </div>
                         <div className="cubania-pre-reg__submit">
@@ -173,6 +209,7 @@ export default function PreRegistrationPage({
                     </form>
                 </main>
                 <CubaniaFooter />
+                <CubaniaWhatsappFloat />
             </div>
         </>
     );

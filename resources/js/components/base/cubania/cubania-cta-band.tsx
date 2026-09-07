@@ -1,15 +1,15 @@
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
 import preRegistration from '@/routes/pre-registration';
-
-const WHATSAPP_URL = 'https://wa.me/+584122801334';
 
 /**
  * Full-width yellow CTA strip above testimonials.
  */
 export function CubaniaCtaBand(): ReactNode {
     const { t } = useTranslation();
+    const { social } = useCubaniaConfig();
 
     return (
         <div className="cubania-cta-band" id="inscripcion">
@@ -31,15 +31,17 @@ export function CubaniaCtaBand(): ReactNode {
                 >
                     {t('landing.cta.preRegistration')}
                 </Link>
-                <a
-                    href={WHATSAPP_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="cubania-btn cubania-btn--dark"
-                    data-cubania-cursor="interactive"
-                >
-                    {t('landing.cta.whatsapp')}
-                </a>
+                {social.whatsapp ? (
+                    <a
+                        href={social.whatsapp}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="cubania-btn cubania-btn--dark"
+                        data-cubania-cursor="interactive"
+                    >
+                        {t('landing.cta.whatsapp')}
+                    </a>
+                ) : null}
             </div>
         </div>
     );
