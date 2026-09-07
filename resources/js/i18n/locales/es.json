@@ -517,10 +517,10 @@
       "register": "Registro"
     },
     "hero": {
-      "eyebrow": "Salsa Casino & Bachata · Cumaná - Sucre, Venezuela",
-      "titleOutline": "Vive",
+      "eyebrow": "Baile, risas y desconexión · Venezuela y Colombia",
+      "titleOutline": "Desconecta",
       "titleAccent": "Bailando",
-      "subtitle": "Te hacemos feliz a través del baile. Pasión y educación son nuestros valores.",
+      "subtitle": "Una hora sin celular, moviendo el cuerpo y riendo con gente real. Eso es lo que hacemos.",
       "startNow": "Empieza ahora",
       "viewClasses": "Ver clases",
       "followers": "Seguidores",
@@ -529,7 +529,15 @@
       "tagSalsaCasino": "Salsa Casino",
       "tagBachata": "Bachata",
       "tagRueda": "Rueda",
+      "instructorA": "Juan",
+      "instructorB": "Mare",
+      "instructorC": "Javier",
       "scroll": "Scroll"
+    },
+    "social": {
+      "instagramAria": "Instagram de Cubanía",
+      "tiktokAria": "TikTok de Cubanía",
+      "whatsappAria": "Escribir por WhatsApp"
     },
     "styles": {
       "sectionLabel": "Lo que enseñamos",
@@ -590,6 +598,7 @@
       "contact": "Contacto",
       "whatsapp": "WhatsApp",
       "instagram": "Instagram",
+      "tiktok": "TikTok",
       "location": "Ubicación",
       "copyright": "© {{year}} Cubanía · Academia de Salsa Casino y Bachata"
     },
