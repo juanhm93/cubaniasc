@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +37,15 @@ class Course extends Model
                 ['sort_order' => 1],
             );
         });
+    }
+
+    /**
+     * @param  Builder<Course>  $query
+     * @return Builder<Course>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
     }
 
     public function level(): BelongsTo

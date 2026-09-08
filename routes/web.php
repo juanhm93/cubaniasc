@@ -14,10 +14,14 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
+use App\Http\Controllers\PublicScheduleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::inertia('/', 'welcome')->name('home');
+
+Route::get('api/horarios', PublicScheduleController::class)
+    ->name('schedule.index');
 
 Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
     ->name('pre-registration.create');
