@@ -563,7 +563,7 @@
       "preRegistration": "Preinscripción web",
       "whatsapp": "Contáctanos por WhatsApp",
       "scheduleCaption": "Horario de clases de lunes a viernes",
-      "scheduleDayColumn": "Día",
+      "scheduleHourColumn": "Hora",
       "scheduleLoading": "Cargando horario…",
       "scheduleError": "No pudimos cargar el horario. Inténtalo de nuevo.",
       "scheduleRetry": "Reintentar"

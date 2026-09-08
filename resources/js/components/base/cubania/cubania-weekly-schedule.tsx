@@ -37,6 +37,17 @@ function weekdayKey(weekday: number): (typeof WEEKDAY_KEYS)[number] {
     return WEEKDAY_KEYS[weekday - 1] ?? 'monday';
 }
 
+function cellForHour(
+    day: PublicWeeklySchedule['days'][number] | { weekday: number },
+    hour: string,
+): PublicWeeklySchedule['days'][number]['cells'][number] | null {
+    if (!('cells' in day)) {
+        return null;
+    }
+
+    return day.cells.find((cell) => cell.hour === hour) ?? null;
+}
+
 function ScheduleTable({
     hours,
     days,
@@ -55,51 +66,57 @@ function ScheduleTable({
                 <tr>
                     <th className="cubania-week-grid__corner" scope="col">
                         <span className="cubania-sr-only">
-                            {t('landing.cta.scheduleDayColumn')}
+                            {t('landing.cta.scheduleHourColumn')}
                         </span>
                     </th>
-                    {hours.map((hour) => (
+                    {days.map((day) => (
                         <th
-                            key={hour}
-                            className="cubania-week-grid__hour"
+                            key={day.weekday}
+                            className="cubania-week-grid__day"
                             scope="col"
                         >
-                            {formatHourLabel(hour)}
+                            {t(
+                                `admin.weekdaysShort.${weekdayKey(day.weekday)}`,
+                            )}
                         </th>
                     ))}
                 </tr>
             </thead>
             <tbody>
-                {days.map((day) => (
-                    <tr key={day.weekday}>
-                        <th className="cubania-week-grid__day" scope="row">
-                            {t(
-                                `admin.weekdaysShort.${weekdayKey(day.weekday)}`,
-                            )}
+                {hours.map((hour) => (
+                    <tr key={hour}>
+                        <th className="cubania-week-grid__hour" scope="row">
+                            {formatHourLabel(hour)}
                         </th>
-                        {'cells' in day
-                            ? day.cells.map((cell) => (
-                                  <td
-                                      key={`${day.weekday}-${cell.hour}`}
-                                      className={[
-                                          'cubania-week-grid__cell',
-                                          cell.occupied
-                                              ? 'cubania-week-grid__cell--occupied'
-                                              : '',
-                                      ]
-                                          .filter(Boolean)
-                                          .join(' ')}
-                                      title={cell.labels.join(' · ')}
-                                  >
-                                      {cell.labels.join(' · ')}
-                                  </td>
-                              ))
-                            : hours.map((hour) => (
-                                  <td
-                                      key={`${day.weekday}-${hour}`}
-                                      className="cubania-week-grid__cell cubania-week-grid__cell--loading"
-                                  />
-                              ))}
+                        {days.map((day) => {
+                            const cell = cellForHour(day, hour);
+
+                            if (cell === null) {
+                                return (
+                                    <td
+                                        key={`${day.weekday}-${hour}`}
+                                        className="cubania-week-grid__cell cubania-week-grid__cell--loading"
+                                    />
+                                );
+                            }
+
+                            return (
+                                <td
+                                    key={`${day.weekday}-${hour}`}
+                                    className={[
+                                        'cubania-week-grid__cell',
+                                        cell.occupied
+                                            ? 'cubania-week-grid__cell--occupied'
+                                            : '',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    title={cell.labels.join(' · ')}
+                                >
+                                    {cell.labels.join(' · ')}
+                                </td>
+                            );
+                        })}
                     </tr>
                 ))}
             </tbody>

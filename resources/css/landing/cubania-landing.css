@@ -971,14 +971,24 @@
 
 .cubania-landing .cubania-week-grid {
     width: 100%;
-    min-width: 560px;
+    min-width: 480px;
     border-collapse: separate;
     border-spacing: 3px;
     table-layout: fixed;
 }
 
 .cubania-landing .cubania-week-grid__corner {
-    width: 44px;
+    width: 52px;
+}
+
+.cubania-landing .cubania-week-grid__day {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    color: var(--cubania-negro);
+    text-align: center;
+    padding: 0 0 8px;
+    white-space: nowrap;
 }
 
 .cubania-landing .cubania-week-grid__hour {
@@ -988,19 +998,9 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(10, 0, 16, 0.62);
-    padding: 0 0 8px;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.cubania-landing .cubania-week-grid__day {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.05rem;
-    letter-spacing: 0.06em;
-    color: var(--cubania-negro);
     text-align: left;
     padding-right: 8px;
-    width: 44px;
+    width: 52px;
     white-space: nowrap;
 }
 
