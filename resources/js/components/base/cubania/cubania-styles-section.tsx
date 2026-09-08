@@ -36,20 +36,23 @@ export function CubaniaStylesSection(): ReactNode {
 
     return (
         <section className="cubania-styles" id="estilos">
-            <div className="cubania-section-header__label">
-                {t('landing.styles.sectionLabel')}
+            <div className="cubania-styles__header">
+                <div className="cubania-section-header__label">
+                    {t('landing.styles.sectionLabel')}
+                </div>
+                <h2 className="cubania-section-header__title">
+                    {t('landing.styles.sectionTitleLine1')}{' '}
+                    <span className="cubania-section-header__title-accent">
+                        {t('landing.styles.sectionTitleLine2')}
+                    </span>
+                </h2>
             </div>
-            <h2 className="cubania-section-header__title">
-                {t('landing.styles.sectionTitleLine1')}
-                <br />
-                {t('landing.styles.sectionTitleLine2')}
-            </h2>
 
             <div className="cubania-styles__grid">
                 <CubaniaReveal delayMs={0}>
                     <CubaniaStyleCard
                         highlight
-                        icon="💃"
+                        image="/cubania-assets/salsa-casino.webp"
                         name={t('landing.styles.salsaCasino.name')}
                         description={t('landing.styles.salsaCasino.description')}
                         onActivate={() =>
@@ -62,8 +65,7 @@ export function CubaniaStylesSection(): ReactNode {
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={100}>
                     <CubaniaStyleCard
-                        bgGradient="linear-gradient(135deg, #1A0330 0%, #350A6A 100%)"
-                        icon="🕺"
+                        image="/cubania-assets/bachata.webp"
                         name={t('landing.styles.bachata.name')}
                         description={t('landing.styles.bachata.description')}
                         onActivate={() =>
@@ -76,8 +78,7 @@ export function CubaniaStylesSection(): ReactNode {
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={200}>
                     <CubaniaStyleCard
-                        bgGradient="linear-gradient(135deg, #0A001A 0%, #250860 100%)"
-                        icon="⭕"
+                        image="/cubania-assets/rueda-casino.webp"
                         name={t('landing.styles.rueda.name')}
                         description={t('landing.styles.rueda.description')}
                         onActivate={() =>
