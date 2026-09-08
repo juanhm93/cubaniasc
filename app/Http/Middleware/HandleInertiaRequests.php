@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Support\AuthAccess;
 use App\Support\CubaniaLanding;
+use App\Support\RoleAccess;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user()?->loadMissing('role:id,name,slug'),
+                'abilities' => RoleAccess::mapFor($request->user()),
             ],
             'canLogin' => AuthAccess::canLogin(),
             'canRegister' => AuthAccess::canRegister(),

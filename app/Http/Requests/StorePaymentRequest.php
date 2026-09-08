@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\EnrollmentStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\PlatformAbility;
 use App\Models\Enrollment;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,7 +19,7 @@ class StorePaymentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()?->isAdmin() ?? false;
+        return $this->user()?->hasAbility(PlatformAbility::Payments) ?? false;
     }
 
     /**

@@ -63,6 +63,8 @@ class ContentController extends Controller
 
     private function canDelete(Request $request): bool
     {
-        return $request->user()?->isAdmin() ?? false;
+        $user = $request->user();
+
+        return $user !== null && ($user->isAdmin() || $user->isOwner());
     }
 }
