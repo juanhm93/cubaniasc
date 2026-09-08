@@ -971,6 +971,7 @@
 
 .cubania-landing .cubania-week-grid {
     width: 100%;
+    min-width: 560px;
     border-collapse: separate;
     border-spacing: 3px;
     table-layout: fixed;
@@ -989,6 +990,7 @@
     color: rgba(10, 0, 16, 0.62);
     padding: 0 0 8px;
     text-align: center;
+    white-space: nowrap;
 }
 
 .cubania-landing .cubania-week-grid__day {
@@ -1016,6 +1018,7 @@
     color: var(--cubania-negro);
     white-space: nowrap;
     text-overflow: ellipsis;
+    min-width: 72px;
 }
 
 .cubania-landing .cubania-week-grid__cell--occupied {
@@ -1477,6 +1480,8 @@
     .cubania-landing .cubania-cta-band__schedule {
         width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
     }
 
     .cubania-landing .cubania-cta-band__actions {
