@@ -18,4 +18,5 @@ export type CubaniaShared = {
     social: CubaniaSocialLinks;
     hero: CubaniaHeroConfig;
     instructors: CubaniaInstructor[];
+    sliderImages: string[];
 };
