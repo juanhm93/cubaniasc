@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
+import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
-
-const WHATSAPP_URL = 'https://wa.me/+584122801334';
-const INSTAGRAM_URL = 'https://www.instagram.com/cubania.sc';
 
 /**
  * Site footer with columns and social links.
  */
 export function CubaniaFooter(): ReactNode {
     const { t } = useTranslation();
+    const { social } = useCubaniaConfig();
 
     return (
         <footer className="cubania-footer" id="nosotros">
@@ -113,28 +112,45 @@ export function CubaniaFooter(): ReactNode {
                             {t('landing.footer.contact')}
                         </h3>
                         <ul className="cubania-footer__list">
-                            <li>
-                                <a
-                                    href={WHATSAPP_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.whatsapp')}
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href={INSTAGRAM_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.instagram')}
-                                </a>
-                            </li>
+                            {social.whatsapp ? (
+                                <li>
+                                    <a
+                                        href={social.whatsapp}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.whatsapp')}
+                                    </a>
+                                </li>
+                            ) : null}
+                            {social.instagram ? (
+                                <li>
+                                    <a
+                                        href={social.instagram}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.instagram')}
+                                    </a>
+                                </li>
+                            ) : null}
+                            {social.tiktok ? (
+                                <li>
+                                    <a
+                                        href={social.tiktok}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.tiktok')}
+                                    </a>
+                                </li>
+                            ) : null}
                             <li>
                                 <a
                                     href="#"
@@ -156,24 +172,39 @@ export function CubaniaFooter(): ReactNode {
                     })}
                 </span>
                 <div className="cubania-footer__social">
-                    <a
-                        href={INSTAGRAM_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cubania-footer__social-link"
-                        data-cubania-cursor="interactive"
-                    >
-                        {t('landing.footer.instagram')}
-                    </a>
-                    <a
-                        href={WHATSAPP_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cubania-footer__social-link"
-                        data-cubania-cursor="interactive"
-                    >
-                        {t('landing.footer.whatsapp')}
-                    </a>
+                    {social.instagram ? (
+                        <a
+                            href={social.instagram}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.instagram')}
+                        </a>
+                    ) : null}
+                    {social.tiktok ? (
+                        <a
+                            href={social.tiktok}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.tiktok')}
+                        </a>
+                    ) : null}
+                    {social.whatsapp ? (
+                        <a
+                            href={social.whatsapp}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.whatsapp')}
+                        </a>
+                    ) : null}
                 </div>
             </div>
         </footer>
