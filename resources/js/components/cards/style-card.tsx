@@ -21,7 +21,8 @@ export function CubaniaStyleCard({
     onActivate,
 }: CubaniaStyleCardProps): ReactNode {
     const { t } = useTranslation();
-    const className = `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
+    const className =
+        `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
 
     const body = (
         <>
@@ -58,10 +59,7 @@ export function CubaniaStyleCard({
     }
 
     return (
-        <article
-            className={className}
-            data-cubania-cursor="interactive"
-        >
+        <article className={className} data-cubania-cursor="interactive">
             {body}
         </article>
     );

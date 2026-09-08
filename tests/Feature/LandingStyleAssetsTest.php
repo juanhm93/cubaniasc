@@ -45,7 +45,7 @@ class LandingStyleAssetsTest extends TestCase
         $this->assertStringContainsString('.cubania-landing .cubania-styles__header', $css);
         $this->assertStringContainsString('text-align: center', $css);
         $this->assertStringContainsString('.cubania-landing .cubania-styles .cubania-section-header__label', $css);
-        $this->assertStringContainsString('color: var(--cubania-amarillo)', $css);
+        $this->assertStringContainsString('color: var(--cubania-amarillo-glow)', $css);
         $this->assertStringContainsString('.cubania-landing .cubania-style-card__name', $css);
         $this->assertStringContainsString('font-size: 1.75rem', $css);
     }

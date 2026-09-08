@@ -54,7 +54,9 @@ export function CubaniaStylesSection(): ReactNode {
                         highlight
                         image="/cubania-assets/salsa-casino.webp"
                         name={t('landing.styles.salsaCasino.name')}
-                        description={t('landing.styles.salsaCasino.description')}
+                        description={t(
+                            'landing.styles.salsaCasino.description',
+                        )}
                         onActivate={() =>
                             openVideo(
                                 t('landing.styles.salsaCasino.name'),

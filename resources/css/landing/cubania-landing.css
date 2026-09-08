@@ -781,8 +781,10 @@
 }
 
 .cubania-landing .cubania-styles .cubania-section-header__label {
-    color: var(--cubania-amarillo);
+    color: var(--cubania-amarillo-glow);
     margin-bottom: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
 .cubania-landing .cubania-styles .cubania-section-header__title {
