@@ -22,7 +22,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useIsAdmin } from '@/hooks/use-is-admin';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -54,8 +53,7 @@ export default function ContentShow({
     danceType: DanceTypeDetail;
     canDelete?: boolean;
 }) {
-    const isAdmin = useIsAdmin();
-    const showDelete = canDelete && isAdmin;
+    const showDelete = canDelete;
     const [detail, setDetail] = useState<DanceTypeDetail>(() =>
         normalizeDanceTypeDetail(danceType),
     );
