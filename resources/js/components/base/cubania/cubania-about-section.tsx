@@ -5,7 +5,7 @@ import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
 
 /**
- * Brown slanted “Nosotros” band with copy on the left and a reusable image slider.
+ * Purple slanted “Nosotros” band with copy on the left and a reusable image slider.
  */
 export function CubaniaAboutSection(): ReactNode {
     const { t } = useTranslation();

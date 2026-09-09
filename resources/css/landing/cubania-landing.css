@@ -1128,7 +1128,7 @@
     margin-top: 8px;
 }
 
-/* ---------- About (slanted brown band) ---------- */
+/* ---------- About (slanted purple band) ---------- */
 
 .cubania-landing .cubania-about {
     background: var(--cubania-negro);
@@ -1137,7 +1137,7 @@
 }
 
 .cubania-landing .cubania-about__band {
-    background: var(--cubania-marron);
+    background: var(--cubania-morado);
     clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
     padding: 140px 48px 160px;
 }
