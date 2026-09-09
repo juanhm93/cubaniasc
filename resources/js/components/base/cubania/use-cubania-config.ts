@@ -23,6 +23,12 @@ const fallbackCubania: CubaniaShared = {
             image: '/cubania-assets/javier.webp',
         },
     ],
+    sliderImages: [
+        '/cubania-assets/slider/slider-1.webp',
+        '/cubania-assets/slider/slider-2.webp',
+        '/cubania-assets/slider/slider-3.webp',
+        '/cubania-assets/slider/slider-4.webp',
+    ],
 };
 
 export function useCubaniaConfig(): CubaniaShared {

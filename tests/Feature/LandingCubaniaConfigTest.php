@@ -36,7 +36,10 @@ class LandingCubaniaConfigTest extends TestCase
                 ->where('cubania.hero.playbackRate', 0.75)
                 ->has('cubania.instructors', 3)
                 ->where('cubania.instructors.0.image', '/cubania-assets/juan.webp')
-                ->where('cubania.instructors.2.image', '/cubania-assets/javier.webp'));
+                ->where('cubania.instructors.2.image', '/cubania-assets/javier.webp')
+                ->has('cubania.sliderImages', 4)
+                ->where('cubania.sliderImages.0', '/cubania-assets/slider/slider-1.webp')
+                ->where('cubania.sliderImages.3', '/cubania-assets/slider/slider-4.webp'));
     }
 
     public function test_landing_uses_overridden_cubania_config_values(): void
@@ -52,6 +55,10 @@ class LandingCubaniaConfigTest extends TestCase
                 ['image' => 'https://example.com/instructor-b.jpg'],
                 ['image' => 'https://example.com/instructor-c.jpg'],
             ],
+            'cubania.slider' => [
+                'https://example.com/slide-a.jpg',
+                'https://example.com/slide-b.jpg',
+            ],
         ]);
 
         $this->get(route('home'))
@@ -64,7 +71,9 @@ class LandingCubaniaConfigTest extends TestCase
                 ->where('cubania.hero.youtubeUrl', 'https://youtu.be/dQw4w9wgGcQ')
                 ->where('cubania.hero.youtubeId', 'dQw4w9wgGcQ')
                 ->where('cubania.hero.playbackRate', 0.5)
-                ->where('cubania.instructors.0.image', 'https://example.com/instructor-a.jpg'));
+                ->where('cubania.instructors.0.image', 'https://example.com/instructor-a.jpg')
+                ->where('cubania.sliderImages.0', 'https://example.com/slide-a.jpg')
+                ->has('cubania.sliderImages', 2));
     }
 
     public function test_pre_registration_page_receives_cubania_social_links(): void

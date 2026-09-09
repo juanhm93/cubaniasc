@@ -67,4 +67,16 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | About section slider
+    |--------------------------------------------------------------------------
+    |
+    | Public URLs for the reusable about-us image slider. Leave empty to
+    | auto-discover image files in public/cubania-assets/slider.
+    |
+    */
+
+    'slider' => [],
+
 ];
