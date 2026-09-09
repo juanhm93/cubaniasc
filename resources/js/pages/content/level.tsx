@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useIsAdmin } from '@/hooks/use-is-admin';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -50,8 +49,7 @@ export default function ContentLevel({
     level: ContentLevel;
     canDelete?: boolean;
 }) {
-    const isAdmin = useIsAdmin();
-    const showDelete = canDelete && isAdmin;
+    const showDelete = canDelete;
     const [level, setLevel] = useState<ContentLevel>(() =>
         normalizeLevel(initialLevel),
     );

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\PlatformAbility;
+use App\Support\RoleAccess;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -52,7 +54,16 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
+        $this->loadMissing('role');
+
         return $this->role?->slug === 'admin';
+    }
+
+    public function hasAbility(PlatformAbility $ability): bool
+    {
+        $this->loadMissing('role');
+
+        return RoleAccess::allows($this, $ability);
     }
 
     public function isPending(): bool

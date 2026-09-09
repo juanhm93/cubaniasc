@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     CreditCard,
@@ -21,21 +21,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAbilities } from '@/hooks/use-abilities';
 import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
 import { index as contentIndex } from '@/routes/content';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
-    const { auth } = usePage().props as {
-        auth?: {
-            user?: {
-                role?: {
-                    slug?: string;
-                } | null;
-            } | null;
-        };
-    };
+    const abilities = useAbilities();
 
     const footerNavItems: NavItem[] = [
         {
@@ -50,40 +43,59 @@ export function AppSidebar() {
         },
     ];
 
-    const isAdmin = auth?.user?.role?.slug === 'admin';
     const mainNavItems: NavItem[] = [
         {
             title: 'navigation.dashboard',
             href: dashboard(),
             icon: LayoutGrid,
         },
-        ...(isAdmin
+        ...(abilities.content
             ? [
                   {
                       title: 'Contenido',
                       href: contentIndex(),
                       icon: BookOpen,
                   },
+              ]
+            : []),
+        ...(abilities.payments
+            ? [
                   {
                       title: 'navigation.payments',
                       href: admin.payments.index.url(),
                       icon: CreditCard,
                   },
+              ]
+            : []),
+        ...(abilities.courses
+            ? [
                   {
                       title: 'navigation.courses',
                       href: admin.courses.index.url(),
                       icon: GraduationCap,
                   },
+              ]
+            : []),
+        ...(abilities.oneTimeSessions
+            ? [
                   {
                       title: 'navigation.oneTimeSessions',
                       href: admin.oneTimeSessions.index.url(),
                       icon: GraduationCap,
                   },
+              ]
+            : []),
+        ...(abilities.students
+            ? [
                   {
                       title: 'navigation.students',
                       href: admin.students.index.url(),
                       icon: School,
                   },
+              ]
+            : []),
+        ...(abilities.adminUsers
+            ? [
                   {
                       title: 'navigation.adminUsers',
                       href: '/admin/users',
