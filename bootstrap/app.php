@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureOwnerUser;
 use App\Http\Middleware\HandleAppearance;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => RedirectIfUserPending::class,
             'admin' => EnsureAdminRole::class,
+            'ability' => EnsureAbility::class,
             'owner' => EnsureOwnerUser::class,
         ]);
 

@@ -3,8 +3,7 @@ import { useTranslation } from '@/i18n/use-translation';
 
 type CubaniaStyleCardProps = {
     highlight?: boolean;
-    bgGradient?: string;
-    icon: string;
+    image: string;
     name: string;
     description: string;
     /** When set, the card is a button and opens the video modal (parent handles the player). */
@@ -16,24 +15,26 @@ type CubaniaStyleCardProps = {
  */
 export function CubaniaStyleCard({
     highlight = false,
-    bgGradient,
-    icon,
+    image,
     name,
     description,
     onActivate,
 }: CubaniaStyleCardProps): ReactNode {
     const { t } = useTranslation();
-    const className = `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
+    const className =
+        `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
 
     const body = (
         <>
-            <div
-                className="cubania-style-card__bg"
-                style={bgGradient ? { background: bgGradient } : undefined}
+            <img
+                className="cubania-style-card__media"
+                src={image}
+                alt=""
+                loading="lazy"
             />
+            <div className="cubania-style-card__tint" />
             <div className="cubania-style-card__overlay" />
             <div className="cubania-style-card__content">
-                <span className="cubania-style-card__icon">{icon}</span>
                 <div className="cubania-style-card__name">{name}</div>
                 <p className="cubania-style-card__desc">{description}</p>
             </div>
@@ -58,10 +59,7 @@ export function CubaniaStyleCard({
     }
 
     return (
-        <article
-            className={className}
-            data-cubania-cursor="interactive"
-        >
+        <article className={className} data-cubania-cursor="interactive">
             {body}
         </article>
     );

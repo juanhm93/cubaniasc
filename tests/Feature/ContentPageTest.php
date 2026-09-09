@@ -125,19 +125,26 @@ class ContentPageTest extends TestCase
             ]));
     }
 
-    public function test_non_admin_cannot_view_content_index(): void
+    public function test_staff_cannot_view_content_index(): void
     {
-        $teacherRole = Role::factory()->create([
-            'name' => 'Teacher',
-            'slug' => 'teacher',
-        ]);
-        $user = User::factory()->create([
-            'role_id' => $teacherRole->id,
-        ]);
+        $user = $this->createUserWithRole('staff');
 
         $this->actingAs($user);
 
         $this->get(route('content.index'))->assertForbidden();
+    }
+
+    public function test_teacher_can_view_content_index(): void
+    {
+        $user = $this->createUserWithRole('teacher');
+
+        $this->actingAs($user);
+
+        $this->get(route('content.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('content/index')
+                ->where('canDelete', false));
     }
 
     private function actingAsAdmin(): User

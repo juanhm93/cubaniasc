@@ -22,15 +22,9 @@ class DanceTypeReorderTest extends TestCase
         ])->assertUnauthorized();
     }
 
-    public function test_non_admin_users_cannot_reorder_dance_types(): void
+    public function test_staff_users_cannot_reorder_dance_types(): void
     {
-        $teacherRole = Role::factory()->create([
-            'name' => 'Teacher',
-            'slug' => 'teacher',
-        ]);
-        $user = User::factory()->create([
-            'role_id' => $teacherRole->id,
-        ]);
+        $user = $this->createUserWithRole('staff');
         $first = DanceType::factory()->create(['sort_order' => 1]);
         $second = DanceType::factory()->create(['sort_order' => 2]);
 

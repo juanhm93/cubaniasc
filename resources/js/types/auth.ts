@@ -15,8 +15,18 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type AuthAbilities = {
+    content: boolean;
+    payments: boolean;
+    courses: boolean;
+    oneTimeSessions: boolean;
+    students: boolean;
+    adminUsers: boolean;
+};
+
 export type Auth = {
     user: User;
+    abilities: AuthAbilities;
 };
 
 export type TwoFactorSetupData = {

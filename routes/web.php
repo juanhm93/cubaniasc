@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PlatformAbility;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
@@ -40,7 +41,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-    Route::middleware('admin')->group(function () {
+    Route::middleware('ability:'.PlatformAbility::Content->value)->group(function () {
         Route::get('contenido', [ContentController::class, 'index'])->name('content.index');
         Route::get('contenido/{danceType}', [ContentController::class, 'show'])->name('content.show');
         Route::get('contenido/{danceType}/niveles/{level}', [ContentController::class, 'level'])
@@ -49,43 +50,6 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
         Route::get('levels', [LevelController::class, 'index'])->name('levels');
         Route::get('levels/{level}', [LevelController::class, 'show'])->name('levels.show');
-
-        Route::get('admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
-        Route::post('admin/payments', [PaymentController::class, 'store'])->name('admin.payments.store');
-        Route::get('admin/students/enroll', [StudentController::class, 'enroll'])->name('admin.students.enroll');
-        Route::post('admin/students/enroll', [StudentController::class, 'storeEnrollment'])->name('admin.students.enroll.store');
-        Route::get('admin/students', [StudentController::class, 'index'])->name('admin.students.index');
-        Route::get('admin/students/{student}', [StudentController::class, 'show'])->name('admin.students.show');
-
-        Route::get('admin/courses', [CourseController::class, 'index'])->name('admin.courses.index');
-        Route::get('admin/courses/create', [CourseController::class, 'create'])->name('admin.courses.create');
-        Route::post('admin/courses', [CourseController::class, 'store'])->name('admin.courses.store');
-        Route::get('admin/courses/{course}', [CourseController::class, 'show'])->name('admin.courses.show');
-        Route::get('admin/one-time-sessions', [OneTimeSessionController::class, 'index'])->name('admin.one-time-sessions.index');
-        Route::get('admin/one-time-sessions/create', [OneTimeSessionController::class, 'create'])->name('admin.one-time-sessions.create');
-        Route::post('admin/one-time-sessions', [OneTimeSessionController::class, 'store'])->name('admin.one-time-sessions.store');
-        Route::patch('admin/courses/{course}', [CourseController::class, 'update'])->name('admin.courses.update');
-        Route::post('admin/courses/{course}/advance-level', [CourseController::class, 'advanceLevel'])->name('admin.courses.advance-level');
-        Route::post('admin/courses/{course}/sessions/{courseSession}/attendance', [CourseController::class, 'storeAttendance'])
-            ->name('admin.courses.sessions.attendance.store');
-        Route::post('admin/courses/{course}/level-content-toggle', [CourseController::class, 'toggleCourseLevelContent'])
-            ->name('admin.courses.level-content-toggle');
-
-        Route::get('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'create'])
-            ->name('admin.pre-registrations.enroll.create');
-        Route::post('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'store'])
-            ->name('admin.pre-registrations.enroll.store');
-
-        Route::get('admin/users', [UserRoleController::class, 'index'])->name('admin.users.index');
-        Route::patch('admin/users/{user}/role', [UserRoleController::class, 'update'])->name('admin.users.role.update');
-        Route::patch('admin/users/{user}/status', [UserRoleController::class, 'updateStatus'])->name('admin.users.status.update');
-
-        Route::middleware('owner')->group(function () {
-            Route::post('admin/maintenance/cache-clear', [MaintenanceController::class, 'clearApplicationCache'])
-                ->name('admin.maintenance.cache-clear');
-            Route::post('admin/maintenance/migrate', [MaintenanceController::class, 'runMigrations'])
-                ->name('admin.maintenance.migrate');
-        });
 
         Route::prefix('api')->name('api.')->group(function () {
             Route::get('dance-types', [ApiDanceTypeController::class, 'index'])->name('dance-types.index');
@@ -110,6 +74,55 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
                 ->name('level-contents.update');
             Route::delete('level-contents/{levelContent}', [LevelContentController::class, 'destroy'])
                 ->name('level-contents.destroy');
+        });
+    });
+
+    Route::middleware('ability:'.PlatformAbility::Payments->value)->group(function () {
+        Route::get('admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
+        Route::post('admin/payments', [PaymentController::class, 'store'])->name('admin.payments.store');
+    });
+
+    Route::middleware('ability:'.PlatformAbility::Students->value)->group(function () {
+        Route::get('admin/students/enroll', [StudentController::class, 'enroll'])->name('admin.students.enroll');
+        Route::post('admin/students/enroll', [StudentController::class, 'storeEnrollment'])->name('admin.students.enroll.store');
+        Route::get('admin/students', [StudentController::class, 'index'])->name('admin.students.index');
+        Route::get('admin/students/{student}', [StudentController::class, 'show'])->name('admin.students.show');
+
+        Route::get('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'create'])
+            ->name('admin.pre-registrations.enroll.create');
+        Route::post('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'store'])
+            ->name('admin.pre-registrations.enroll.store');
+    });
+
+    Route::middleware('ability:'.PlatformAbility::Courses->value)->group(function () {
+        Route::get('admin/courses', [CourseController::class, 'index'])->name('admin.courses.index');
+        Route::get('admin/courses/create', [CourseController::class, 'create'])->name('admin.courses.create');
+        Route::post('admin/courses', [CourseController::class, 'store'])->name('admin.courses.store');
+        Route::get('admin/courses/{course}', [CourseController::class, 'show'])->name('admin.courses.show');
+        Route::patch('admin/courses/{course}', [CourseController::class, 'update'])->name('admin.courses.update');
+        Route::post('admin/courses/{course}/advance-level', [CourseController::class, 'advanceLevel'])->name('admin.courses.advance-level');
+        Route::post('admin/courses/{course}/sessions/{courseSession}/attendance', [CourseController::class, 'storeAttendance'])
+            ->name('admin.courses.sessions.attendance.store');
+        Route::post('admin/courses/{course}/level-content-toggle', [CourseController::class, 'toggleCourseLevelContent'])
+            ->name('admin.courses.level-content-toggle');
+    });
+
+    Route::middleware('ability:'.PlatformAbility::OneTimeSessions->value)->group(function () {
+        Route::get('admin/one-time-sessions', [OneTimeSessionController::class, 'index'])->name('admin.one-time-sessions.index');
+        Route::get('admin/one-time-sessions/create', [OneTimeSessionController::class, 'create'])->name('admin.one-time-sessions.create');
+        Route::post('admin/one-time-sessions', [OneTimeSessionController::class, 'store'])->name('admin.one-time-sessions.store');
+    });
+
+    Route::middleware('ability:'.PlatformAbility::AdminUsers->value)->group(function () {
+        Route::get('admin/users', [UserRoleController::class, 'index'])->name('admin.users.index');
+        Route::patch('admin/users/{user}/role', [UserRoleController::class, 'update'])->name('admin.users.role.update');
+        Route::patch('admin/users/{user}/status', [UserRoleController::class, 'updateStatus'])->name('admin.users.status.update');
+
+        Route::middleware('owner')->group(function () {
+            Route::post('admin/maintenance/cache-clear', [MaintenanceController::class, 'clearApplicationCache'])
+                ->name('admin.maintenance.cache-clear');
+            Route::post('admin/maintenance/migrate', [MaintenanceController::class, 'runMigrations'])
+                ->name('admin.maintenance.migrate');
         });
     });
 });

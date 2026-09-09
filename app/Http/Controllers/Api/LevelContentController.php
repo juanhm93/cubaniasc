@@ -49,7 +49,7 @@ class LevelContentController extends Controller
 
     public function destroy(Request $request, LevelContent $levelContent): Response
     {
-        $request->user()?->can('update', $levelContent->level) || abort(403);
+        $request->user()?->can('delete', $levelContent->level) || abort(403);
 
         $levelContent->delete();
 
