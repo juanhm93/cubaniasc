@@ -544,7 +544,7 @@
       "sectionTitleLine1": "Nuestros",
       "sectionTitleLine2": "estilos",
       "salsaCasino": {
-        "name": "Salsa Casino",
+        "name": "Casino en Pareja",
         "description": "El corazón cubano. Ritmo, conexión y arte en cada vuelta."
       },
       "bachata": {
@@ -603,7 +603,17 @@
       "copyright": "© {{year}} Cubanía · Academia de Salsa Casino y Bachata"
     },
     "page": {
-      "scheduleAriaLabel": "Horarios"
+      "scheduleAriaLabel": "Horarios",
+      "aboutAriaLabel": "Nosotros"
+    },
+    "about": {
+      "eyebrow": "Nosotros",
+      "title": "En Cubanía creamos algo diferente.",
+      "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "cta": "Empieza ahora",
+      "sliderAriaLabel": "Galería de Cubanía",
+      "sliderAlt": "Momentos de Cubanía",
+      "slideLabel": "Imagen {{current}} de {{total}}"
     },
     "styleCard": {
       "watchVideo": "Ver video: {{name}}"

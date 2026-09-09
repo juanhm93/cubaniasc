@@ -49,4 +49,20 @@ class LandingStyleAssetsTest extends TestCase
         $this->assertStringContainsString('.cubania-landing .cubania-style-card__name', $css);
         $this->assertStringContainsString('font-size: 1.75rem', $css);
     }
+
+    public function test_about_band_uses_strong_cubania_purple(): void
+    {
+        $css = (string) file_get_contents(
+            resource_path('css/landing/cubania-landing.css'),
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/\.cubania-landing \.cubania-about__band\s*\{[^}]*background:\s*var\(--cubania-morado\);/s',
+            $css,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/\.cubania-landing \.cubania-about__band\s*\{[^}]*background:\s*var\(--cubania-marron\);/s',
+            $css,
+        );
+    }
 }
