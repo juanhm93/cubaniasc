@@ -561,7 +561,12 @@
       "titleLine2": "moverte?",
       "subtitle": "Primera clase sin compromiso. Solo trae tus ganas de bailar.",
       "preRegistration": "Preinscripción web",
-      "whatsapp": "Contáctanos por WhatsApp"
+      "whatsapp": "Contáctanos por WhatsApp",
+      "scheduleCaption": "Horario de clases de lunes a viernes",
+      "scheduleHourColumn": "Hora",
+      "scheduleLoading": "Cargando horario…",
+      "scheduleError": "No pudimos cargar el horario. Inténtalo de nuevo.",
+      "scheduleRetry": "Reintentar"
     },
     "testimonials": {
       "sectionLabel": "Lo que dicen",
