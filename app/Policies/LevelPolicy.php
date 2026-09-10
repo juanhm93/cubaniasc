@@ -1,65 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
+use App\Enums\PlatformAbility;
 use App\Models\Level;
 use App\Models\User;
 
 class LevelPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasAbility(PlatformAbility::Content);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Level $level): bool
     {
-        return $user->isAdmin();
+        return $user->hasAbility(PlatformAbility::Content);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasAbility(PlatformAbility::Content);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Level $level): bool
     {
-        return $user->isAdmin();
+        return $user->hasAbility(PlatformAbility::Content);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Level $level): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isOwner();
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Level $level): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isOwner();
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Level $level): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $user->isOwner();
     }
 }

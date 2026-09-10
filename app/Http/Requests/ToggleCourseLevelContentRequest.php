@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PlatformAbility;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -9,7 +10,7 @@ class ToggleCourseLevelContentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAdmin() ?? false;
+        return $this->user()?->hasAbility(PlatformAbility::Courses) ?? false;
     }
 
     /**

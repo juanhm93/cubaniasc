@@ -10,6 +10,7 @@
     --cubania-blanco: #f9f5ff;
     --cubania-negro: #0a0010;
     --cubania-gris: #1a1025;
+    --cubania-marron: #5d5455;
 
     background: var(--cubania-negro);
     color: var(--cubania-blanco);
@@ -761,6 +762,10 @@
     margin: 0 0 64px;
 }
 
+.cubania-landing .cubania-section-header__title-accent {
+    color: var(--cubania-amarillo);
+}
+
 .cubania-landing .cubania-section-anchor {
     scroll-margin-top: 96px;
 }
@@ -771,18 +776,44 @@
     position: relative;
 }
 
+.cubania-landing .cubania-styles__header {
+    text-align: center;
+    margin-bottom: 56px;
+}
+
+.cubania-landing .cubania-styles .cubania-section-header__label {
+    color: var(--cubania-amarillo-glow);
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.cubania-landing .cubania-styles .cubania-section-header__title {
+    margin: 0;
+    font-size: clamp(2.6rem, 5.2vw, 4.6rem);
+}
+
 .cubania-landing .cubania-styles__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
+    gap: 16px;
+}
+
+.cubania-landing .cubania-styles__grid > .cubania-reveal {
+    min-height: 380px;
+    height: 100%;
 }
 
 .cubania-landing .cubania-style-card {
     position: relative;
-    height: 380px;
+    height: 100%;
+    min-height: 380px;
     overflow: hidden;
     cursor: pointer;
     background: var(--cubania-gris);
+    border-radius: 16px;
+    isolation: isolate;
+    transition: box-shadow 0.3s ease;
 }
 
 .cubania-landing button.cubania-style-card {
@@ -801,19 +832,31 @@
     cursor: none;
 }
 
-.cubania-landing .cubania-style-card__bg {
+.cubania-landing .cubania-style-card__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    display: block;
+    transition: transform 0.6s ease;
+}
+
+.cubania-landing .cubania-style-card:hover .cubania-style-card__media {
+    transform: scale(1.06);
+}
+
+.cubania-landing .cubania-style-card__tint {
     position: absolute;
     inset: 0;
     background: linear-gradient(
         135deg,
-        var(--cubania-morado-deep),
-        var(--cubania-gris)
+        rgba(61, 13, 122, 0.28),
+        rgba(10, 0, 16, 0.12)
     );
-    transition: transform 0.6s ease;
-}
-
-.cubania-landing .cubania-style-card:hover .cubania-style-card__bg {
-    transform: scale(1.05);
+    mix-blend-mode: multiply;
+    pointer-events: none;
 }
 
 .cubania-landing .cubania-style-card__overlay {
@@ -821,51 +864,45 @@
     inset: 0;
     background: linear-gradient(
         to top,
-        rgba(10, 0, 16, 0.9) 0%,
-        rgba(10, 0, 16, 0.1) 60%
+        rgba(10, 0, 16, 0.92) 0%,
+        rgba(10, 0, 16, 0.48) 38%,
+        rgba(10, 0, 16, 0.08) 68%,
+        transparent 100%
     );
+    pointer-events: none;
 }
 
 .cubania-landing .cubania-style-card__content {
     position: absolute;
     inset: 0;
-    padding: 32px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-}
-
-.cubania-landing .cubania-style-card__icon {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    display: block;
-    transition: transform 0.3s;
-}
-
-.cubania-landing .cubania-style-card:hover .cubania-style-card__icon {
-    transform: scale(1.15) rotate(-5deg);
+    z-index: 1;
 }
 
 .cubania-landing .cubania-style-card__name {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
+    font-size: 1.75rem;
     letter-spacing: 0.04em;
     color: var(--cubania-blanco);
     line-height: 1;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .cubania-landing .cubania-style-card__desc {
     font-size: 0.8rem;
-    color: rgba(249, 245, 255, 0.55);
+    color: rgba(249, 245, 255, 0.78);
     font-weight: 300;
     line-height: 1.5;
+    max-width: 28ch;
 }
 
 .cubania-landing .cubania-style-card__arrow {
     position: absolute;
-    top: 24px;
-    right: 24px;
+    top: 20px;
+    right: 20px;
     width: 36px;
     height: 36px;
     border: 1px solid rgba(249, 245, 255, 0.2);
@@ -879,15 +916,27 @@
         opacity 0.3s,
         transform 0.3s;
     color: var(--cubania-amarillo);
+    z-index: 1;
 }
 
-.cubania-landing .cubania-style-card:hover .cubania-style-card__arrow {
+.cubania-landing .cubania-style-card:hover,
+.cubania-landing .cubania-style-card:focus-visible {
+    box-shadow: 0 0 0 1px rgba(245, 200, 66, 0.45);
+}
+
+.cubania-landing .cubania-style-card:focus-visible {
+    outline: 2px solid var(--cubania-amarillo);
+    outline-offset: 3px;
+}
+
+.cubania-landing .cubania-style-card:hover .cubania-style-card__arrow,
+.cubania-landing .cubania-style-card:focus-visible .cubania-style-card__arrow {
     opacity: 1;
     transform: translateY(0);
 }
 
-.cubania-landing .cubania-style-card--highlight .cubania-style-card__bg {
-    background: linear-gradient(135deg, var(--cubania-morado), #8b31f0);
+.cubania-landing .cubania-style-card--highlight {
+    box-shadow: 0 0 0 1px rgba(245, 200, 66, 0.28);
 }
 
 .cubania-landing .cubania-style-card--highlight .cubania-style-card__name {
@@ -1186,6 +1235,168 @@
     margin-top: 8px;
 }
 
+/* ---------- About (slanted purple band) ---------- */
+
+.cubania-landing .cubania-about {
+    background: var(--cubania-negro);
+    padding: 48px 0 72px;
+    scroll-margin-top: 72px;
+}
+
+.cubania-landing .cubania-about__band {
+    background: var(--cubania-morado);
+    clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%);
+    padding: 140px 48px 160px;
+}
+
+.cubania-landing .cubania-about__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 64px;
+    align-items: center;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.cubania-landing .cubania-about__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.cubania-landing .cubania-about__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(249, 245, 255, 0.14);
+    color: var(--cubania-blanco);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.cubania-landing .cubania-about__title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.6rem, 5vw, 4.4rem);
+    line-height: 0.94;
+    letter-spacing: 0.02em;
+    color: var(--cubania-blanco);
+    margin: 0 0 20px;
+    max-width: 14ch;
+}
+
+.cubania-landing .cubania-about__body {
+    margin: 0 0 32px;
+    max-width: 42ch;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    font-weight: 300;
+    color: rgba(249, 245, 255, 0.86);
+}
+
+.cubania-landing .cubania-about__cta {
+    border-radius: 999px;
+    gap: 10px;
+    padding: 16px 32px;
+}
+
+.cubania-landing .cubania-about__cta svg {
+    transition: transform 0.2s;
+}
+
+.cubania-landing .cubania-about__cta:hover svg {
+    transform: translateX(4px);
+}
+
+.cubania-landing .cubania-about__media {
+    display: flex;
+    justify-content: center;
+}
+
+.cubania-landing .cubania-image-slider {
+    position: relative;
+    width: min(100%, 380px);
+    aspect-ratio: 3 / 4;
+    border-radius: 28px;
+    overflow: hidden;
+    isolation: isolate;
+    background: rgba(10, 0, 16, 0.35);
+    border: 1px solid rgba(249, 245, 255, 0.32);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.38),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.cubania-landing .cubania-image-slider:focus-visible {
+    outline: 2px solid var(--cubania-amarillo);
+    outline-offset: 4px;
+}
+
+.cubania-landing .cubania-image-slider__viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.cubania-landing .cubania-image-slider__slide {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    transition: opacity 0.55s ease;
+}
+
+.cubania-landing .cubania-image-slider__slide--active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.cubania-landing .cubania-image-slider__slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cubania-landing .cubania-image-slider__dots {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(10, 0, 16, 0.28);
+    backdrop-filter: blur(8px);
+}
+
+.cubania-landing .cubania-image-slider__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(249, 245, 255, 0.42);
+    cursor: pointer;
+    transition:
+        width 0.2s ease,
+        background 0.2s ease;
+}
+
+.cubania-landing .cubania-image-slider__dot--active {
+    width: 22px;
+    background: var(--cubania-blanco);
+}
+
+.cubania-landing.cubania-landing--custom-cursor .cubania-image-slider__dot {
+    cursor: none;
+}
+
 /* ---------- Testimonials ---------- */
 
 .cubania-landing .cubania-testimonials {
@@ -1462,6 +1673,15 @@
         grid-template-columns: 1fr;
     }
 
+    .cubania-landing .cubania-styles__grid > .cubania-reveal,
+    .cubania-landing .cubania-style-card {
+        min-height: 320px;
+    }
+
+    .cubania-landing .cubania-style-card__name {
+        font-size: 1.55rem;
+    }
+
     .cubania-landing .cubania-cta-band {
         flex-direction: column;
         align-items: stretch;
@@ -1493,6 +1713,34 @@
     .cubania-landing .cubania-cta-band__actions .cubania-btn {
         width: 100%;
         justify-content: center;
+    }
+
+    .cubania-landing .cubania-about {
+        padding: 24px 0 40px;
+    }
+
+    .cubania-landing .cubania-about__band {
+        clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%);
+        padding: 88px 24px 100px;
+    }
+
+    .cubania-landing .cubania-about__inner {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .cubania-landing .cubania-about__title {
+        max-width: none;
+    }
+
+    .cubania-landing .cubania-about__media {
+        justify-content: flex-start;
+    }
+
+    .cubania-landing .cubania-image-slider {
+        width: min(100%, 420px);
+        aspect-ratio: 4 / 5;
+        margin: 0 auto;
     }
 
     .cubania-landing .cubania-pre-reg {

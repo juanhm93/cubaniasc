@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CubaniaAboutSection } from '@/components/base/cubania/cubania-about-section';
 import { CubaniaCtaBand } from '@/components/base/cubania/cubania-cta-band';
 import { CubaniaCursor } from '@/components/base/cubania/cubania-cursor';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
@@ -43,6 +44,7 @@ export function CubaniaLandingPage({
             <CubaniaHero />
             <CubaniaStylesSection />
             <CubaniaCtaBand />
+            <CubaniaAboutSection />
             <CubaniaTestimonialsSection />
             <CubaniaFooter />
             <CubaniaWhatsappFloat />
