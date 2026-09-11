@@ -52,6 +52,7 @@ type StudentsIndexProps = {
     filters: FiltersState;
     courseOptions: Option[];
     levelOptions: Option[];
+    canDeleteStudents?: boolean;
 };
 
 function queryFromFilters(f: FiltersState): Record<string, string> {
@@ -81,6 +82,7 @@ export default function AdminStudentsIndex({
     filters,
     courseOptions,
     levelOptions,
+    canDeleteStudents = false,
 }: StudentsIndexProps) {
     const { t } = useTranslation();
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
@@ -118,6 +120,22 @@ export default function AdminStudentsIndex({
     const clearFilters = (): void => {
         setSearchDraft('');
         router.get(admin.students.index.url(), {}, { preserveState: true });
+    };
+
+    const deleteStudent = (row: EnrollmentRow): void => {
+        if (
+            !confirm(
+                t('admin.students.deleteConfirm', {
+                    name: row.student_name || t('admin.students.studentLabel'),
+                }),
+            )
+        ) {
+            return;
+        }
+
+        router.delete(admin.students.destroy.url(row.student_id), {
+            preserveScroll: true,
+        });
     };
 
     const { total, from, to, last_page: lastPage } = enrollments;
@@ -277,7 +295,7 @@ export default function AdminStudentsIndex({
                     </p>
 
                     <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-                        <table className="w-full min-w-[760px] caption-bottom border-collapse text-sm">
+                        <table className="w-full min-w-[860px] caption-bottom border-collapse text-sm">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
@@ -296,7 +314,7 @@ export default function AdminStudentsIndex({
                                         {t('common.status')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                        {t('common.action')}
+                                        {t('common.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -345,16 +363,33 @@ export default function AdminStudentsIndex({
                                                 )}
                                             </td>
                                             <td className="px-3 py-3 text-right align-middle">
-                                                <Link
-                                                    href={admin.students.show.url(
-                                                        row.student_id,
-                                                    )}
-                                                    className="text-sm text-primary underline-offset-4 hover:underline"
-                                                >
-                                                    {t(
-                                                        'admin.students.viewStudent',
-                                                    )}
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Link
+                                                        href={admin.students.show.url(
+                                                            row.student_id,
+                                                        )}
+                                                        className="text-sm text-primary underline-offset-4 hover:underline"
+                                                    >
+                                                        {t(
+                                                            'admin.students.viewStudent',
+                                                        )}
+                                                    </Link>
+                                                    {canDeleteStudents ? (
+                                                        <button
+                                                            type="button"
+                                                            className="text-sm text-destructive underline-offset-4 hover:underline"
+                                                            onClick={() =>
+                                                                deleteStudent(
+                                                                    row,
+                                                                )
+                                                            }
+                                                        >
+                                                            {t(
+                                                                'admin.students.deleteStudent',
+                                                            )}
+                                                        </button>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

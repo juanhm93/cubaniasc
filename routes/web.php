@@ -91,6 +91,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/students/enroll', [StudentController::class, 'storeEnrollment'])->name('admin.students.enroll.store');
         Route::get('admin/students', [StudentController::class, 'index'])->name('admin.students.index');
         Route::get('admin/students/{student}', [StudentController::class, 'show'])->name('admin.students.show');
+        Route::patch('admin/students/{student}', [StudentController::class, 'update'])->name('admin.students.update');
+        Route::delete('admin/students/{student}', [StudentController::class, 'destroy'])->name('admin.students.destroy');
 
         Route::get('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'create'])
             ->name('admin.pre-registrations.enroll.create');
