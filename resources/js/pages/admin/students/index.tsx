@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useState } from 'react';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,10 @@ export default function AdminStudentsIndex({
     const { t } = useTranslation();
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
     const [syncedSearch, setSyncedSearch] = useState(filters.search);
+    const [studentToDelete, setStudentToDelete] =
+        useState<EnrollmentRow | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingStudent, setDeletingStudent] = useState(false);
 
     if (filters.search !== syncedSearch) {
         setSyncedSearch(filters.search);
@@ -122,19 +127,16 @@ export default function AdminStudentsIndex({
         router.get(admin.students.index.url(), {}, { preserveState: true });
     };
 
-    const deleteStudent = (row: EnrollmentRow): void => {
-        if (
-            !confirm(
-                t('admin.students.deleteConfirm', {
-                    name: row.student_name || t('admin.students.studentLabel'),
-                }),
-            )
-        ) {
+    const confirmDeleteStudent = (): void => {
+        if (studentToDelete === null) {
             return;
         }
 
-        router.delete(admin.students.destroy.url(row.student_id), {
+        router.delete(admin.students.destroy.url(studentToDelete.student_id), {
             preserveScroll: true,
+            onStart: () => setDeletingStudent(true),
+            onSuccess: () => setDeleteDialogOpen(false),
+            onFinish: () => setDeletingStudent(false),
         });
     };
 
@@ -378,15 +380,16 @@ export default function AdminStudentsIndex({
                                                         <button
                                                             type="button"
                                                             className="text-sm text-destructive underline-offset-4 hover:underline"
-                                                            onClick={() =>
-                                                                deleteStudent(
+                                                            onClick={() => {
+                                                                setStudentToDelete(
                                                                     row,
-                                                                )
-                                                            }
+                                                                );
+                                                                setDeleteDialogOpen(
+                                                                    true,
+                                                                );
+                                                            }}
                                                         >
-                                                            {t(
-                                                                'admin.students.deleteStudent',
-                                                            )}
+                                                            {t('common.delete')}
                                                         </button>
                                                     ) : null}
                                                 </div>
@@ -442,6 +445,23 @@ export default function AdminStudentsIndex({
                     ) : null}
                 </div>
             </div>
+
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                title={t('admin.students.deleteStudent')}
+                description={t('admin.students.deleteConfirm', {
+                    name:
+                        studentToDelete?.student_name ||
+                        t('admin.students.studentLabel'),
+                })}
+                confirming={deletingStudent}
+                onOpenChange={(open) => {
+                    if (!open && !deletingStudent) {
+                        setDeleteDialogOpen(false);
+                    }
+                }}
+                onConfirm={confirmDeleteStudent}
+            />
         </>
     );
 }
