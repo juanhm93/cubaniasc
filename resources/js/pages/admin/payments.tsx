@@ -21,6 +21,7 @@ import {
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAbilities } from '@/hooks/use-abilities';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
@@ -76,10 +77,7 @@ function toDatetimeLocalValue(d: Date): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function formatDateEs(
-    iso: string | null,
-    emptyLabel: string,
-): string {
+function formatDateEs(iso: string | null, emptyLabel: string): string {
     if (!iso) {
         return emptyLabel;
     }
@@ -136,6 +134,7 @@ export default function AdminPayments({
     preRegistrations,
 }: PaymentsProps) {
     const { t } = useTranslation();
+    const abilities = useAbilities();
     const [tab, setTab] = useState<'alumnos' | 'mas'>('alumnos');
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
@@ -212,13 +211,22 @@ export default function AdminPayments({
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-2xl font-semibold">
-                            {t('admin.payments.title')}
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            {t('admin.payments.description')}
-                        </p>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex flex-col gap-2">
+                            <h1 className="text-2xl font-semibold">
+                                {t('admin.payments.title')}
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                {t('admin.payments.description')}
+                            </p>
+                        </div>
+                        {abilities.students ? (
+                            <Button asChild>
+                                <Link href={admin.payments.enroll.create.url()}>
+                                    {t('admin.payments.enrollStudent')}
+                                </Link>
+                            </Button>
+                        ) : null}
                     </div>
 
                     <div className="inline-flex gap-1 rounded-lg bg-muted/60 p-1 dark:bg-muted/30">
@@ -318,7 +326,9 @@ export default function AdminPayments({
                                     <thead>
                                         <tr className="border-b border-sidebar-border/70">
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                {t('admin.students.studentLabel')}
+                                                {t(
+                                                    'admin.students.studentLabel',
+                                                )}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                                 {t('common.course')}
@@ -327,7 +337,9 @@ export default function AdminPayments({
                                                 {t('common.email')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                {t('admin.payments.lastPayment')}
+                                                {t(
+                                                    'admin.payments.lastPayment',
+                                                )}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                                 {t('admin.payments.inMonth')}

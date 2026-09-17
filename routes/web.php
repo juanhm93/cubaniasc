@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserRoleController;
@@ -91,6 +92,11 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/students/enroll', [StudentController::class, 'storeEnrollment'])->name('admin.students.enroll.store');
         Route::get('admin/students', [StudentController::class, 'index'])->name('admin.students.index');
         Route::get('admin/students/{student}', [StudentController::class, 'show'])->name('admin.students.show');
+
+        Route::get('admin/payments/enroll', [PaymentStudentEnrollmentController::class, 'create'])
+            ->name('admin.payments.enroll.create');
+        Route::post('admin/payments/enroll', [PaymentStudentEnrollmentController::class, 'store'])
+            ->name('admin.payments.enroll.store');
 
         Route::get('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'create'])
             ->name('admin.pre-registrations.enroll.create');

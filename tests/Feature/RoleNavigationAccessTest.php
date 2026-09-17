@@ -74,6 +74,7 @@ class RoleNavigationAccessTest extends TestCase
         $this->get(route('admin.one-time-sessions.index'))->assertOk();
         $this->get(route('admin.payments.index'))->assertForbidden();
         $this->get(route('admin.students.index'))->assertForbidden();
+        $this->get(route('admin.payments.enroll.create'))->assertForbidden();
         $this->get(route('admin.users.index'))->assertForbidden();
     }
 
@@ -85,6 +86,7 @@ class RoleNavigationAccessTest extends TestCase
         $this->get(route('admin.courses.index'))->assertOk();
         $this->get(route('admin.one-time-sessions.index'))->assertOk();
         $this->get(route('admin.students.index'))->assertOk();
+        $this->get(route('admin.payments.enroll.create'))->assertOk();
         $this->get(route('content.index'))->assertForbidden();
         $this->get(route('admin.users.index'))->assertForbidden();
     }
@@ -98,6 +100,7 @@ class RoleNavigationAccessTest extends TestCase
         $this->get(route('content.index'))->assertForbidden();
         $this->get(route('admin.payments.index'))->assertForbidden();
         $this->get(route('admin.students.index'))->assertForbidden();
+        $this->get(route('admin.payments.enroll.create'))->assertForbidden();
         $this->get(route('admin.users.index'))->assertForbidden();
     }
 
@@ -110,6 +113,7 @@ class RoleNavigationAccessTest extends TestCase
         $this->get(route('admin.courses.index'))->assertOk();
         $this->get(route('admin.one-time-sessions.index'))->assertOk();
         $this->get(route('admin.students.index'))->assertOk();
+        $this->get(route('admin.payments.enroll.create'))->assertOk();
         $this->get(route('admin.users.index'))->assertOk();
     }
 
@@ -122,6 +126,7 @@ class RoleNavigationAccessTest extends TestCase
         $this->get(route('admin.courses.index'))->assertOk();
         $this->get(route('admin.one-time-sessions.index'))->assertOk();
         $this->get(route('admin.students.index'))->assertOk();
+        $this->get(route('admin.payments.enroll.create'))->assertOk();
         $this->get(route('admin.users.index'))->assertOk();
     }
 }
