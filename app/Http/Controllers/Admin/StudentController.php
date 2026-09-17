@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminEnrollmentRequest;
+use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Level;
@@ -28,6 +29,7 @@ class StudentController extends Controller
                 'student:id,name,email',
                 'course' => fn ($q) => $q->select('id', 'level_id', 'company_id')->with('level:id,name'),
             ])
+            ->whereHas('student')
             ->whereHas('course', function ($q) use ($companyId): void {
                 if ($companyId !== null) {
                     $q->where('company_id', $companyId);
@@ -108,6 +110,8 @@ class StudentController extends Controller
             ->values()
             ->all();
 
+        $user = $request->user();
+
         return Inertia::render('admin/students/index', [
             'enrollments' => $paginator,
             'filters' => [
@@ -118,6 +122,7 @@ class StudentController extends Controller
             ],
             'courseOptions' => $courseOptions,
             'levelOptions' => $levelOptions,
+            'canDeleteStudents' => $user !== null && ($user->isAdmin() || $user->isOwner()),
         ]);
     }
 
@@ -175,9 +180,9 @@ class StudentController extends Controller
     }
 
     /**
-     * Show student profile for admin review.
+     * Show student profile for admin review and editing.
      */
-    public function show(Student $student): Response
+    public function show(Request $request, Student $student): Response
     {
         $student->load([
             'enrollments' => fn ($query) => $query->with([
@@ -185,8 +190,43 @@ class StudentController extends Controller
             ]),
         ]);
 
+        $user = $request->user();
+
         return Inertia::render('admin/students/show', [
             'student' => $student,
+            'canUpdateEmail' => $user !== null && $user->can('updateEmail', $student),
         ]);
+    }
+
+    /**
+     * Update student profile fields. Email is restricted to owners and admins.
+     */
+    public function update(UpdateStudentRequest $request, Student $student): RedirectResponse
+    {
+        $student->update($request->studentAttributes());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Datos del alumno actualizados.',
+        ]);
+
+        return redirect()->route('admin.students.show', $student);
+    }
+
+    /**
+     * Soft-delete a student. Restricted to owners and admins.
+     */
+    public function destroy(Request $request, Student $student): RedirectResponse
+    {
+        $request->user()?->can('delete', $student) || abort(403);
+
+        $student->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Alumno eliminado.',
+        ]);
+
+        return redirect()->route('admin.students.index');
     }
 }

@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\DanceType;
 use App\Models\Level;
+use App\Models\Student;
 use App\Policies\DanceTypePolicy;
 use App\Policies\LevelPolicy;
+use App\Policies\StudentPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Level::class, LevelPolicy::class);
         Gate::policy(DanceType::class, DanceTypePolicy::class);
+        Gate::policy(Student::class, StudentPolicy::class);
 
         Date::use(CarbonImmutable::class);
 
