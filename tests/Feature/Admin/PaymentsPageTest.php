@@ -155,7 +155,8 @@ class PaymentsPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/students/show')
-                ->has('student'));
+                ->has('student')
+                ->where('canUpdateEmail', true));
     }
 
     public function test_store_saves_receipt_file(): void

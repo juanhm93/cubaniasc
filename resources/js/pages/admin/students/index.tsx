@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useState } from 'react';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +53,7 @@ type StudentsIndexProps = {
     filters: FiltersState;
     courseOptions: Option[];
     levelOptions: Option[];
+    canDeleteStudents?: boolean;
 };
 
 function queryFromFilters(f: FiltersState): Record<string, string> {
@@ -81,10 +83,15 @@ export default function AdminStudentsIndex({
     filters,
     courseOptions,
     levelOptions,
+    canDeleteStudents = false,
 }: StudentsIndexProps) {
     const { t } = useTranslation();
     const [searchDraft, setSearchDraft] = useState(filters.search ?? '');
     const [syncedSearch, setSyncedSearch] = useState(filters.search);
+    const [studentToDelete, setStudentToDelete] =
+        useState<EnrollmentRow | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingStudent, setDeletingStudent] = useState(false);
 
     if (filters.search !== syncedSearch) {
         setSyncedSearch(filters.search);
@@ -118,6 +125,19 @@ export default function AdminStudentsIndex({
     const clearFilters = (): void => {
         setSearchDraft('');
         router.get(admin.students.index.url(), {}, { preserveState: true });
+    };
+
+    const confirmDeleteStudent = (): void => {
+        if (studentToDelete === null) {
+            return;
+        }
+
+        router.delete(admin.students.destroy.url(studentToDelete.student_id), {
+            preserveScroll: true,
+            onStart: () => setDeletingStudent(true),
+            onSuccess: () => setDeleteDialogOpen(false),
+            onFinish: () => setDeletingStudent(false),
+        });
     };
 
     const { total, from, to, last_page: lastPage } = enrollments;
@@ -277,7 +297,7 @@ export default function AdminStudentsIndex({
                     </p>
 
                     <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-                        <table className="w-full min-w-[760px] caption-bottom border-collapse text-sm">
+                        <table className="w-full min-w-[860px] caption-bottom border-collapse text-sm">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
@@ -296,7 +316,7 @@ export default function AdminStudentsIndex({
                                         {t('common.status')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                        {t('common.action')}
+                                        {t('common.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -345,16 +365,34 @@ export default function AdminStudentsIndex({
                                                 )}
                                             </td>
                                             <td className="px-3 py-3 text-right align-middle">
-                                                <Link
-                                                    href={admin.students.show.url(
-                                                        row.student_id,
-                                                    )}
-                                                    className="text-sm text-primary underline-offset-4 hover:underline"
-                                                >
-                                                    {t(
-                                                        'admin.students.viewStudent',
-                                                    )}
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Link
+                                                        href={admin.students.show.url(
+                                                            row.student_id,
+                                                        )}
+                                                        className="text-sm text-primary underline-offset-4 hover:underline"
+                                                    >
+                                                        {t(
+                                                            'admin.students.viewStudent',
+                                                        )}
+                                                    </Link>
+                                                    {canDeleteStudents ? (
+                                                        <button
+                                                            type="button"
+                                                            className="text-sm text-destructive underline-offset-4 hover:underline"
+                                                            onClick={() => {
+                                                                setStudentToDelete(
+                                                                    row,
+                                                                );
+                                                                setDeleteDialogOpen(
+                                                                    true,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {t('common.delete')}
+                                                        </button>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -407,6 +445,23 @@ export default function AdminStudentsIndex({
                     ) : null}
                 </div>
             </div>
+
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                title={t('admin.students.deleteStudent')}
+                description={t('admin.students.deleteConfirm', {
+                    name:
+                        studentToDelete?.student_name ||
+                        t('admin.students.studentLabel'),
+                })}
+                confirming={deletingStudent}
+                onOpenChange={(open) => {
+                    if (!open && !deletingStudent) {
+                        setDeleteDialogOpen(false);
+                    }
+                }}
+                onConfirm={confirmDeleteStudent}
+            />
         </>
     );
 }

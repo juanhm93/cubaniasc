@@ -56,7 +56,8 @@ class StudentIndexTest extends TestCase
                 ->has('enrollments')
                 ->has('filters')
                 ->has('courseOptions')
-                ->has('levelOptions'));
+                ->has('levelOptions')
+                ->where('canDeleteStudents', true));
     }
 
     public function test_students_index_paginates_twenty_per_page(): void
