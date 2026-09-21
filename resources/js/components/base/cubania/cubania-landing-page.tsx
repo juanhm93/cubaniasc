@@ -33,7 +33,12 @@ export function CubaniaLandingPage({
 
     return (
         <div
-            className={`cubania-landing${customCursor ? 'cubania-landing--custom-cursor' : ''}`.trim()}
+            className={[
+                'cubania-landing',
+                customCursor ? 'cubania-landing--custom-cursor' : '',
+            ]
+                .filter(Boolean)
+                .join(' ')}
         >
             {customCursor ? <CubaniaCursor /> : null}
             <CubaniaNav

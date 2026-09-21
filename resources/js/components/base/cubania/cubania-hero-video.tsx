@@ -5,6 +5,7 @@ type CubaniaHeroVideoProps = {
     videoId: string;
     playbackRate: number;
     showControls?: boolean;
+    paused?: boolean;
 };
 
 const YT_ENDED = 0;
@@ -56,8 +57,10 @@ export function CubaniaHeroVideo({
     videoId,
     playbackRate,
     showControls = true,
+    paused = false,
 }: CubaniaHeroVideoProps): ReactNode {
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const pausedRef = useRef(paused);
     const [isPlaying, setIsPlaying] = useState(false);
     const controlsParam = showControls ? 1 : 0;
     const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=${controlsParam}&rel=0&modestbranding=1&playsinline=1&fs=0&disablekb=1&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
@@ -85,7 +88,10 @@ export function CubaniaHeroVideo({
             youtubeCommand(win, 'addEventListener', ['onStateChange']);
             youtubeCommand(win, 'mute');
             youtubeCommand(win, 'setPlaybackRate', [playbackRate]);
-            youtubeCommand(win, 'playVideo');
+
+            if (!pausedRef.current) {
+                youtubeCommand(win, 'playVideo');
+            }
         };
 
         let restarting = false;
@@ -164,15 +170,23 @@ export function CubaniaHeroVideo({
 
             if (playerState === YT_PLAYING) {
                 revealVideo();
+
                 return;
             }
 
             if (playerState === YT_ENDED) {
                 restartFromStart();
+
                 return;
             }
 
             if (playerState === YT_PAUSED) {
+                // A pause asked for from the reel button keeps the frame on
+                // screen; any other pause is a hiccup we recover from.
+                if (pausedRef.current) {
+                    return;
+                }
+
                 hideVideo();
                 const win = iframe.contentWindow;
 
@@ -197,6 +211,26 @@ export function CubaniaHeroVideo({
         };
     }, [playbackRate, videoId, showControls]);
 
+    useEffect(() => {
+        pausedRef.current = paused;
+
+        const win = iframeRef.current?.contentWindow;
+
+        if (!win) {
+            return;
+        }
+
+        if (paused) {
+            youtubeCommand(win, 'pauseVideo');
+
+            return;
+        }
+
+        youtubeCommand(win, 'mute');
+        youtubeCommand(win, 'setPlaybackRate', [playbackRate]);
+        youtubeCommand(win, 'playVideo');
+    }, [paused, playbackRate]);
+
     return (
         <div
             className="cubania-hero__video"
@@ -215,7 +249,12 @@ export function CubaniaHeroVideo({
                 tabIndex={-1}
             />
             <div
-                className={`cubania-hero__video-cover${isPlaying ? ' cubania-hero__video-cover--hidden' : ''}`}
+                className={[
+                    'cubania-hero__video-cover',
+                    isPlaying ? 'cubania-hero__video-cover--hidden' : '',
+                ]
+                    .filter(Boolean)
+                    .join(' ')}
             >
                 <img
                     className="cubania-hero__video-logo"

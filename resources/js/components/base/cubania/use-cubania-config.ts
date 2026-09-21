@@ -14,13 +14,13 @@ const fallbackCubania: CubaniaShared = {
     },
     instructors: [
         {
-            image: '/cubania-assets/juan.webp',
+            image: '/cubania-assets/profesor_juan.webp',
         },
         {
-            image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
+            image: '/cubania-assets/profesor_mare.webp',
         },
         {
-            image: '/cubania-assets/javier.webp',
+            image: '/cubania-assets/profesor_javier.webp',
         },
     ],
     sliderImages: [
