@@ -180,6 +180,7 @@ class CourseController extends Controller
 
         $enrollments = $course->enrollments()
             ->where('status', EnrollmentStatus::Active)
+            ->whereHas('student')
             ->with(['student:id,name,email'])
             ->orderBy('id')
             ->get();
