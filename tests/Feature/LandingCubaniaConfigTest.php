@@ -22,6 +22,20 @@ class LandingCubaniaConfigTest extends TestCase
 
     public function test_landing_shares_default_cubania_social_and_hero_config(): void
     {
+        config([
+            'cubania.social.instagram' => 'https://www.instagram.com/cubania.sc',
+            'cubania.social.tiktok' => 'https://www.tiktok.com/@cubania.salsac',
+            'cubania.social.whatsapp' => 'https://wa.me/+584122801334',
+            'cubania.hero.youtube_url' => 'https://www.youtube.com/watch?v=s4DT0BFxDEk',
+            'cubania.hero.playback_rate' => 0.75,
+            'cubania.instructors' => [
+                ['image' => '/cubania-assets/profesor_juan.webp'],
+                ['image' => '/cubania-assets/profesor_mare.webp'],
+                ['image' => '/cubania-assets/profesor_javier.webp'],
+            ],
+            'cubania.slider' => [],
+        ]);
+
         $shared = CubaniaLanding::shared();
 
         $this->get(route('home'))
@@ -35,8 +49,8 @@ class LandingCubaniaConfigTest extends TestCase
                 ->where('cubania.hero.youtubeId', 's4DT0BFxDEk')
                 ->where('cubania.hero.playbackRate', 0.75)
                 ->has('cubania.instructors', 3)
-                ->where('cubania.instructors.0.image', '/cubania-assets/juan.webp')
-                ->where('cubania.instructors.2.image', '/cubania-assets/javier.webp')
+                ->where('cubania.instructors.0.image', '/cubania-assets/profesor_juan.webp')
+                ->where('cubania.instructors.2.image', '/cubania-assets/profesor_javier.webp')
                 ->has('cubania.sliderImages', 4)
                 ->where('cubania.sliderImages.0', '/cubania-assets/slider/slider-1.webp')
                 ->where('cubania.sliderImages.3', '/cubania-assets/slider/slider-4.webp'));
