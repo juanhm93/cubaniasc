@@ -85,7 +85,11 @@
     "noPlace": "Sin lugar",
     "noTeacherAssigned": "Sin profesor asignado",
     "observations": "Observaciones",
-    "remove": "Quitar"
+    "remove": "Quitar",
+    "countries": {
+      "VE": "Venezuela",
+      "CO": "Colombia"
+    }
   },
   "auth": {
     "login": {
@@ -178,7 +182,16 @@
     "settingsNavAriaLabel": "Configuración",
     "settingsTitle": "Configuración",
     "settingsDescription": "Administra tu perfil y la configuración de tu cuenta",
-    "navigationMenu": "Menú de navegación"
+    "navigationMenu": "Menú de navegación",
+    "notifications": "Notificaciones"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes notificaciones por ahora.",
+    "markAllAsRead": "Marcar todas como leídas",
+    "loadError": "No pudimos cargar tus notificaciones.",
+    "retry": "Reintentar",
+    "newPreRegistration": "Nueva preinscripción de {{name}}"
   },
   "settings": {
     "profileSettings": "Configuración de perfil",
@@ -444,7 +457,10 @@
       "dueAtOptional": "Vence el (opcional)",
       "savePayment": "Guardar pago",
       "paymentRegistered": "Pago registrado",
-      "paymentRegisterFailed": "No se pudo registrar el pago"
+      "paymentRegisterFailed": "No se pudo registrar el pago",
+      "columnCountry": "País",
+      "filteredByPreRegistration": "Mostrando una sola preinscripción.",
+      "showAll": "Ver todas"
     },
     "users": {
       "title": "Usuarios y roles",
@@ -639,7 +655,9 @@
       "messageLabel": "¿Tienes algo que decir? (opcional)",
       "agreeLabel": "Estoy de acuerdo con que Cubanía trate mis datos personales para gestionar mi preinscripción y contactarme.",
       "submit": "Enviar preinscripción",
-      "submitting": "Enviando…"
+      "submitting": "Enviando…",
+      "countryOptional": "(opcional)",
+      "countryPlaceholder": "Selecciona tu país"
     }
   }
 }
