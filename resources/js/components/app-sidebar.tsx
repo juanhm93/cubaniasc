@@ -5,6 +5,7 @@ import {
     FolderGit2,
     GraduationCap,
     LayoutGrid,
+    MapPin,
     School,
     Users,
 } from 'lucide-react';
@@ -100,6 +101,11 @@ export function AppSidebar() {
                       title: 'navigation.adminUsers',
                       href: '/admin/users',
                       icon: Users,
+                  },
+                  {
+                      title: 'navigation.places',
+                      href: admin.places.index.url(),
+                      icon: MapPin,
                   },
               ]
             : []),
