@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Support\AuthAccess;
 use App\Support\CubaniaLanding;
 use App\Support\RoleAccess;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -49,9 +50,24 @@ class HandleInertiaRequests extends Middleware
             'canRegister' => AuthAccess::canRegister(),
             'cubania' => CubaniaLanding::shared(),
             'notifications' => [
-                'unreadCount' => $request->user()?->unreadNotifications()->count() ?? 0,
+                'unreadCount' => $this->unreadNotificationsCount($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * Count unread notifications without breaking every page when the
+     * notifications table has not been migrated yet on the server.
+     */
+    private function unreadNotificationsCount(Request $request): int
+    {
+        try {
+            return $request->user()?->unreadNotifications()->count() ?? 0;
+        } catch (QueryException $exception) {
+            report($exception);
+
+            return 0;
+        }
     }
 }

@@ -146,6 +146,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::patch('admin/users/{user}/status', [UserRoleController::class, 'updateStatus'])->name('admin.users.status.update');
 
         Route::middleware('owner')->group(function () {
+            Route::get('admin/maintenance', [MaintenanceController::class, 'show'])
+                ->name('admin.maintenance.show');
             Route::post('admin/maintenance/cache-clear', [MaintenanceController::class, 'clearApplicationCache'])
                 ->name('admin.maintenance.cache-clear');
             Route::post('admin/maintenance/migrate', [MaintenanceController::class, 'runMigrations'])
