@@ -22,7 +22,7 @@ class DanceTypeController extends Controller
         $request->user()?->can('viewAny', DanceType::class) || abort(403);
 
         $danceTypes = DanceType::query()
-            ->withCount(['levels', 'levelContents as figures_count'])
+            ->withCount(DanceType::contentCounts())
             ->orderBy('sort_order')
             ->get();
 
@@ -40,7 +40,7 @@ class DanceTypeController extends Controller
             'sort_order' => ((int) DanceType::withTrashed()->max('sort_order')) + 1,
         ]);
 
-        $danceType->loadCount(['levels', 'levelContents as figures_count']);
+        $danceType->loadCount(DanceType::contentCounts());
 
         return response()->json($danceType, 201);
     }
@@ -58,7 +58,7 @@ class DanceTypeController extends Controller
                 ]);
             },
         ]);
-        $danceType->loadCount(['levels', 'levelContents as figures_count']);
+        $danceType->loadCount(DanceType::contentCounts());
 
         return response()->json($danceType);
     }
@@ -68,7 +68,7 @@ class DanceTypeController extends Controller
         $danceType->update($request->validated());
 
         return response()->json(
-            $danceType->fresh()?->loadCount(['levels', 'levelContents as figures_count'])
+            $danceType->fresh()?->loadCount(DanceType::contentCounts())
         );
     }
 

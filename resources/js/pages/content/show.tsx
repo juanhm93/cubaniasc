@@ -4,7 +4,8 @@ import { Eye, Pencil, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
-import LevelVideoPreview from '@/components/content/level-video-preview';
+import { ContentHelpNotice } from '@/components/content/content-help';
+import FigurePreviewDialog from '@/components/content/figure-preview-dialog';
 import SortableList from '@/components/content/sortable-list';
 import VisualFiguresCatalog from '@/components/content/visual-figures-catalog';
 import InputError from '@/components/input-error';
@@ -22,6 +23,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useTranslation } from '@/i18n/use-translation';
+import {
+    figureMissingDescription,
+    figureMissingVideo,
+    levelsWithoutFigures,
+} from '@/lib/content-help';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -49,10 +56,13 @@ const textareaClassName = cn(
 export default function ContentShow({
     danceType,
     canDelete = false,
+    contentHelpMode = false,
 }: {
     danceType: DanceTypeDetail;
     canDelete?: boolean;
+    contentHelpMode?: boolean;
 }) {
+    const { t } = useTranslation();
     const showDelete = canDelete;
     const [detail, setDetail] = useState<DanceTypeDetail>(() =>
         normalizeDanceTypeDetail(danceType),
@@ -75,6 +85,50 @@ export default function ContentShow({
             ),
         [detail.levels],
     );
+
+    const helpMessages = useMemo(() => {
+        if (!contentHelpMode) {
+            return [];
+        }
+
+        if (detail.levels.length === 0) {
+            return [t('content.help.danceTypeWithoutLevels')];
+        }
+
+        const figures = detail.levels.flatMap((level) => level.level_contents);
+        const emptyLevels = levelsWithoutFigures(detail.levels);
+        const withoutVideo = figures.filter(figureMissingVideo).length;
+        const withoutDescription = figures.filter(
+            figureMissingDescription,
+        ).length;
+        const messages: string[] = [];
+
+        if (emptyLevels.length > 0) {
+            messages.push(
+                t('content.help.levelsNeedFigures', {
+                    names: emptyLevels.map((level) => level.name).join(', '),
+                }),
+            );
+        }
+
+        if (withoutVideo > 0) {
+            messages.push(
+                t('content.help.figuresWithoutVideo', {
+                    count: withoutVideo,
+                }),
+            );
+        }
+
+        if (withoutDescription > 0) {
+            messages.push(
+                t('content.help.figuresWithoutDescription', {
+                    count: withoutDescription,
+                }),
+            );
+        }
+
+        return messages;
+    }, [contentHelpMode, detail.levels, t]);
 
     async function handleCreateLevel(e: React.FormEvent): Promise<void> {
         e.preventDefault();
@@ -199,6 +253,8 @@ export default function ContentShow({
                         </ToggleGroupItem>
                     </ToggleGroup>
                 </div>
+
+                <ContentHelpNotice messages={helpMessages} />
 
                 {view === 'visual' ? (
                     <VisualFiguresCatalog
@@ -342,6 +398,20 @@ export default function ContentShow({
                                         figuresCount:
                                             level.level_contents.length,
                                     }}
+                                    contentHelp={
+                                        contentHelpMode
+                                            ? {
+                                                  figuresWithoutVideo:
+                                                      level.level_contents.filter(
+                                                          figureMissingVideo,
+                                                      ).length,
+                                                  figuresWithoutDescription:
+                                                      level.level_contents.filter(
+                                                          figureMissingDescription,
+                                                      ).length,
+                                              }
+                                            : undefined
+                                    }
                                     deletingId={deletingId}
                                     onDelete={
                                         showDelete
@@ -371,23 +441,10 @@ export default function ContentShow({
                 onConfirm={() => void handleDeleteLevel()}
             />
 
-            <Dialog
-                open={videoFigure !== null}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setVideoFigure(null);
-                    }
-                }}
-            >
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {videoFigure?.name ?? 'Video'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <LevelVideoPreview url={videoFigure?.video_url} />
-                </DialogContent>
-            </Dialog>
+            <FigurePreviewDialog
+                figure={videoFigure}
+                onClose={() => setVideoFigure(null)}
+            />
         </>
     );
 }

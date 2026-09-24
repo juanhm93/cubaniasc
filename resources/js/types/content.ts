@@ -22,6 +22,9 @@ export type DanceTypeCard = {
     sort_order: number;
     levels_count: number;
     figures_count: number;
+    empty_levels_count: number;
+    figures_without_video_count: number;
+    figures_without_description_count: number;
 };
 
 export type DanceTypeDetail = DanceTypeCard & {
@@ -69,6 +72,10 @@ export function normalizeDanceTypeCard(raw: unknown): DanceTypeCard {
         sort_order: danceType.sort_order ?? 0,
         levels_count: danceType.levels_count ?? 0,
         figures_count: danceType.figures_count ?? 0,
+        empty_levels_count: danceType.empty_levels_count ?? 0,
+        figures_without_video_count: danceType.figures_without_video_count ?? 0,
+        figures_without_description_count:
+            danceType.figures_without_description_count ?? 0,
     };
 }
 

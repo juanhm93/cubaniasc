@@ -15,13 +15,14 @@ class ContentController extends Controller
     public function index(Request $request): Response
     {
         $danceTypes = DanceType::query()
-            ->withCount(['levels', 'levelContents as figures_count'])
+            ->withCount(DanceType::contentCounts())
             ->orderBy('sort_order')
             ->get();
 
         return Inertia::render('content/index', [
             'danceTypes' => $danceTypes,
             'canDelete' => $this->canDelete($request),
+            'contentHelpMode' => $this->contentHelpMode(),
         ]);
     }
 
@@ -37,11 +38,12 @@ class ContentController extends Controller
             },
         ]);
 
-        $danceType->loadCount(['levels', 'levelContents as figures_count']);
+        $danceType->loadCount(DanceType::contentCounts());
 
         return Inertia::render('content/show', [
             'danceType' => $danceType,
             'canDelete' => $this->canDelete($request),
+            'contentHelpMode' => $this->contentHelpMode(),
         ]);
     }
 
@@ -58,7 +60,13 @@ class ContentController extends Controller
             'danceType' => $danceType,
             'level' => $level,
             'canDelete' => $this->canDelete($request),
+            'contentHelpMode' => $this->contentHelpMode(),
         ]);
+    }
+
+    private function contentHelpMode(): bool
+    {
+        return (bool) config('cubania.content_help.enabled');
     }
 
     private function canDelete(Request $request): bool

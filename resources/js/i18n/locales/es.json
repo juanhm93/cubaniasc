@@ -304,7 +304,39 @@
       "reorder": "Reordenar",
       "playContent": "Reproducir {{name}}",
       "editContent": "Editar {{name}}",
-      "removeContent": "Eliminar {{name}}"
+      "removeContent": "Eliminar {{name}}",
+      "play": "Ver",
+      "edit": "Editar",
+      "remove": "Eliminar"
+    }
+  },
+  "content": {
+    "help": {
+      "noticeTitle": "Contenido por completar",
+      "noLevels": "Sin niveles",
+      "noFigures": "Sin figuras",
+      "missingVideo": "Sin video",
+      "missingDescription": "Sin descripción",
+      "levelsWithoutFigures_one": "{{count}} nivel sin figuras",
+      "levelsWithoutFigures_other": "{{count}} niveles sin figuras",
+      "figuresWithoutVideo_one": "{{count}} figura sin video",
+      "figuresWithoutVideo_other": "{{count}} figuras sin video",
+      "figuresWithoutDescription_one": "{{count}} figura sin descripción",
+      "figuresWithoutDescription_other": "{{count}} figuras sin descripción",
+      "danceTypesPending_one": "{{count}} estilo tiene contenido pendiente. Revisa que todos sus niveles tengan figuras, videos y descripciones.",
+      "danceTypesPending_other": "{{count}} estilos tienen contenido pendiente. Revisa que todos sus niveles tengan figuras, videos y descripciones.",
+      "danceTypeWithoutLevels": "Este estilo todavía no tiene niveles. Crea sus niveles y agrega las figuras de cada uno.",
+      "levelsNeedFigures": "Agrega figuras en: {{names}}.",
+      "levelWithoutFigures": "Este nivel todavía no tiene figuras. Te recomendamos agregar las figuras que se enseñan en él.",
+      "figuresNeedVideo": "Agrega el video a: {{names}}.",
+      "figuresNeedDescription": "Agrega la descripción a: {{names}}."
+    },
+    "figurePreview": {
+      "fallbackTitle": "Figura",
+      "switchLabel": "Ver video o descripción",
+      "video": "Video",
+      "description": "Descripción",
+      "noDescription": "Esta figura todavía no tiene una descripción."
     }
   },
   "admin": {

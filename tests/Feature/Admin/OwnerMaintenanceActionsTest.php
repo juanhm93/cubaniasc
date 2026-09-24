@@ -6,6 +6,8 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class OwnerMaintenanceActionsTest extends TestCase
@@ -127,6 +129,7 @@ class OwnerMaintenanceActionsTest extends TestCase
         ]);
 
         Schema::drop('notifications');
+        DB::table('migrations')->where('migration', '2026_09_23_235854_create_notifications_table')->delete();
 
         $this->actingAs($owner);
 
