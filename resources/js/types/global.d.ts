@@ -9,6 +9,7 @@ declare module '@inertiajs/core' {
             canLogin: boolean;
             canRegister: boolean;
             cubania: CubaniaShared;
+            notifications: { unreadCount: number };
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

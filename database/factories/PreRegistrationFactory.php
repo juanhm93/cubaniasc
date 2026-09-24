@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PreRegistrationCountry;
 use App\Models\PreRegistration;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,6 +22,7 @@ class PreRegistrationFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->optional()->numerify('+58##########'),
+            'country' => fake()->optional()->randomElement(PreRegistrationCountry::cases()),
             'agree' => true,
             'message' => fake()->optional(0.4)->paragraph(),
         ];

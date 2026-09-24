@@ -50,21 +50,33 @@ return [
         [
             'image' => env(
                 'CUBANIA_INSTRUCTOR_1_IMAGE',
-                '/cubania-assets/juan.webp',
+                '/cubania-assets/profesor_juan.webp',
             ),
         ],
         [
             'image' => env(
                 'CUBANIA_INSTRUCTOR_2_IMAGE',
-                'https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80',
+                '/cubania-assets/profesor_mare.webp',
             ),
         ],
         [
             'image' => env(
                 'CUBANIA_INSTRUCTOR_3_IMAGE',
-                '/cubania-assets/javier.webp',
+                '/cubania-assets/profesor_javier.webp',
             ),
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | About section slider
+    |--------------------------------------------------------------------------
+    |
+    | Public URLs for the reusable about-us image slider. Leave empty to
+    | auto-discover image files in public/cubania-assets/slider.
+    |
+    */
+
+    'slider' => [],
 
 ];

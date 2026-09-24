@@ -3,6 +3,8 @@ import { useTranslation } from '@/i18n/use-translation';
 
 type CubaniaStyleCardProps = {
     highlight?: boolean;
+    /** Frames the image from the top so faces stay in view. */
+    portrait?: boolean;
     image: string;
     name: string;
     description: string;
@@ -11,18 +13,24 @@ type CubaniaStyleCardProps = {
 };
 
 /**
- * Large tile for the “Nuestros estilos” grid.
+ * Large tile for the “Nuestros estilos” grid (styles and teachers tabs).
  */
 export function CubaniaStyleCard({
     highlight = false,
+    portrait = false,
     image,
     name,
     description,
     onActivate,
 }: CubaniaStyleCardProps): ReactNode {
     const { t } = useTranslation();
-    const className =
-        `cubania-style-card ${highlight ? 'cubania-style-card--highlight' : ''}`.trim();
+    const className = [
+        'cubania-style-card',
+        highlight ? 'cubania-style-card--highlight' : '',
+        portrait ? 'cubania-style-card--portrait' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
 
     const body = (
         <>
@@ -38,9 +46,11 @@ export function CubaniaStyleCard({
                 <div className="cubania-style-card__name">{name}</div>
                 <p className="cubania-style-card__desc">{description}</p>
             </div>
-            <div className="cubania-style-card__arrow" aria-hidden>
-                →
-            </div>
+            {onActivate ? (
+                <div className="cubania-style-card__arrow" aria-hidden>
+                    →
+                </div>
+            ) : null}
         </>
     );
 

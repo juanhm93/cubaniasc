@@ -26,6 +26,7 @@ export default function PreRegistrationPage({
         name: '',
         email: '',
         phone: '',
+        country: '',
         message: '',
         agree: false as boolean,
     });
@@ -47,7 +48,7 @@ export default function PreRegistrationPage({
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                     rel="stylesheet"
-                    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
                 />
             </Head>
             <div className="cubania-landing">
@@ -143,6 +144,46 @@ export default function PreRegistrationPage({
                             {form.errors.phone ? (
                                 <p className="cubania-pre-reg__error">
                                     {form.errors.phone}
+                                </p>
+                            ) : null}
+                        </div>
+                        <div className="cubania-pre-reg__field">
+                            <label
+                                className="cubania-pre-reg__label"
+                                htmlFor="pre-reg-country"
+                            >
+                                {t('common.country')}{' '}
+                                <span className="cubania-pre-reg__label-note">
+                                    {t(
+                                        'landing.preRegistration.countryOptional',
+                                    )}
+                                </span>
+                            </label>
+                            <select
+                                id="pre-reg-country"
+                                className="cubania-pre-reg__select"
+                                name="country"
+                                value={form.data.country}
+                                onChange={(e) =>
+                                    form.setData('country', e.target.value)
+                                }
+                                autoComplete="country"
+                            >
+                                <option value="">
+                                    {t(
+                                        'landing.preRegistration.countryPlaceholder',
+                                    )}
+                                </option>
+                                <option value="VE">
+                                    {t('common.countries.VE')}
+                                </option>
+                                <option value="CO">
+                                    {t('common.countries.CO')}
+                                </option>
+                            </select>
+                            {form.errors.country ? (
+                                <p className="cubania-pre-reg__error">
+                                    {form.errors.country}
                                 </p>
                             ) : null}
                         </div>

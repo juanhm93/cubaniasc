@@ -17,7 +17,11 @@ export function CubaniaTestimonialCard({
     avatarLetter,
 }: CubaniaTestimonialCardProps): ReactNode {
     return (
-        <article className="cubania-testimonial-card">
+        <article
+            className="cubania-testimonial-card"
+            data-cubania-cursor="interactive"
+        >
+            <span className="cubania-testimonial-card__fill" aria-hidden />
             <div className="cubania-testimonial-card__quote">"</div>
             <p className="cubania-testimonial-card__text">{quote}</p>
             <div className="cubania-testimonial-card__author">

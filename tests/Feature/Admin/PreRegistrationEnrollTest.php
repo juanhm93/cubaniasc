@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\PreRegistrationCountry;
 use App\Models\PreRegistration;
 use App\Models\Role;
 use App\Models\Student;
@@ -42,6 +43,48 @@ class PreRegistrationEnrollTest extends TestCase
                 ->has('preRegistration')
                 ->has('studentDraft')
                 ->has('courses'));
+    }
+
+    public function test_student_draft_prefills_the_country_from_the_pre_registration(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $pre = PreRegistration::factory()->create([
+            'country' => PreRegistrationCountry::Venezuela,
+        ]);
+
+        $this->actingAs($admin);
+
+        $this->get(
+            route('admin.pre-registrations.enroll.create', ['preRegistration' => $pre->id])
+        )
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('studentDraft.country', 'Venezuela'));
+    }
+
+    public function test_student_draft_country_is_empty_when_no_country_was_given(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $pre = PreRegistration::factory()->create(['country' => null]);
+
+        $this->actingAs($admin);
+
+        $this->get(
+            route('admin.pre-registrations.enroll.create', ['preRegistration' => $pre->id])
+        )
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('studentDraft.country', ''));
     }
 
     public function test_admin_can_create_student_from_pre_registration(): void

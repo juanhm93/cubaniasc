@@ -58,14 +58,26 @@ class PaymentController extends Controller
             ];
         }
 
+        $selectedTab = $request->query('tab');
+
+        if (! is_string($selectedTab) || ! in_array($selectedTab, ['alumnos', 'mas'], true)) {
+            $selectedTab = 'alumnos';
+        }
+
+        $highlightedPreRegistrationId = $request->query('preRegistration');
+        $highlightedPreRegistrationId = is_numeric($highlightedPreRegistrationId)
+            ? (int) $highlightedPreRegistrationId
+            : null;
+
         $preRegistrations = PreRegistration::query()
             ->orderByDesc('id')
-            ->get(['id', 'name', 'email', 'phone'])
+            ->get(['id', 'name', 'email', 'phone', 'country'])
             ->map(fn (PreRegistration $row): array => [
                 'id' => $row->id,
                 'name' => $row->name,
                 'email' => $row->email,
                 'phone' => $row->phone,
+                'country_label' => $row->country?->label(),
             ])
             ->values()
             ->all();
@@ -120,6 +132,8 @@ class PaymentController extends Controller
             'selectedMonth' => $monthKey,
             'rows' => $rows,
             'preRegistrations' => $preRegistrations,
+            'selectedTab' => $selectedTab,
+            'highlightedPreRegistrationId' => $highlightedPreRegistrationId,
         ]);
     }
 

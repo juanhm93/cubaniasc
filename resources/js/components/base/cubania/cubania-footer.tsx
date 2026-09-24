@@ -10,7 +10,7 @@ export function CubaniaFooter(): ReactNode {
     const { social } = useCubaniaConfig();
 
     return (
-        <footer className="cubania-footer" id="nosotros">
+        <footer className="cubania-footer">
             <div className="cubania-footer__top">
                 <div>
                     <div className="cubania-footer__logo">

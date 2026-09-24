@@ -5,20 +5,26 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Api\DanceTypeController as ApiDanceTypeController;
 use App\Http\Controllers\Api\LevelContentController;
 use App\Http\Controllers\Api\LevelController as ApiLevelController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
+use App\Http\Controllers\PublicScheduleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::inertia('/', 'welcome')->name('home');
+
+Route::get('api/horarios', PublicScheduleController::class)
+    ->name('schedule.index');
 
 Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
     ->name('pre-registration.create');
@@ -40,6 +46,20 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    /*
+     * Notification centre. Intentionally free of ability middleware: every
+     * authenticated role receives notifications, including those (such as
+     * teacher) that cannot open the pre-registrations screen.
+     */
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('notifications', [NotificationController::class, 'index'])
+            ->name('notifications.index');
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->name('notifications.read-all');
+    });
 
     Route::middleware('ability:'.PlatformAbility::Content->value)->group(function () {
         Route::get('contenido', [ContentController::class, 'index'])->name('content.index');
@@ -87,6 +107,13 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/students/enroll', [StudentController::class, 'storeEnrollment'])->name('admin.students.enroll.store');
         Route::get('admin/students', [StudentController::class, 'index'])->name('admin.students.index');
         Route::get('admin/students/{student}', [StudentController::class, 'show'])->name('admin.students.show');
+        Route::patch('admin/students/{student}', [StudentController::class, 'update'])->name('admin.students.update');
+        Route::delete('admin/students/{student}', [StudentController::class, 'destroy'])->name('admin.students.destroy');
+
+        Route::get('admin/payments/enroll', [PaymentStudentEnrollmentController::class, 'create'])
+            ->name('admin.payments.enroll.create');
+        Route::post('admin/payments/enroll', [PaymentStudentEnrollmentController::class, 'store'])
+            ->name('admin.payments.enroll.store');
 
         Route::get('admin/pre-registrations/{preRegistration}/enroll', [PreRegistrationEnrollmentController::class, 'create'])
             ->name('admin.pre-registrations.enroll.create');

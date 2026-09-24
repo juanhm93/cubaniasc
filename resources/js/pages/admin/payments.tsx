@@ -21,6 +21,7 @@ import {
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAbilities } from '@/hooks/use-abilities';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +35,7 @@ type PreRegistrationRow = {
     name: string;
     email: string;
     phone: string | null;
+    country_label: string | null;
 };
 
 type EnrollmentRow = {
@@ -53,6 +55,8 @@ type PaymentsProps = {
     selectedMonth: string;
     rows: EnrollmentRow[];
     preRegistrations: PreRegistrationRow[];
+    selectedTab: 'alumnos' | 'mas';
+    highlightedPreRegistrationId: number | null;
 };
 
 type PaymentMethod = 'efectivo' | 'transferencia' | 'otro';
@@ -76,10 +80,7 @@ function toDatetimeLocalValue(d: Date): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function formatDateEs(
-    iso: string | null,
-    emptyLabel: string,
-): string {
+function formatDateEs(iso: string | null, emptyLabel: string): string {
     if (!iso) {
         return emptyLabel;
     }
@@ -134,9 +135,19 @@ export default function AdminPayments({
     selectedMonth,
     rows,
     preRegistrations,
+    selectedTab,
+    highlightedPreRegistrationId,
 }: PaymentsProps) {
     const { t } = useTranslation();
-    const [tab, setTab] = useState<'alumnos' | 'mas'>('alumnos');
+    const abilities = useAbilities();
+    const [tab, setTab] = useState<'alumnos' | 'mas'>(selectedTab);
+    const [preRegistrationFilter, setPreRegistrationFilter] = useState<
+        number | null
+    >(highlightedPreRegistrationId);
+    const visiblePreRegistrations =
+        preRegistrationFilter === null
+            ? preRegistrations
+            : preRegistrations.filter((pr) => pr.id === preRegistrationFilter);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     const receiptRef = useRef<HTMLInputElement>(null);
@@ -212,13 +223,22 @@ export default function AdminPayments({
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
-                    <div className="flex flex-col gap-2">
-                        <h1 className="text-2xl font-semibold">
-                            {t('admin.payments.title')}
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            {t('admin.payments.description')}
-                        </p>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div className="flex flex-col gap-2">
+                            <h1 className="text-2xl font-semibold">
+                                {t('admin.payments.title')}
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                {t('admin.payments.description')}
+                            </p>
+                        </div>
+                        {abilities.students ? (
+                            <Button asChild>
+                                <Link href={admin.payments.enroll.create.url()}>
+                                    {t('admin.payments.enrollStudent')}
+                                </Link>
+                            </Button>
+                        ) : null}
                     </div>
 
                     <div className="inline-flex gap-1 rounded-lg bg-muted/60 p-1 dark:bg-muted/30">
@@ -318,7 +338,9 @@ export default function AdminPayments({
                                     <thead>
                                         <tr className="border-b border-sidebar-border/70">
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                {t('admin.students.studentLabel')}
+                                                {t(
+                                                    'admin.students.studentLabel',
+                                                )}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                                 {t('common.course')}
@@ -327,7 +349,9 @@ export default function AdminPayments({
                                                 {t('common.email')}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                                {t('admin.payments.lastPayment')}
+                                                {t(
+                                                    'admin.payments.lastPayment',
+                                                )}
                                             </th>
                                             <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                                 {t('admin.payments.inMonth')}
@@ -432,6 +456,25 @@ export default function AdminPayments({
                             <p className="mb-3 text-sm text-muted-foreground">
                                 {t('admin.payments.preRegisteredDescription')}
                             </p>
+                            {preRegistrationFilter !== null ? (
+                                <div className="mb-3 flex items-center gap-2 rounded-md border border-sidebar-border/70 bg-muted/40 px-3 py-2 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t(
+                                            'admin.payments.filteredByPreRegistration',
+                                        )}
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setPreRegistrationFilter(null)
+                                        }
+                                    >
+                                        {t('admin.payments.showAll')}
+                                    </Button>
+                                </div>
+                            ) : null}
                             <table className="w-full min-w-[640px] caption-bottom border-collapse text-sm">
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
@@ -444,16 +487,19 @@ export default function AdminPayments({
                                         <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                             {t('common.phone')}
                                         </th>
+                                        <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
+                                            {t('common.country')}
+                                        </th>
                                         <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
                                             {t('common.action')}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {preRegistrations.length === 0 ? (
+                                    {visiblePreRegistrations.length === 0 ? (
                                         <tr>
                                             <td
-                                                colSpan={4}
+                                                colSpan={5}
                                                 className="px-3 py-8 text-center text-muted-foreground"
                                             >
                                                 {t(
@@ -462,7 +508,7 @@ export default function AdminPayments({
                                             </td>
                                         </tr>
                                     ) : (
-                                        preRegistrations.map((pr) => (
+                                        visiblePreRegistrations.map((pr) => (
                                             <tr
                                                 key={pr.id}
                                                 className="border-b border-sidebar-border/70 last:border-0"
@@ -475,6 +521,10 @@ export default function AdminPayments({
                                                 </td>
                                                 <td className="px-3 py-3 align-middle whitespace-nowrap">
                                                     {pr.phone ??
+                                                        t('common.emDash')}
+                                                </td>
+                                                <td className="px-3 py-3 align-middle whitespace-nowrap">
+                                                    {pr.country_label ??
                                                         t('common.emDash')}
                                                 </td>
                                                 <td className="px-3 py-3 text-right align-middle">
