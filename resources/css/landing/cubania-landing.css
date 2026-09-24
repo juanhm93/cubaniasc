@@ -1332,7 +1332,8 @@
 }
 
 .cubania-landing .cubania-pre-reg__input,
-.cubania-landing .cubania-pre-reg__textarea {
+.cubania-landing .cubania-pre-reg__textarea,
+.cubania-landing .cubania-pre-reg__select {
     width: 100%;
     background: rgba(249, 245, 255, 0.06);
     border: 1px solid rgba(249, 245, 255, 0.12);
@@ -1352,10 +1353,29 @@
 }
 
 .cubania-landing .cubania-pre-reg__input:focus,
-.cubania-landing .cubania-pre-reg__textarea:focus {
+.cubania-landing .cubania-pre-reg__textarea:focus,
+.cubania-landing .cubania-pre-reg__select:focus {
     outline: none;
     border-color: var(--cubania-amarillo);
     background: rgba(249, 245, 255, 0.09);
+}
+
+.cubania-landing .cubania-pre-reg__select,
+.cubania-landing .cubania-pre-reg__select:focus {
+    appearance: none;
+    color-scheme: dark;
+    cursor: pointer;
+    background-image:
+        linear-gradient(45deg, transparent 50%, rgba(249, 245, 255, 0.55) 50%),
+        linear-gradient(135deg, rgba(249, 245, 255, 0.55) 50%, transparent 50%);
+    background-position:
+        calc(100% - 20px) calc(50% + 2px),
+        calc(100% - 14px) calc(50% + 2px);
+    background-size:
+        6px 6px,
+        6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 42px;
 }
 
 .cubania-landing .cubania-pre-reg__textarea {

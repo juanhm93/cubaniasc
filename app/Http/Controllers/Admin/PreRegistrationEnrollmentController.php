@@ -50,7 +50,7 @@ class PreRegistrationEnrollmentController extends Controller
                 'city' => '',
                 'state' => '',
                 'zip' => '',
-                'country' => '',
+                'country' => $preRegistration->country?->label() ?? '',
                 'emergency_contact_name' => '',
                 'emergency_contact_phone' => '',
                 'course_id' => null,

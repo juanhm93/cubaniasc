@@ -35,6 +35,7 @@ type PreRegistrationRow = {
     name: string;
     email: string;
     phone: string | null;
+    country_label: string | null;
 };
 
 type EnrollmentRow = {
@@ -54,6 +55,8 @@ type PaymentsProps = {
     selectedMonth: string;
     rows: EnrollmentRow[];
     preRegistrations: PreRegistrationRow[];
+    selectedTab: 'alumnos' | 'mas';
+    highlightedPreRegistrationId: number | null;
 };
 
 type PaymentMethod = 'efectivo' | 'transferencia' | 'otro';
@@ -132,10 +135,19 @@ export default function AdminPayments({
     selectedMonth,
     rows,
     preRegistrations,
+    selectedTab,
+    highlightedPreRegistrationId,
 }: PaymentsProps) {
     const { t } = useTranslation();
     const abilities = useAbilities();
-    const [tab, setTab] = useState<'alumnos' | 'mas'>('alumnos');
+    const [tab, setTab] = useState<'alumnos' | 'mas'>(selectedTab);
+    const [preRegistrationFilter, setPreRegistrationFilter] = useState<
+        number | null
+    >(highlightedPreRegistrationId);
+    const visiblePreRegistrations =
+        preRegistrationFilter === null
+            ? preRegistrations
+            : preRegistrations.filter((pr) => pr.id === preRegistrationFilter);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
     const receiptRef = useRef<HTMLInputElement>(null);
@@ -444,6 +456,25 @@ export default function AdminPayments({
                             <p className="mb-3 text-sm text-muted-foreground">
                                 {t('admin.payments.preRegisteredDescription')}
                             </p>
+                            {preRegistrationFilter !== null ? (
+                                <div className="mb-3 flex items-center gap-2 rounded-md border border-sidebar-border/70 bg-muted/40 px-3 py-2 text-sm">
+                                    <span className="text-muted-foreground">
+                                        {t(
+                                            'admin.payments.filteredByPreRegistration',
+                                        )}
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setPreRegistrationFilter(null)
+                                        }
+                                    >
+                                        {t('admin.payments.showAll')}
+                                    </Button>
+                                </div>
+                            ) : null}
                             <table className="w-full min-w-[640px] caption-bottom border-collapse text-sm">
                                 <thead>
                                     <tr className="border-b border-sidebar-border/70">
@@ -456,16 +487,19 @@ export default function AdminPayments({
                                         <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                             {t('common.phone')}
                                         </th>
+                                        <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
+                                            {t('common.country')}
+                                        </th>
                                         <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
                                             {t('common.action')}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {preRegistrations.length === 0 ? (
+                                    {visiblePreRegistrations.length === 0 ? (
                                         <tr>
                                             <td
-                                                colSpan={4}
+                                                colSpan={5}
                                                 className="px-3 py-8 text-center text-muted-foreground"
                                             >
                                                 {t(
@@ -474,7 +508,7 @@ export default function AdminPayments({
                                             </td>
                                         </tr>
                                     ) : (
-                                        preRegistrations.map((pr) => (
+                                        visiblePreRegistrations.map((pr) => (
                                             <tr
                                                 key={pr.id}
                                                 className="border-b border-sidebar-border/70 last:border-0"
@@ -487,6 +521,10 @@ export default function AdminPayments({
                                                 </td>
                                                 <td className="px-3 py-3 align-middle whitespace-nowrap">
                                                     {pr.phone ??
+                                                        t('common.emDash')}
+                                                </td>
+                                                <td className="px-3 py-3 align-middle whitespace-nowrap">
+                                                    {pr.country_label ??
                                                         t('common.emDash')}
                                                 </td>
                                                 <td className="px-3 py-3 text-right align-middle">
