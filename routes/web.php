@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Api\DanceTypeController as ApiDanceTypeController;
 use App\Http\Controllers\Api\LevelContentController;
 use App\Http\Controllers\Api\LevelController as ApiLevelController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
@@ -45,6 +46,20 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    /*
+     * Notification centre. Intentionally free of ability middleware: every
+     * authenticated role receives notifications, including those (such as
+     * teacher) that cannot open the pre-registrations screen.
+     */
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('notifications', [NotificationController::class, 'index'])
+            ->name('notifications.index');
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->name('notifications.read-all');
+    });
 
     Route::middleware('ability:'.PlatformAbility::Content->value)->group(function () {
         Route::get('contenido', [ContentController::class, 'index'])->name('content.index');

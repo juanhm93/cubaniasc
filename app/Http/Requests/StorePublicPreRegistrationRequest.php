@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PreRegistrationCountry;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePublicPreRegistrationRequest extends FormRequest
 {
@@ -24,6 +26,7 @@ class StorePublicPreRegistrationRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pre_registrations,email'],
             'phone' => ['nullable', 'string', 'max:32'],
+            'country' => ['nullable', Rule::enum(PreRegistrationCountry::class)],
             'message' => ['nullable', 'string', 'max:5000'],
             'agree' => ['required', 'accepted'],
         ];
@@ -38,6 +41,7 @@ class StorePublicPreRegistrationRequest extends FormRequest
             'name' => 'nombre',
             'email' => 'correo electrónico',
             'phone' => 'teléfono',
+            'country' => 'país',
             'message' => 'mensaje',
             'agree' => 'autorización para el tratamiento de tus datos',
         ];
@@ -48,6 +52,7 @@ class StorePublicPreRegistrationRequest extends FormRequest
         $this->merge([
             'email' => $this->filled('email') ? strtolower(trim((string) $this->input('email'))) : $this->input('email'),
             'phone' => $this->filled('phone') ? trim((string) $this->input('phone')) : null,
+            'country' => $this->filled('country') ? trim((string) $this->input('country')) : null,
             'message' => $this->filled('message') ? trim((string) $this->input('message')) : null,
         ]);
     }

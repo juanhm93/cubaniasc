@@ -33,6 +33,7 @@ class PreRegistrationPublicTest extends TestCase
             'name' => 'María Pérez',
             'email' => 'maria@example.com',
             'phone' => '+584121234567',
+            'country' => 'VE',
             'message' => 'Quiero clases de bachata los sábados.',
             'agree' => true,
         ];
@@ -44,9 +45,37 @@ class PreRegistrationPublicTest extends TestCase
             'name' => 'María Pérez',
             'email' => 'maria@example.com',
             'phone' => '+584121234567',
+            'country' => 'VE',
             'message' => 'Quiero clases de bachata los sábados.',
             'agree' => 1,
         ]);
+    }
+
+    public function test_country_may_be_omitted(): void
+    {
+        $this->post(route('pre-registration.store'), [
+            'name' => 'Sin País',
+            'email' => 'sinpais@example.com',
+            'country' => '',
+            'agree' => true,
+        ])->assertRedirect(route('pre-registration.create'));
+
+        $this->assertDatabaseHas('pre_registrations', [
+            'email' => 'sinpais@example.com',
+            'country' => null,
+        ]);
+    }
+
+    public function test_country_must_be_a_supported_option(): void
+    {
+        $this->post(route('pre-registration.store'), [
+            'name' => 'País Inválido',
+            'email' => 'invalido@example.com',
+            'country' => 'XX',
+            'agree' => true,
+        ])->assertSessionHasErrors('country');
+
+        $this->assertDatabaseCount('pre_registrations', 0);
     }
 
     public function test_message_and_phone_may_be_omitted(): void
@@ -61,6 +90,7 @@ class PreRegistrationPublicTest extends TestCase
             'name' => 'Carlos Ruiz',
             'email' => 'carlos@example.com',
             'phone' => null,
+            'country' => null,
             'message' => null,
             'agree' => 1,
         ]);

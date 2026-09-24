@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\PreRegistrationCountry;
 use Database\Factories\PreRegistrationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'email', 'phone', 'agree', 'message'])]
+#[Fillable(['name', 'email', 'phone', 'country', 'agree', 'message'])]
 class PreRegistration extends Model
 {
     /** @use HasFactory<PreRegistrationFactory> */
@@ -21,6 +22,7 @@ class PreRegistration extends Model
     {
         return [
             'agree' => 'boolean',
+            'country' => PreRegistrationCountry::class,
         ];
     }
 }
