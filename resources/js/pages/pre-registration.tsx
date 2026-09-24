@@ -48,7 +48,7 @@ export default function PreRegistrationPage({
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                     rel="stylesheet"
-                    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
                 />
             </Head>
             <div className="cubania-landing">

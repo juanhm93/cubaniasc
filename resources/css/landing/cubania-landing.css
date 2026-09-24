@@ -177,59 +177,46 @@
     transform: translateY(-1px);
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero — “La Pista” ---------- */
 
 .cubania-landing .cubania-hero {
-    min-height: 100vh;
     position: relative;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
     overflow: hidden;
+    isolation: isolate;
 }
+
+/* --- Background footage --- */
 
 .cubania-landing .cubania-hero__bg {
     position: absolute;
     inset: 0;
+    z-index: 0;
     background: var(--cubania-negro);
 }
 
 .cubania-landing .cubania-hero__video {
     position: absolute;
-    top: 96px;
-    left: 48px;
-    z-index: 3;
-    width: min(42vw, 500px);
-    height: min(42vw, 500px);
-    max-width: 500px;
-    max-height: 500px;
+    inset: 0;
     overflow: hidden;
-    border-radius: 50%;
     pointer-events: none;
-    background-color: #1a0540;
+    background-color: var(--cubania-negro);
     background-size: cover;
     background-position: center;
+    transform-origin: 58% 42%;
+    animation: cubania-ken-burns 24s 0.1s ease-out forwards;
 }
 
-.cubania-landing .cubania-hero__video::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(10, 0, 16, 0.4) 0%,
-            rgba(45, 12, 82, 0.3) 45%,
-            rgba(10, 0, 16, 0.5) 100%
-        ),
-        linear-gradient(
-            90deg,
-            rgba(10, 0, 16, 0.35) 0%,
-            rgba(107, 33, 200, 0.28) 55%,
-            rgba(10, 0, 16, 0.4) 100%
-        );
-    pointer-events: none;
+@keyframes cubania-ken-burns {
+    from {
+        transform: scale(1.12);
+    }
+    to {
+        transform: scale(1);
+    }
 }
 
 .cubania-landing .cubania-hero__video-frame {
@@ -237,13 +224,17 @@
     top: 50%;
     left: 50%;
     z-index: 0;
-    width: 177.78%;
-    height: 100%;
+    width: 100vw;
+    height: 56.25vw;
+    min-width: 177.78svh;
+    min-height: 100svh;
     border: 0;
-    transform: translate(-50%, -50%) scale(1.25);
+    transform: translate(-50%, -50%);
     pointer-events: none;
 }
 
+/* Poster plate shown until YouTube reports playback; the video thumbnail sits
+   underneath it as the container background. */
 .cubania-landing .cubania-hero__video-cover {
     position: absolute;
     inset: 0;
@@ -251,10 +242,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: inherit;
-    background: #12022e;
+    background: rgba(10, 0, 16, 0.55);
     opacity: 1;
-    transition: opacity 0.45s ease;
+    transition: opacity 0.6s ease;
     pointer-events: none;
 }
 
@@ -263,161 +253,494 @@
 }
 
 .cubania-landing .cubania-hero__video-logo {
-    width: min(58%, 220px);
+    width: min(26%, 170px);
     height: auto;
     object-fit: contain;
+    opacity: 0.8;
 }
 
-.cubania-landing .cubania-hero__overlay {
-    display: none;
-}
-
-.cubania-landing .cubania-hero__bg::after {
-    content: '';
+.cubania-landing .cubania-hero__scrim {
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.4;
+    z-index: 3;
     pointer-events: none;
+    background:
+        linear-gradient(
+            100deg,
+            rgba(10, 0, 16, 0.94) 0%,
+            rgba(10, 0, 16, 0.78) 34%,
+            rgba(10, 0, 16, 0.3) 62%,
+            rgba(26, 16, 37, 0.6) 100%
+        ),
+        linear-gradient(
+            180deg,
+            rgba(10, 0, 16, 0.82) 0%,
+            rgba(10, 0, 16, 0.12) 26%,
+            rgba(10, 0, 16, 0.18) 52%,
+            rgba(10, 0, 16, 0.92) 100%
+        );
+    animation: cubania-scrim-lift 2.6s 0.2s ease-out forwards;
 }
 
-.cubania-landing .cubania-hero__orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.45;
-    animation: cubania-drift 12s ease-in-out infinite alternate;
-}
-
-.cubania-landing .cubania-hero__orb--1 {
-    width: 700px;
-    height: 700px;
-    background: radial-gradient(circle, #7b2fe0 0%, transparent 70%);
-    top: -200px;
-    right: -100px;
-    opacity: 0.28;
-    animation-delay: 0s;
-}
-
-.cubania-landing .cubania-hero__orb--2 {
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, #f5c842 0%, transparent 70%);
-    bottom: -150px;
-    left: -100px;
-    opacity: 0.2;
-    animation-delay: -6s;
-}
-
-.cubania-landing .cubania-hero__orb--3 {
-    width: 350px;
-    height: 350px;
-    background: radial-gradient(circle, #4a0faa 0%, transparent 70%);
-    top: 40%;
-    left: 30%;
-    opacity: 0.3;
-    animation-delay: -3s;
-}
-
-@keyframes cubania-drift {
-    0% {
-        transform: translate(0, 0) scale(1);
+@keyframes cubania-scrim-lift {
+    from {
+        opacity: 1;
     }
-    100% {
-        transform: translate(40px, -30px) scale(1.08);
+    to {
+        opacity: 0.86;
     }
 }
 
-.cubania-landing .cubania-hero__dots {
+.cubania-landing .cubania-hero__grain {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(
-        circle,
-        rgba(107, 33, 200, 0.3) 1px,
-        transparent 1px
-    );
-    background-size: 48px 48px;
-    opacity: 0.3;
-    mask-image: radial-gradient(ellipse at 80% 50%, black 20%, transparent 70%);
+    z-index: 4;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.45;
 }
 
-.cubania-landing .cubania-hero__content {
+/* --- Stage --- */
+
+.cubania-landing .cubania-hero__stage {
     position: relative;
     z-index: 10;
-    padding: 0 48px;
-    max-width: 780px;
-    padding-top: 120px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
+    align-items: stretch;
+    gap: 56px;
+    width: 100%;
+    padding: 132px 48px 148px;
+}
+
+.cubania-landing .cubania-hero__main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
 }
 
 .cubania-landing .cubania-hero__eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.72rem;
-    font-weight: 400;
+    gap: 12px;
+    margin: 0 0 22px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--cubania-amarillo);
-    margin-bottom: 24px;
+    color: rgba(249, 245, 255, 0.85);
     opacity: 0;
     animation: cubania-fade-up 0.8s 0.2s forwards;
 }
 
-.cubania-landing .cubania-hero__eyebrow::before {
-    content: '';
-    display: block;
-    width: 32px;
-    height: 1px;
-    background: var(--cubania-amarillo);
+.cubania-landing .cubania-hero__live {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #ff3b4e;
+    animation: cubania-live-blink 1.7s ease-in-out infinite;
+}
+
+@keyframes cubania-live-blink {
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255, 59, 78, 0.6);
+    }
+    50% {
+        opacity: 0.4;
+        box-shadow: 0 0 0 8px rgba(255, 59, 78, 0);
+    }
 }
 
 .cubania-landing .cubania-hero__title {
+    margin: 0;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(5rem, 12vw, 10rem);
-    line-height: 0.9;
-    letter-spacing: 0.02em;
+    font-size: clamp(4.25rem, 12.5vw, 11.5rem);
+    line-height: 0.84;
+    letter-spacing: 0.005em;
     color: var(--cubania-blanco);
-    margin: 0 0 8px;
+    text-shadow: 0 18px 60px rgba(10, 0, 16, 0.6);
+}
+
+.cubania-landing .cubania-hero__title-lead {
+    display: block;
+}
+
+.cubania-landing .cubania-hero__letter {
+    display: inline-block;
     opacity: 0;
-    animation: cubania-fade-up 0.9s 0.4s forwards;
+    transform: translateY(0.4em);
+    animation: cubania-letter-rise 0.5s cubic-bezier(0.22, 0.9, 0.24, 1)
+        forwards;
+}
+
+@keyframes cubania-letter-rise {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .cubania-landing .cubania-hero__title-accent {
-    color: var(--cubania-amarillo);
     display: block;
-    text-shadow: 0 0 60px rgba(245, 200, 66, 0.4);
+    color: var(--cubania-amarillo);
+    text-shadow:
+        0 0 80px rgba(245, 200, 66, 0.32),
+        0 18px 60px rgba(10, 0, 16, 0.6);
+    opacity: 0;
+    transform: translateY(-0.28em);
+    animation: cubania-drop-beat 0.72s cubic-bezier(0.18, 1.5, 0.4, 1) forwards;
 }
 
-.cubania-landing .cubania-hero__title-outline {
-    -webkit-text-stroke: 2px rgba(249, 245, 255, 0.2);
-    color: transparent;
-    display: block;
+@keyframes cubania-drop-beat {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .cubania-landing .cubania-hero__subtitle {
-    font-size: 1.15rem;
+    max-width: 30rem;
+    margin: 30px 0 0;
+    font-size: clamp(1rem, 1.2vw, 1.18rem);
     font-weight: 300;
-    color: rgba(249, 245, 255, 0.65);
     line-height: 1.6;
-    margin: 28px 0 44px;
-    max-width: 440px;
-    font-style: italic;
+    color: rgba(249, 245, 255, 0.78);
     opacity: 0;
-    animation: cubania-fade-up 0.9s 0.6s forwards;
+    animation: cubania-fade-up 0.9s 1.35s forwards;
 }
 
-.cubania-landing .cubania-hero__actions {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    opacity: 0;
-    animation: cubania-fade-up 0.9s 0.8s forwards;
+.cubania-landing .cubania-hero__subtitle-strong {
+    color: var(--cubania-blanco);
+    font-weight: 700;
 }
+
+/* --- Aside: reel trigger + next class --- */
+
+.cubania-landing .cubania-hero__aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    min-width: 0;
+}
+
+.cubania-landing .cubania-hero__reel {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cubania-blanco);
+    text-align: left;
+    cursor: pointer;
+    opacity: 0;
+    animation: cubania-fade-in 0.9s 1.6s forwards;
+}
+
+.cubania-landing.cubania-landing--custom-cursor .cubania-hero__reel {
+    cursor: none;
+}
+
+.cubania-landing .cubania-hero__reel-disc {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border: 1px solid rgba(245, 200, 66, 0.5);
+    border-radius: 50%;
+    color: var(--cubania-amarillo);
+    transition:
+        background 0.25s,
+        border-color 0.25s,
+        transform 0.25s;
+}
+
+.cubania-landing .cubania-hero__reel-disc svg {
+    margin-left: 4px;
+}
+
+/* The pause bars are already centred; only the play triangle needs the nudge. */
+.cubania-landing .cubania-hero__reel-disc--playing svg {
+    margin-left: 0;
+}
+
+.cubania-landing .cubania-hero__reel:hover .cubania-hero__reel-disc {
+    background: rgba(245, 200, 66, 0.14);
+    border-color: var(--cubania-amarillo);
+    transform: scale(1.06);
+}
+
+/* Ring pulsing on son clave 3-2: hits on the 1st, 4th, 7th, 11th and 13th
+   sixteenth of a two-bar cycle. */
+.cubania-landing .cubania-hero__reel-ring {
+    position: absolute;
+    inset: -1px;
+    border: 1.5px solid var(--cubania-amarillo);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    animation: cubania-clave 5.33s linear infinite;
+}
+
+@keyframes cubania-clave {
+    0% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+    5% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    5.5% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    9.375% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+    14.375% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    14.875% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    18.75% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+    23.75% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    24.25% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    31.25% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+    36.25% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    36.75% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    37.5% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+    42.5% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    43% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.cubania-landing .cubania-hero__reel-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cubania-landing .cubania-hero__reel-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cubania-amarillo);
+}
+
+.cubania-landing .cubania-hero__reel-hint {
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: rgba(249, 245, 255, 0.6);
+}
+
+.cubania-landing .cubania-next-class {
+    width: 100%;
+    max-width: 23rem;
+    padding: 28px;
+    border: 1px solid rgba(249, 245, 255, 0.14);
+    border-radius: 4px;
+    background: linear-gradient(
+        180deg,
+        rgba(26, 16, 37, 0.9),
+        rgba(10, 0, 16, 0.94)
+    );
+    backdrop-filter: blur(14px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    animation: cubania-fade-up 0.9s 1.5s forwards;
+}
+
+.cubania-landing .cubania-next-class__label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(249, 245, 255, 0.5);
+}
+
+.cubania-landing .cubania-next-class__when {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 14px 0 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.cubania-landing .cubania-next-class__day {
+    font-size: 3.2rem;
+    letter-spacing: 0.02em;
+    color: var(--cubania-amarillo);
+}
+
+.cubania-landing .cubania-next-class__time {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 2.1rem;
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-next-class__suffix {
+    font-size: 1.15rem;
+    color: rgba(249, 245, 255, 0.6);
+}
+
+.cubania-landing
+    .cubania-next-class__when--placeholder
+    .cubania-next-class__day {
+    font-size: 2.4rem;
+}
+
+.cubania-landing .cubania-next-class__when--loading .cubania-next-class__day {
+    display: inline-block;
+    min-width: 7rem;
+    border-radius: 3px;
+    background: rgba(249, 245, 255, 0.12);
+    animation: cubania-skeleton 1.5s ease-in-out infinite;
+}
+
+@keyframes cubania-skeleton {
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.9;
+    }
+}
+
+.cubania-landing .cubania-next-class__what {
+    margin: 0 0 22px;
+    font-size: 0.92rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: rgba(249, 245, 255, 0.72);
+}
+
+.cubania-landing .cubania-next-class__cta {
+    width: 100%;
+    gap: 10px;
+    padding: 15px 24px;
+}
+
+.cubania-landing .cubania-next-class__cta svg {
+    transition: transform 0.2s;
+}
+
+.cubania-landing .cubania-next-class__cta:hover svg {
+    transform: translateX(4px);
+}
+
+.cubania-landing .cubania-next-class__proof {
+    margin: 14px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: rgba(249, 245, 255, 0.42);
+}
+
+/* --- Marquee band --- */
+
+.cubania-landing .cubania-hero__marquee {
+    position: absolute;
+    right: -6%;
+    bottom: 18px;
+    left: -6%;
+    z-index: 12;
+    overflow: hidden;
+    padding: 14px 0;
+    background: var(--cubania-amarillo);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+    transform: rotate(var(--cubania-marquee-tilt, -2.5deg));
+    opacity: 0;
+    animation: cubania-fade-in 0.8s 1.7s forwards;
+}
+
+.cubania-landing .cubania-hero__marquee-track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+}
+
+.cubania-landing .cubania-hero__marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.cubania-landing .cubania-hero__marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 28px;
+    padding-right: 28px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.5rem, 2.2vw, 2.3rem);
+    line-height: 1;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--cubania-negro);
+}
+
+.cubania-landing .cubania-hero__marquee-star {
+    font-size: 0.7em;
+    color: var(--cubania-morado);
+}
+
+/* --- Buttons (shared across the landing) --- */
 
 .cubania-landing .cubania-btn {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.12em;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.86rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     border: none;
     text-decoration: none;
@@ -456,7 +779,7 @@
     color: var(--cubania-blanco);
     padding: 16px 32px;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.09em;
     gap: 10px;
     opacity: 0.75;
     background: transparent;
@@ -473,274 +796,6 @@
 
 .cubania-landing .cubania-btn--secondary:hover svg {
     transform: translateX(4px);
-}
-
-.cubania-landing .cubania-hero__panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 5;
-    width: 42%;
-    overflow: hidden;
-    opacity: 0;
-    animation: cubania-fade-in 1.2s 1s forwards;
-}
-
-.cubania-landing .cubania-hero__panel-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.cubania-landing .cubania-photo-card {
-    position: absolute;
-    border-radius: 4px;
-    overflow: hidden;
-    background: var(--cubania-gris);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-}
-
-.cubania-landing .cubania-photo-card__media {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    display: block;
-}
-
-.cubania-landing .cubania-photo-card__tint {
-    position: absolute;
-    inset: 0;
-    opacity: 0.48;
-    mix-blend-mode: multiply;
-    pointer-events: none;
-}
-
-.cubania-landing .cubania-photo-card__stripes {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(
-            118deg,
-            rgba(139, 49, 240, 0.55) 0%,
-            rgba(139, 49, 240, 0.12) 18%,
-            transparent 30%
-        ),
-        linear-gradient(
-            118deg,
-            transparent 40%,
-            rgba(107, 33, 200, 0.32) 48%,
-            transparent 58%
-        );
-    mix-blend-mode: overlay;
-}
-
-.cubania-landing .cubania-photo-card__lines {
-    position: absolute;
-    top: 8%;
-    right: 0;
-    bottom: 16%;
-    width: 26%;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-        90deg,
-        transparent 0,
-        transparent 5px,
-        rgba(249, 245, 255, 0.42) 5px,
-        rgba(249, 245, 255, 0.42) 6px
-    );
-    mask-image: linear-gradient(
-        to bottom,
-        transparent,
-        black 12%,
-        black 86%,
-        transparent
-    );
-}
-
-.cubania-landing .cubania-photo-card__lines::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        -28deg,
-        transparent 0,
-        transparent 8px,
-        rgba(245, 200, 66, 0.28) 8px,
-        rgba(245, 200, 66, 0.28) 9px
-    );
-}
-
-.cubania-landing .cubania-photo-card__wash {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to top,
-        rgba(10, 0, 16, 0.7) 0%,
-        transparent 50%
-    );
-    pointer-events: none;
-}
-
-.cubania-landing .cubania-photo-card__tag {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    background: var(--cubania-amarillo);
-    color: var(--cubania-negro);
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 2px;
-}
-
-.cubania-landing .cubania-photo-card--a {
-    width: 220px;
-    height: 300px;
-    top: 110px;
-    right: 160px;
-    transform: rotate(-3deg);
-    z-index: 3;
-    animation: cubania-float-a 6s ease-in-out infinite;
-}
-
-.cubania-landing .cubania-photo-card--b {
-    width: 200px;
-    height: 260px;
-    top: 260px;
-    right: 40px;
-    transform: rotate(4deg);
-    z-index: 2;
-    animation: cubania-float-b 7s ease-in-out infinite;
-    border: 2px solid rgba(107, 33, 200, 0.4);
-}
-
-.cubania-landing .cubania-photo-card--c {
-    width: 200px;
-    height: 220px;
-    bottom: 140px;
-    right: 200px;
-    transform: rotate(-1deg);
-    z-index: 4;
-    animation: cubania-float-c 5s ease-in-out infinite;
-}
-
-@keyframes cubania-float-a {
-    0%,
-    100% {
-        transform: rotate(-3deg) translateY(0);
-    }
-    50% {
-        transform: rotate(-3deg) translateY(-12px);
-    }
-}
-
-@keyframes cubania-float-b {
-    0%,
-    100% {
-        transform: rotate(4deg) translateY(0);
-    }
-    50% {
-        transform: rotate(4deg) translateY(10px);
-    }
-}
-
-@keyframes cubania-float-c {
-    0%,
-    100% {
-        transform: rotate(-1deg) translateY(0);
-    }
-    50% {
-        transform: rotate(-1deg) translateY(-8px);
-    }
-}
-
-.cubania-landing .cubania-hero__stats {
-    position: initial;
-    /* bottom: 60px;
-    left: 48px; */
-    display: flex;
-    gap: 48px;
-    opacity: 0;
-    animation: cubania-fade-up 0.9s 1.2s forwards;
-    z-index: 20;
-}
-
-.cubania-landing .cubania-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.cubania-landing .cubania-stat__num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.6rem;
-    color: var(--cubania-amarillo);
-    line-height: 1;
-    letter-spacing: 0.04em;
-}
-
-.cubania-landing .cubania-stat__label {
-    font-size: 0.72rem;
-    color: rgba(249, 245, 255, 0.5);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 300;
-}
-
-.cubania-landing .cubania-stat__divider {
-    width: 1px;
-    background: rgba(249, 245, 255, 0.12);
-    align-self: stretch;
-}
-
-.cubania-landing .cubania-scroll-hint {
-    position: absolute;
-    bottom: 32px;
-    right: 108px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.68rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(249, 245, 255, 0.35);
-    z-index: 20;
-    animation: cubania-fade-in 1s 1.8s forwards;
-    opacity: 0;
-}
-
-.cubania-landing .cubania-scroll-hint__line {
-    width: 48px;
-    height: 1px;
-    background: rgba(249, 245, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-
-.cubania-landing .cubania-scroll-hint__line::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: var(--cubania-amarillo);
-    animation: cubania-scan-line 2s ease-in-out infinite;
-}
-
-@keyframes cubania-scan-line {
-    0% {
-        left: -100%;
-    }
-    100% {
-        left: 100%;
-    }
 }
 
 /* ---------- Section: styles ---------- */
@@ -943,6 +998,111 @@
     color: var(--cubania-amarillo);
 }
 
+.cubania-landing .cubania-style-card--portrait .cubania-style-card__media {
+    object-position: center 18%;
+}
+
+/* --- Styles / teachers switch --- */
+
+.cubania-landing .cubania-styles__heading--swap {
+    animation: cubania-heading-swap 0.45s cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+@keyframes cubania-heading-swap {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cubania-landing .cubania-styles__switch {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 32px;
+    padding: 5px;
+    border: 1px solid rgba(249, 245, 255, 0.14);
+    border-radius: 999px;
+    background: var(--cubania-gris);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.cubania-landing .cubania-styles__switch-thumb {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 5px;
+    width: calc(50% - 5px);
+    border-radius: 999px;
+    background: var(--cubania-amarillo);
+    box-shadow: 0 6px 24px rgba(245, 200, 66, 0.35);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.cubania-landing
+    .cubania-styles__switch[data-active='teachers']
+    .cubania-styles__switch-thumb {
+    transform: translateX(100%);
+}
+
+.cubania-landing .cubania-styles__switch-option {
+    position: relative;
+    z-index: 1;
+    min-width: 9.5rem;
+    padding: 13px 28px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(249, 245, 255, 0.6);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.cubania-landing.cubania-landing--custom-cursor .cubania-styles__switch-option {
+    cursor: none;
+}
+
+.cubania-landing .cubania-styles__switch-option:hover {
+    color: var(--cubania-blanco);
+}
+
+.cubania-landing .cubania-styles__switch-option[aria-selected='true'] {
+    color: var(--cubania-negro);
+}
+
+.cubania-landing .cubania-styles__switch-option:focus-visible {
+    outline: 2px solid var(--cubania-amarillo);
+    outline-offset: 3px;
+}
+
+/* Cards swap in from the side the thumb is travelling towards. */
+.cubania-landing .cubania-styles__grid[data-direction] > .cubania-reveal {
+    transition-duration: 0.55s;
+    transition-timing-function: cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+.cubania-landing
+    .cubania-styles__grid[data-direction='forward']
+    > .cubania-reveal:not(.cubania-reveal--visible) {
+    transform: translateX(56px) rotate(1.5deg);
+}
+
+.cubania-landing
+    .cubania-styles__grid[data-direction='backward']
+    > .cubania-reveal:not(.cubania-reveal--visible) {
+    transform: translateX(-56px) rotate(-1.5deg);
+}
+
 /* ---------- CTA band ---------- */
 
 .cubania-landing .cubania-cta-band {
@@ -1041,7 +1201,7 @@
 }
 
 .cubania-landing .cubania-week-grid__hour {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Archivo', sans-serif;
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -1156,7 +1316,7 @@
 
 .cubania-landing .cubania-pre-reg__label {
     display: block;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Archivo', sans-serif;
     font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -1431,33 +1591,90 @@
     margin-top: 64px;
 }
 
+.cubania-landing .cubania-testimonials__grid > .cubania-reveal {
+    display: flex;
+}
+
 .cubania-landing .cubania-testimonial-card {
     background: var(--cubania-negro);
     padding: 32px;
     border-radius: 4px;
     border-left: 3px solid var(--cubania-morado);
     position: relative;
+    overflow: hidden;
+    flex: 1;
+    transition:
+        transform 0.4s ease,
+        border-left-color 0.4s ease,
+        box-shadow 0.4s ease;
+}
+
+/* Yellow wipe that fills the card from the accent border outwards. */
+.cubania-landing .cubania-testimonial-card__fill {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--cubania-amarillo);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.24, 1);
+    pointer-events: none;
+}
+
+.cubania-landing .cubania-testimonial-card:hover {
+    transform: translateY(-6px);
+    border-left-color: var(--cubania-negro);
+    box-shadow: 0 24px 60px rgba(245, 200, 66, 0.2);
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__fill {
+    transform: scaleX(1);
 }
 
 .cubania-landing .cubania-testimonial-card__quote {
+    position: relative;
+    z-index: 1;
     font-size: 3rem;
     color: var(--cubania-morado);
     font-family: 'Bebas Neue', sans-serif;
     line-height: 0.8;
     margin-bottom: 16px;
     opacity: 0.4;
+    transition:
+        color 0.35s ease,
+        opacity 0.35s ease;
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__quote {
+    color: var(--cubania-negro);
+    opacity: 0.5;
 }
 
 .cubania-landing .cubania-testimonial-card__text {
+    position: relative;
+    z-index: 1;
     font-size: 0.95rem;
     line-height: 1.65;
     color: rgba(249, 245, 255, 0.8);
     font-weight: 300;
     font-style: italic;
     margin: 0 0 24px;
+    transition: color 0.35s ease;
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__text {
+    color: rgba(10, 0, 16, 0.88);
 }
 
 .cubania-landing .cubania-testimonial-card__author {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1479,19 +1696,43 @@
     font-size: 1.1rem;
     color: white;
     flex-shrink: 0;
+    transition:
+        background 0.35s ease,
+        color 0.35s ease;
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__avatar {
+    background: var(--cubania-negro);
+    color: var(--cubania-amarillo);
 }
 
 .cubania-landing .cubania-testimonial-card__name {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Archivo', sans-serif;
     font-weight: 700;
     font-size: 0.85rem;
     color: var(--cubania-blanco);
+    transition: color 0.35s ease;
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__name {
+    color: var(--cubania-negro);
 }
 
 .cubania-landing .cubania-testimonial-card__role {
     font-size: 0.72rem;
     color: rgba(249, 245, 255, 0.4);
     letter-spacing: 0.08em;
+    transition: color 0.35s ease;
+}
+
+.cubania-landing
+    .cubania-testimonial-card:hover
+    .cubania-testimonial-card__role {
+    color: rgba(10, 0, 16, 0.62);
 }
 
 /* ---------- Footer ---------- */
@@ -1530,7 +1771,7 @@
 }
 
 .cubania-landing .cubania-footer__col-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Archivo', sans-serif;
     font-weight: 800;
     font-size: 0.72rem;
     letter-spacing: 0.16em;
@@ -1654,35 +1895,50 @@
         font-size: 0.72rem;
     }
 
-    .cubania-landing .cubania-hero__content {
-        padding: 0 24px;
-        padding-top: 140px;
+    .cubania-landing .cubania-hero__stage {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 124px 24px 128px;
     }
 
-    .cubania-landing .cubania-hero__video {
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: min(56.25vw, 600px);
+    .cubania-landing .cubania-hero__title {
+        font-size: clamp(3.4rem, 17vw, 6rem);
+    }
+
+    .cubania-landing .cubania-hero__subtitle {
         max-width: none;
-        max-height: 600px;
-        border-radius: 0;
+        margin-top: 24px;
     }
 
-    .cubania-landing .cubania-hero__video-frame {
-        width: 100%;
-        height: 100%;
-        transform: translate(-50%, -50%) scale(1.15);
-    }
-
-    .cubania-landing .cubania-hero__panel {
-        display: none;
-    }
-
-    .cubania-landing .cubania-hero__stats {
-        /* left: 24px;
-        bottom: 40px; */
+    .cubania-landing .cubania-hero__aside {
+        align-items: stretch;
         gap: 28px;
+    }
+
+    .cubania-landing .cubania-next-class {
+        max-width: none;
+    }
+
+    .cubania-landing .cubania-hero__reel-disc {
+        width: 60px;
+        height: 60px;
+    }
+
+    .cubania-landing .cubania-hero__marquee {
+        right: -10%;
+        left: -10%;
+        bottom: 12px;
+        padding: 10px 0;
+    }
+
+    .cubania-landing .cubania-styles__switch {
+        width: 100%;
+        max-width: 22rem;
+    }
+
+    .cubania-landing .cubania-styles__switch-option {
+        min-width: 0;
+        padding: 12px 16px;
     }
 
     .cubania-landing .cubania-styles {
@@ -1793,10 +2049,6 @@
         gap: 12px;
         text-align: center;
     }
-
-    .cubania-landing .cubania-scroll-hint {
-        right: 96px;
-    }
 }
 
 .cubania-landing .cubania-whatsapp-float {
@@ -1841,5 +2093,45 @@
     100% {
         transform: scale(1.18);
         opacity: 0;
+    }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .cubania-landing .cubania-styles__heading--swap,
+    .cubania-landing .cubania-hero__video,
+    .cubania-landing .cubania-hero__scrim,
+    .cubania-landing .cubania-hero__live,
+    .cubania-landing .cubania-hero__reel-ring,
+    .cubania-landing
+        .cubania-next-class__when--loading
+        .cubania-next-class__day,
+    .cubania-landing .cubania-whatsapp-float::after {
+        animation: none;
+    }
+
+    .cubania-landing .cubania-hero__eyebrow,
+    .cubania-landing .cubania-hero__letter,
+    .cubania-landing .cubania-hero__title-accent,
+    .cubania-landing .cubania-hero__subtitle,
+    .cubania-landing .cubania-hero__reel,
+    .cubania-landing .cubania-next-class,
+    .cubania-landing .cubania-hero__marquee {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .cubania-landing .cubania-reveal,
+    .cubania-landing
+        .cubania-styles__grid[data-direction]
+        > .cubania-reveal:not(.cubania-reveal--visible) {
+        opacity: 1;
+        transform: none;
+    }
+
+    .cubania-landing .cubania-styles__switch-thumb {
+        transition: none;
     }
 }

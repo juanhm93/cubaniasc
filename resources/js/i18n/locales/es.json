@@ -540,10 +540,24 @@
       "register": "Registro"
     },
     "hero": {
-      "eyebrow": "Baile, risas y desconexión · Venezuela y Colombia",
-      "titleOutline": "Desconecta",
+      "eyebrow": "En vivo desde la pista · Venezuela y Colombia",
+      "titleLead": "Desconecta",
       "titleAccent": "Bailando",
-      "subtitle": "Una hora sin celular, moviendo el cuerpo y riendo con gente real. Eso es lo que hacemos.",
+      "subtitle": "Una hora sin celular, moviendo el cuerpo y riendo con gente real.",
+      "subtitleHighlight": "Tu primera clase va por la casa.",
+      "reelLabel": "Ver reel",
+      "reelHint": "Así se vive una clase",
+      "reelPauseLabel": "Pausar",
+      "reelPauseHint": "Detén el video de fondo",
+      "nextClass": {
+        "label": "Próxima clase",
+        "allLevels": "Todos los niveles",
+        "cta": "Reserva tu cupo",
+        "proof": "+2100 bailando con nosotros · +9 años",
+        "loading": "Buscando la próxima clase…",
+        "fallbackTitle": "Escríbenos",
+        "fallbackBody": "Te contamos el próximo horario disponible."
+      },
       "startNow": "Empieza ahora",
       "viewClasses": "Ver clases",
       "followers": "Seguidores",
@@ -556,6 +570,23 @@
       "instructorB": "Mare",
       "instructorC": "Javier",
       "scroll": "Scroll"
+    },
+    "instructors": {
+      "sectionLabel": "Quién te enseña",
+      "sectionTitleLine1": "Tus",
+      "sectionTitleLine2": "profes",
+      "juan": {
+        "name": "Juan",
+        "role": "Equipo Cubanía"
+      },
+      "mare": {
+        "name": "Mare",
+        "role": "Equipo Cubanía"
+      },
+      "javier": {
+        "name": "Javier",
+        "role": "Equipo Cubanía"
+      }
     },
     "social": {
       "instagramAria": "Instagram de Cubanía",
@@ -577,6 +608,11 @@
       "rueda": {
         "name": "Rueda de Casino",
         "description": "Sincronía grupal. La magia de bailar en comunidad."
+      },
+      "tabsAriaLabel": "Ver estilos o profesores",
+      "tabs": {
+        "styles": "Estilos",
+        "teachers": "Profesores"
       }
     },
     "cta": {
