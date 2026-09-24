@@ -89,6 +89,56 @@ class OwnerMaintenanceActionsTest extends TestCase
         Artisan::shouldNotHaveReceived('call');
     }
 
+    public function test_owner_can_open_plain_maintenance_page(): void
+    {
+        $adminRole = Role::factory()->create(['name' => 'Admin', 'slug' => 'admin']);
+        $owner = User::factory()->create([
+            'role_id' => $adminRole->id,
+            'is_owner' => 1,
+        ]);
+
+        $this->actingAs($owner);
+
+        $this->get(route('admin.maintenance.show'))
+            ->assertOk()
+            ->assertViewIs('maintenance')
+            ->assertSee(route('admin.maintenance.migrate'), false);
+    }
+
+    public function test_non_owner_admin_cannot_open_maintenance_page(): void
+    {
+        $adminRole = Role::factory()->create(['name' => 'Admin', 'slug' => 'admin']);
+        $admin = User::factory()->create([
+            'role_id' => $adminRole->id,
+            'is_owner' => 0,
+        ]);
+
+        $this->actingAs($admin);
+
+        $this->get(route('admin.maintenance.show'))->assertForbidden();
+    }
+
+    public function test_maintenance_page_works_when_notifications_table_is_missing(): void
+    {
+        $adminRole = Role::factory()->create(['name' => 'Admin', 'slug' => 'admin']);
+        $owner = User::factory()->create([
+            'role_id' => $adminRole->id,
+            'is_owner' => 1,
+        ]);
+
+        Schema::drop('notifications');
+
+        $this->actingAs($owner);
+
+        $this->get(route('admin.maintenance.show'))->assertOk();
+
+        $this->from(route('admin.maintenance.show'))
+            ->post(route('admin.maintenance.migrate'))
+            ->assertRedirect(route('admin.maintenance.show'));
+
+        $this->assertTrue(Schema::hasTable('notifications'));
+    }
+
     public function test_users_page_includes_owner_maintenance_flag_for_owner(): void
     {
         $adminRole = Role::factory()->create(['name' => 'Admin', 'slug' => 'admin']);
