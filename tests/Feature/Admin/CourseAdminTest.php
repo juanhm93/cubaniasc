@@ -181,6 +181,43 @@ class CourseAdminTest extends TestCase
                 ->where('levelContents.0.video_url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'));
     }
 
+    public function test_course_show_excludes_enrollments_of_deleted_students(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $course = Course::factory()->create([
+            'company_id' => $admin->company_id,
+            'user_id' => $admin->id,
+        ]);
+
+        $activeStudent = Student::factory()->create(['name' => 'Alumno activo']);
+        $deletedStudent = Student::factory()->create();
+
+        foreach ([$activeStudent, $deletedStudent] as $student) {
+            Enrollment::factory()->create([
+                'course_id' => $course->id,
+                'student_id' => $student->id,
+                'status' => EnrollmentStatus::Active,
+            ]);
+        }
+
+        $deletedStudent->delete();
+
+        $this->actingAs($admin);
+
+        $this->get(route('admin.courses.show', $course))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/courses/show')
+                ->has('enrollments', 1)
+                ->where('enrollments.0.student_id', $activeStudent->id)
+                ->where('enrollments.0.student_name', 'Alumno activo'));
+    }
+
     public function test_admin_can_toggle_course_active(): void
     {
         $role = Role::factory()->create(['slug' => 'admin']);
