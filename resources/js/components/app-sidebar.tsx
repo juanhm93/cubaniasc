@@ -2,7 +2,6 @@ import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     CreditCard,
-    FolderGit2,
     GraduationCap,
     LayoutGrid,
     MapPin,
@@ -10,7 +9,6 @@ import {
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -30,19 +28,6 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const abilities = useAbilities();
-
-    const footerNavItems: NavItem[] = [
-        {
-            title: 'common.repository',
-            href: 'https://github.com/laravel/react-starter-kit',
-            icon: FolderGit2,
-        },
-        {
-            title: 'common.documentation',
-            href: 'https://laravel.com/docs/starter-kits#react',
-            icon: BookOpen,
-        },
-    ];
 
     const mainNavItems: NavItem[] = [
         {
@@ -130,7 +115,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
