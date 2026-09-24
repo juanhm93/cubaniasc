@@ -1,8 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
-import admin from '@/routes/admin';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/use-translation';
+import admin from '@/routes/admin';
 
 type CourseRow = {
     id: number;
@@ -16,10 +18,32 @@ type CourseRow = {
 
 type CoursesIndexProps = {
     courses: CourseRow[];
+    canDeleteCourses?: boolean;
 };
 
-export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
+export default function AdminCoursesIndex({
+    courses,
+    canDeleteCourses = false,
+}: CoursesIndexProps) {
     const { t } = useTranslation();
+    const [courseToDelete, setCourseToDelete] = useState<CourseRow | null>(
+        null,
+    );
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingCourse, setDeletingCourse] = useState(false);
+
+    const confirmDeleteCourse = (): void => {
+        if (courseToDelete === null) {
+            return;
+        }
+
+        router.delete(admin.courses.destroy.url(courseToDelete.id), {
+            preserveScroll: true,
+            onStart: () => setDeletingCourse(true),
+            onSuccess: () => setDeleteDialogOpen(false),
+            onFinish: () => setDeletingCourse(false),
+        });
+    };
 
     return (
         <>
@@ -117,14 +141,34 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                                                 )}
                                             </td>
                                             <td className="px-3 py-3 text-right align-middle">
-                                                <Link
-                                                    href={admin.courses.show.url(
-                                                        c.id,
-                                                    )}
-                                                    className="text-sm text-primary underline-offset-4 hover:underline"
-                                                >
-                                                    {t('admin.courses.viewCourse')}
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Link
+                                                        href={admin.courses.show.url(
+                                                            c.id,
+                                                        )}
+                                                        className="text-sm text-primary underline-offset-4 hover:underline"
+                                                    >
+                                                        {t(
+                                                            'admin.courses.viewCourse',
+                                                        )}
+                                                    </Link>
+                                                    {canDeleteCourses ? (
+                                                        <button
+                                                            type="button"
+                                                            className="text-sm text-destructive underline-offset-4 hover:underline"
+                                                            onClick={() => {
+                                                                setCourseToDelete(
+                                                                    c,
+                                                                );
+                                                                setDeleteDialogOpen(
+                                                                    true,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {t('common.delete')}
+                                                        </button>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -134,6 +178,23 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                     </div>
                 </div>
             </div>
+
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                title={t('admin.courses.deleteCourse')}
+                description={t('admin.courses.deleteConfirm', {
+                    name:
+                        courseToDelete?.level_name ||
+                        t('admin.courses.courseLabel'),
+                })}
+                confirming={deletingCourse}
+                onOpenChange={(open) => {
+                    if (!open && !deletingCourse) {
+                        setDeleteDialogOpen(false);
+                    }
+                }}
+                onConfirm={confirmDeleteCourse}
+            />
         </>
     );
 }

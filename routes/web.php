@@ -127,6 +127,9 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/courses', [CourseController::class, 'store'])->name('admin.courses.store');
         Route::get('admin/courses/{course}', [CourseController::class, 'show'])->name('admin.courses.show');
         Route::patch('admin/courses/{course}', [CourseController::class, 'update'])->name('admin.courses.update');
+        Route::delete('admin/courses/{course}', [CourseController::class, 'destroy'])
+            ->middleware('owner')
+            ->name('admin.courses.destroy');
         Route::post('admin/courses/{course}/advance-level', [CourseController::class, 'advanceLevel'])->name('admin.courses.advance-level');
         Route::post('admin/courses/{course}/sessions/{courseSession}/attendance', [CourseController::class, 'storeAttendance'])
             ->name('admin.courses.sessions.attendance.store');

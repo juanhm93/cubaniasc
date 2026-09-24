@@ -58,6 +58,7 @@ class CourseController extends Controller
 
         return Inertia::render('admin/courses/index', [
             'courses' => $courses,
+            'canDeleteCourses' => $request->user()?->isOwner() ?? false,
         ]);
     }
 
@@ -344,6 +345,23 @@ class CourseController extends Controller
         ]);
 
         return redirect()->route('admin.courses.show', $course);
+    }
+
+    /**
+     * Soft delete a course (owner only, enforced by route middleware).
+     */
+    public function destroy(Request $request, Course $course): RedirectResponse
+    {
+        $this->authorizeCourseCompany($request, $course);
+
+        $course->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Curso eliminado.',
+        ]);
+
+        return redirect()->route('admin.courses.index');
     }
 
     public function advanceLevel(Request $request, Course $course): RedirectResponse
