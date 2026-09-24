@@ -173,6 +173,7 @@
     "oneTimeSessions": "Clases especiales",
     "students": "Alumnos",
     "adminUsers": "Usuarios admin",
+    "places": "Lugares",
     "settings": "Configuración",
     "logOut": "Cerrar sesión",
     "profile": "Perfil",
@@ -482,6 +483,19 @@
       "roleUpdateFailed": "No se pudo actualizar el rol",
       "statusUpdated": "Estado actualizado",
       "statusUpdateFailed": "No se pudo actualizar el estado"
+    },
+    "places": {
+      "title": "Lugares",
+      "description": "Sedes y salas donde se imparten los cursos.",
+      "createPlace": "Crear lugar",
+      "newPlace": "Nuevo lugar",
+      "editPlace": "Editar lugar",
+      "formDescription": "Nombre, dirección y teléfono de contacto del lugar.",
+      "noPlaces": "No hay lugares registrados.",
+      "courses": "Cursos",
+      "deletePlace": "Eliminar lugar",
+      "deleteConfirm": "Se eliminará «{{name}}» y dejará de aparecer al crear cursos.",
+      "inUseHint": "No se puede eliminar mientras tenga cursos asignados."
     },
     "oneTimeSessions": {
       "title": "Clases especiales",
