@@ -4,7 +4,8 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
-import LevelVideoPreview from '@/components/content/level-video-preview';
+import { ContentHelpNotice } from '@/components/content/content-help';
+import FigurePreviewDialog from '@/components/content/figure-preview-dialog';
 import SortableList from '@/components/content/sortable-list';
 import InputError from '@/components/input-error';
 import LevelContentItem from '@/components/items/level-content-item';
@@ -20,6 +21,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
+import {
+    figureMissingDescription,
+    figureMissingVideo,
+} from '@/lib/content-help';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -44,11 +50,14 @@ export default function ContentLevel({
     danceType,
     level: initialLevel,
     canDelete = false,
+    contentHelpMode = false,
 }: {
     danceType: DanceTypeCard;
     level: ContentLevel;
     canDelete?: boolean;
+    contentHelpMode?: boolean;
 }) {
+    const { t } = useTranslation();
     const showDelete = canDelete;
     const [level, setLevel] = useState<ContentLevel>(() =>
         normalizeLevel(initialLevel),
@@ -207,6 +216,37 @@ export default function ContentLevel({
     }
 
     const contents = level.level_contents;
+    const helpMessages = contentHelpMode ? buildHelpMessages() : [];
+
+    function buildHelpMessages(): string[] {
+        if (contents.length === 0) {
+            return [t('content.help.levelWithoutFigures')];
+        }
+
+        const withoutVideo = contents.filter(figureMissingVideo);
+        const withoutDescription = contents.filter(figureMissingDescription);
+        const messages: string[] = [];
+
+        if (withoutVideo.length > 0) {
+            messages.push(
+                t('content.help.figuresNeedVideo', {
+                    names: withoutVideo.map((figure) => figure.name).join(', '),
+                }),
+            );
+        }
+
+        if (withoutDescription.length > 0) {
+            messages.push(
+                t('content.help.figuresNeedDescription', {
+                    names: withoutDescription
+                        .map((figure) => figure.name)
+                        .join(', '),
+                }),
+            );
+        }
+
+        return messages;
+    }
 
     return (
         <>
@@ -227,7 +267,9 @@ export default function ContentLevel({
                         ) : null}
                     </div>
 
-                    {contents.length === 0 ? (
+                    <ContentHelpNotice messages={helpMessages} />
+
+                    {contents.length === 0 && !contentHelpMode ? (
                         <p className="text-sm text-muted-foreground">
                             Todavía no hay figuras en este nivel.
                         </p>
@@ -268,9 +310,7 @@ export default function ContentLevel({
                             <DialogContent>
                                 <form onSubmit={handleCreateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>
-                                            Nueva figura
-                                        </DialogTitle>
+                                        <DialogTitle>Nueva figura</DialogTitle>
                                         <DialogDescription>
                                             Agrega un nombre, una descripción
                                             opcional y la URL del video.
@@ -394,9 +434,7 @@ export default function ContentLevel({
                             <DialogContent>
                                 <form onSubmit={handleUpdateLevelContent}>
                                     <DialogHeader>
-                                        <DialogTitle>
-                                            Editar figura
-                                        </DialogTitle>
+                                        <DialogTitle>Editar figura</DialogTitle>
                                         <DialogDescription>
                                             Modifica el nombre, la descripción o
                                             la URL del video.
@@ -537,6 +575,7 @@ export default function ContentLevel({
                                     onEdit={beginEditContent}
                                     handleProps={handleProps}
                                     isDragging={isDragging}
+                                    showContentHelp={contentHelpMode}
                                 />
                             )}
                         />
@@ -558,23 +597,10 @@ export default function ContentLevel({
                 onConfirm={() => void handleRemove()}
             />
 
-            <Dialog
-                open={videoContent !== null}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setVideoContent(null);
-                    }
-                }}
-            >
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {videoContent?.name ?? 'Video'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <LevelVideoPreview url={videoContent?.video_url} />
-                </DialogContent>
-            </Dialog>
+            <FigurePreviewDialog
+                figure={videoContent}
+                onClose={() => setVideoContent(null)}
+            />
         </>
     );
 }

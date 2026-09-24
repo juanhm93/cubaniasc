@@ -1,10 +1,12 @@
 import { router } from '@inertiajs/react';
 import { ArrowRight, Trash2 } from 'lucide-react';
+import { ContentHelpBadge } from '@/components/content/content-help';
 import {
     SortableHandle,
     type SortableHandleProps,
 } from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 import { show as contentLevelShow } from '@/routes/content/levels';
 
@@ -15,6 +17,11 @@ type LevelItemProps = {
     figuresCount?: number;
 };
 
+type LevelContentHelp = {
+    figuresWithoutVideo: number;
+    figuresWithoutDescription: number;
+};
+
 export default function LevelItem({
     level,
     danceTypeId,
@@ -22,6 +29,7 @@ export default function LevelItem({
     onDelete,
     handleProps,
     isDragging = false,
+    contentHelp,
 }: {
     level: LevelItemProps;
     danceTypeId: number;
@@ -29,7 +37,24 @@ export default function LevelItem({
     onDelete?: (level: LevelItemProps) => void;
     handleProps: SortableHandleProps;
     isDragging?: boolean;
+    contentHelp?: LevelContentHelp;
 }) {
+    const { t } = useTranslation();
+    const helpBadges = contentHelp
+        ? [
+              level.figuresCount === 0 ? t('content.help.noFigures') : null,
+              contentHelp.figuresWithoutVideo > 0
+                  ? t('content.help.figuresWithoutVideo', {
+                        count: contentHelp.figuresWithoutVideo,
+                    })
+                  : null,
+              contentHelp.figuresWithoutDescription > 0
+                  ? t('content.help.figuresWithoutDescription', {
+                        count: contentHelp.figuresWithoutDescription,
+                    })
+                  : null,
+          ].filter((label): label is string => label !== null)
+        : [];
     const figuresLabel =
         level.figuresCount === undefined
             ? null
@@ -48,7 +73,9 @@ export default function LevelItem({
                 {...handleProps}
             />
             <div className="min-w-0 flex-1">
-                <h2 className="truncate font-semibold">{level.name}</h2>
+                <h2 className="leading-snug font-semibold break-words">
+                    {level.name}
+                </h2>
                 {figuresLabel ? (
                     <p className="text-sm text-muted-foreground">
                         {figuresLabel}
@@ -58,6 +85,15 @@ export default function LevelItem({
                     <p className="line-clamp-2 text-sm text-muted-foreground">
                         {level.description}
                     </p>
+                ) : null}
+                {helpBadges.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {helpBadges.map((label) => (
+                            <ContentHelpBadge key={label}>
+                                {label}
+                            </ContentHelpBadge>
+                        ))}
+                    </div>
                 ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">

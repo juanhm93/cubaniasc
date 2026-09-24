@@ -4,6 +4,10 @@ import { ArrowRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
+import {
+    ContentHelpBadge,
+    ContentHelpNotice,
+} from '@/components/content/content-help';
 import SortableList, {
     SortableHandle,
 } from '@/components/content/sortable-list';
@@ -20,6 +24,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
+import { danceTypeHasPendingContent } from '@/lib/content-help';
 import { mapValidationErrors } from '@/lib/map-validation-errors';
 import { cn } from '@/lib/utils';
 import { index as contentIndex, show as contentShow } from '@/routes/content';
@@ -42,10 +48,13 @@ const textareaClassName = cn(
 export default function ContentIndex({
     danceTypes,
     canDelete = false,
+    contentHelpMode = false,
 }: {
     danceTypes: DanceTypeCard[];
     canDelete?: boolean;
+    contentHelpMode?: boolean;
 }) {
+    const { t } = useTranslation();
     const showDelete = canDelete;
     const [items, setItems] = useState<DanceTypeCard[]>(() =>
         danceTypes.map(normalizeDanceTypeCard),
@@ -169,6 +178,34 @@ export default function ContentIndex({
         }
     }
 
+    function helpBadgesFor(danceType: DanceTypeCard): string[] {
+        if (danceType.levels_count === 0) {
+            return [t('content.help.noLevels')];
+        }
+
+        return [
+            danceType.empty_levels_count > 0
+                ? t('content.help.levelsWithoutFigures', {
+                      count: danceType.empty_levels_count,
+                  })
+                : null,
+            danceType.figures_without_video_count > 0
+                ? t('content.help.figuresWithoutVideo', {
+                      count: danceType.figures_without_video_count,
+                  })
+                : null,
+            danceType.figures_without_description_count > 0
+                ? t('content.help.figuresWithoutDescription', {
+                      count: danceType.figures_without_description_count,
+                  })
+                : null,
+        ].filter((label): label is string => label !== null);
+    }
+
+    const pendingDanceTypes = contentHelpMode
+        ? items.filter(danceTypeHasPendingContent).length
+        : 0;
+
     async function handleReorder(orderedIds: number[]): Promise<void> {
         try {
             await reorderDanceTypes(orderedIds);
@@ -194,6 +231,17 @@ export default function ContentIndex({
                         cada clase.
                     </p>
                 </div>
+                <ContentHelpNotice
+                    messages={
+                        pendingDanceTypes > 0
+                            ? [
+                                  t('content.help.danceTypesPending', {
+                                      count: pendingDanceTypes,
+                                  }),
+                              ]
+                            : []
+                    }
+                />
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-2 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <Dialog
                         open={addOpen}
@@ -323,7 +371,7 @@ export default function ContentIndex({
                                     {...handleProps}
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <h2 className="truncate font-semibold">
+                                    <h2 className="leading-snug font-semibold break-words">
                                         {danceType.name}
                                     </h2>
                                     <p className="text-sm text-muted-foreground">
@@ -340,6 +388,20 @@ export default function ContentIndex({
                                         <p className="line-clamp-2 text-sm text-muted-foreground">
                                             {danceType.description}
                                         </p>
+                                    ) : null}
+                                    {contentHelpMode &&
+                                    helpBadgesFor(danceType).length > 0 ? (
+                                        <div className="mt-2 flex flex-wrap gap-1.5">
+                                            {helpBadgesFor(danceType).map(
+                                                (label) => (
+                                                    <ContentHelpBadge
+                                                        key={label}
+                                                    >
+                                                        {label}
+                                                    </ContentHelpBadge>
+                                                ),
+                                            )}
+                                        </div>
                                     ) : null}
                                 </div>
                                 <div className="flex shrink-0 items-center gap-1">
