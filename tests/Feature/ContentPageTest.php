@@ -91,6 +91,70 @@ class ContentPageTest extends TestCase
                 ->where('danceType.name', $danceType->name));
     }
 
+    public function test_content_help_mode_is_disabled_by_default(): void
+    {
+        config(['cubania.content_help.enabled' => false]);
+        $this->actingAsAdmin();
+        $danceType = DanceType::factory()->create();
+        $level = Level::factory()->for($danceType)->create();
+
+        $this->get(route('content.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', false));
+
+        $this->get(route('content.show', ['danceType' => $danceType->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', false));
+
+        $this->get(route('content.levels.show', ['danceType' => $danceType->id, 'level' => $level->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', false));
+    }
+
+    public function test_content_help_mode_is_shared_with_content_pages_when_enabled(): void
+    {
+        config(['cubania.content_help.enabled' => true]);
+        $this->actingAsAdmin();
+        $danceType = DanceType::factory()->create();
+        $level = Level::factory()->for($danceType)->create();
+
+        $this->get(route('content.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', true));
+
+        $this->get(route('content.show', ['danceType' => $danceType->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', true));
+
+        $this->get(route('content.levels.show', ['danceType' => $danceType->id, 'level' => $level->id]))
+            ->assertInertia(fn (Assert $page) => $page->where('contentHelpMode', true));
+    }
+
+    public function test_content_index_counts_missing_figures_videos_and_descriptions(): void
+    {
+        $this->actingAsAdmin();
+        $danceType = DanceType::factory()->create();
+        $emptyLevel = Level::factory()->for($danceType)->create();
+        $filledLevel = Level::factory()->for($danceType)->create();
+        LevelContent::factory()->for($filledLevel)->create([
+            'video_url' => 'https://www.youtube.com/watch?v=s4DT0BFxDEk',
+            'description' => 'Giro con salida a la derecha',
+        ]);
+        LevelContent::factory()->for($filledLevel)->create([
+            'video_url' => null,
+            'description' => 'Sin video todavía',
+        ]);
+        LevelContent::factory()->for($filledLevel)->create([
+            'video_url' => 'https://www.youtube.com/watch?v=s4DT0BFxDEk',
+            'description' => null,
+        ]);
+        LevelContent::factory()->for($emptyLevel)->create()->delete();
+
+        $this->get(route('content.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('danceTypes.0.levels_count', 2)
+                ->where('danceTypes.0.figures_count', 3)
+                ->where('danceTypes.0.empty_levels_count', 1)
+                ->where('danceTypes.0.figures_without_video_count', 1)
+                ->where('danceTypes.0.figures_without_description_count', 1));
+    }
+
     public function test_level_from_another_dance_type_is_not_found(): void
     {
         $this->actingAsAdmin();

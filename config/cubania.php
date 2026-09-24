@@ -79,4 +79,19 @@ return [
 
     'slider' => [],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Content creation help mode
+    |--------------------------------------------------------------------------
+    |
+    | While the academy is loading its catalog, the content pages warn about
+    | dance types without levels, levels without figures and figures without
+    | video or description.
+    |
+    */
+
+    'content_help' => [
+        'enabled' => (bool) env('MODE_HELP_CONTENT_CREATE', false),
+    ],
+
 ];
