@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
+use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserRoleController;
@@ -147,6 +148,11 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::get('admin/users', [UserRoleController::class, 'index'])->name('admin.users.index');
         Route::patch('admin/users/{user}/role', [UserRoleController::class, 'update'])->name('admin.users.role.update');
         Route::patch('admin/users/{user}/status', [UserRoleController::class, 'updateStatus'])->name('admin.users.status.update');
+
+        Route::get('admin/places', [PlaceController::class, 'index'])->name('admin.places.index');
+        Route::post('admin/places', [PlaceController::class, 'store'])->name('admin.places.store');
+        Route::patch('admin/places/{place}', [PlaceController::class, 'update'])->name('admin.places.update');
+        Route::delete('admin/places/{place}', [PlaceController::class, 'destroy'])->name('admin.places.destroy');
 
         Route::middleware('owner')->group(function () {
             Route::get('admin/maintenance', [MaintenanceController::class, 'show'])
