@@ -13,6 +13,7 @@ use App\Models\RecommendedSong;
 use App\Models\ReviewSession;
 use App\Models\Student;
 use App\Models\StudentStreak;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Sanctum;
@@ -233,6 +234,7 @@ class ReviewPanelApiTest extends TestCase
             'level_id' => $level->id,
             'expires_at' => now()->addMinutes(5),
         ]);
+        $this->attachSelectedFigures($session, $level);
 
         Sanctum::actingAs($student);
 
@@ -240,6 +242,8 @@ class ReviewPanelApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.session.completed', true)
             ->assertJsonPath('data.streak.current_streak', 1);
+
+        $this->assertNotNull($session->fresh()->completed_at);
     }
 
     public function test_streak_endpoint_returns_current_streak(): void
@@ -248,6 +252,7 @@ class ReviewPanelApiTest extends TestCase
         StudentStreak::factory()->create([
             'student_id' => $student->id,
             'current_streak' => 5,
+            'last_review_at' => now()->subDay(),
         ]);
 
         Sanctum::actingAs($student);
@@ -290,6 +295,8 @@ class ReviewPanelApiTest extends TestCase
         foreach ($songs as $song) {
             $song->levels()->attach($level);
         }
+
+        $this->attachSelectedFigures($session, $level);
 
         Sanctum::actingAs($student);
 
@@ -335,7 +342,8 @@ class ReviewPanelApiTest extends TestCase
 
         $this->postJson(route('review.sessions.store'))
             ->assertConflict()
-            ->assertJsonPath('message', 'Ya usaste tu repaso de hoy. Vuelve mañana.');
+            ->assertJsonPath('message', 'Ya usaste tu repaso de hoy. Vuelve mañana.')
+            ->assertJsonPath('locked', true);
     }
 
     public function test_current_session_endpoint_returns_active_session(): void
@@ -353,6 +361,22 @@ class ReviewPanelApiTest extends TestCase
         $this->getJson(route('review.sessions.current'))
             ->assertOk()
             ->assertJsonPath('data.id', $session->id);
+    }
+
+    /**
+     * @return Collection<int, LevelContent>
+     */
+    private function attachSelectedFigures(ReviewSession $session, Level $level): Collection
+    {
+        $figures = LevelContent::factory()->count(2)->for($level)->create();
+
+        $session->figures()->attach(
+            $figures->mapWithKeys(fn (LevelContent $figure): array => [
+                $figure->id => ['selected_by_student' => true],
+            ])->all(),
+        );
+
+        return $figures;
     }
 
     /**

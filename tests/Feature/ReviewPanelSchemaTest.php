@@ -16,6 +16,7 @@ use App\Models\StudentStreak;
 use Database\Seeders\LevelCatalogSeeder;
 use Database\Seeders\ReviewPanelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ReviewPanelSchemaTest extends TestCase
@@ -163,5 +164,18 @@ class ReviewPanelSchemaTest extends TestCase
 
         $this->assertSame(3, $funFactItem->options()->count());
         $this->assertSame(1, $funFactItem->options()->where('is_correct', true)->count());
+    }
+
+    public function test_review_integrity_columns_and_indexes_exist(): void
+    {
+        $this->assertTrue(Schema::hasColumn('review_sessions', 'completed_at'));
+        $this->assertTrue(Schema::hasColumn('recommended_songs', 'deleted_at'));
+
+        $uniqueIndexes = collect(Schema::getIndexes('review_quiz_responses'))
+            ->filter(fn (array $index): bool => $index['unique'])
+            ->pluck('columns')
+            ->all();
+
+        $this->assertContains(['review_session_id', 'quiz_item_id'], $uniqueIndexes);
     }
 }

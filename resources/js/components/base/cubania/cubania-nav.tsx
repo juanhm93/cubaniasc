@@ -6,47 +6,53 @@ import {
 } from '@/components/base/cubania/cubania-social-icons';
 import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, home, login, register } from '@/routes';
 import preRegistration from '@/routes/pre-registration';
 
 type CubaniaNavProps = {
-    isAuthenticated?: boolean;
-    canRegister?: boolean;
-    variant?: 'full' | 'minimal';
+    isAuthenticated: boolean;
     canLogin: boolean;
+    canRegister: boolean;
 };
+
+/**
+ * Logo plus a single "back to the landing" link, for standalone public pages.
+ */
+export function CubaniaNavMinimal(): ReactNode {
+    const { t } = useTranslation();
+
+    return (
+        <nav className="cubania-nav cubania-nav--minimal">
+            <Link
+                href={home()}
+                className="cubania-nav__logo"
+                data-cubania-cursor="interactive"
+            >
+                {t('landing.nav.logoCub')}
+                <span className="cubania-nav__logo-accent">
+                    {t('landing.nav.logoAnia')}
+                </span>
+            </Link>
+
+            <Link
+                href={home()}
+                className="cubania-nav__link cubania-nav__link--back"
+                data-cubania-cursor="interactive"
+            >
+                {t('landing.nav.backHome')}
+            </Link>
+        </nav>
+    );
+}
 
 /**
  * Fixed top navigation for the marketing landing.
  */
 export function CubaniaNav({
-    isAuthenticated = false,
-    canRegister = false,
-    variant = 'full',
+    isAuthenticated,
     canLogin,
+    canRegister,
 }: CubaniaNavProps): ReactNode {
-    if (variant === 'minimal') {
-        return (
-            <nav className="cubania-nav cubania-nav--minimal">
-                <Link
-                    href="/"
-                    className="cubania-nav__logo"
-                    data-cubania-cursor="interactive"
-                >
-                    Cub<span className="cubania-nav__logo-accent">anía</span>
-                </Link>
-
-                <Link
-                    href="/"
-                    className="cubania-nav__link cubania-nav__link--back"
-                    data-cubania-cursor="interactive"
-                >
-                    Volver a la página principal
-                </Link>
-            </nav>
-        );
-    }
-  
     const { t } = useTranslation();
     const { social } = useCubaniaConfig();
 
@@ -99,15 +105,6 @@ export function CubaniaNav({
                     >
                         {t('landing.nav.about')}
                     </a>
-                </li>
-                <li>
-                    <Link
-                        href="/repaso"
-                        className="cubania-nav__link cubania-nav__link--cta"
-                        data-cubania-cursor="interactive"
-                    >
-                        Repaso
-                    </Link>
                 </li>
                 <li>
                     <Link

@@ -7,6 +7,8 @@ namespace App\Services\Review;
 use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Models\ReviewSession;
 use App\Models\Student;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 
 final class ReviewSessionService
 {
@@ -59,10 +61,41 @@ final class ReviewSessionService
 
     public function hasStartedToday(Student $student): bool
     {
+        [$startOfDay, $endOfDay] = self::localDayBounds();
+
         return ReviewSession::query()
             ->where('student_id', $student->id)
-            ->whereDate('started_at', now()->toDateString())
+            ->whereBetween('started_at', [$startOfDay, $endOfDay])
             ->exists();
+    }
+
+    public static function academyTimezone(): string
+    {
+        return (string) config('cubania.timezone', config('app.timezone'));
+    }
+
+    /**
+     * Start and end of the academy's local day that contains the given moment, in the app timezone.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    public static function localDayBounds(?CarbonInterface $moment = null): array
+    {
+        $localMoment = CarbonImmutable::instance($moment ?? now())->setTimezone(self::academyTimezone());
+        $appTimezone = (string) config('app.timezone');
+
+        return [
+            $localMoment->startOfDay()->setTimezone($appTimezone),
+            $localMoment->endOfDay()->setTimezone($appTimezone),
+        ];
+    }
+
+    /**
+     * Local calendar date (Y-m-d) in the academy timezone.
+     */
+    public static function localDate(CarbonInterface $moment): string
+    {
+        return CarbonImmutable::instance($moment)->setTimezone(self::academyTimezone())->toDateString();
     }
 
     public function closeExpiredIncompleteSessions(Student $student): void
@@ -99,9 +132,20 @@ final class ReviewSessionService
         return (int) now()->diffInSeconds($session->expires_at);
     }
 
+    /**
+     * Marks the session as finished by the student. Idempotent: a session that already
+     * has `completed_at` keeps its original value.
+     */
     public function markCompleted(ReviewSession $session): ReviewSession
     {
-        $session->update(['completed' => true]);
+        if ($session->completed_at !== null) {
+            return $session;
+        }
+
+        $session->update([
+            'completed' => true,
+            'completed_at' => now(),
+        ]);
 
         return $session->fresh() ?? $session;
     }

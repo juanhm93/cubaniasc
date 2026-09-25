@@ -18,6 +18,8 @@ class LevelContentResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'level_id' => $this->level_id,
+            'level_name' => $this->whenLoaded('level', fn (): ?string => $this->level?->name),
             'name' => $this->name,
             'description' => $this->description,
             'video_url' => $this->video_url,

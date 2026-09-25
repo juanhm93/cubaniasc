@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Review;
 
+use App\Exceptions\Review\ReviewSessionNotCompletableException;
 use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Review\StoreReviewSessionFiguresRequest;
@@ -37,7 +38,7 @@ final class ReviewSessionController extends Controller
         $student = $this->authenticatedStudent($request);
         $session = $this->sessionService->createOrResume($student);
 
-        return ReviewSessionResource::make($session)
+        return ReviewSessionResource::make($this->withProgress($session))
             ->response()
             ->setStatusCode($session->wasRecentlyCreated ? 201 : 200);
     }
@@ -58,24 +59,21 @@ final class ReviewSessionController extends Controller
             }
 
             return response()->json([
-                'message' => 'No active review session.',
+                'message' => 'Todavía no empezaste el repaso de hoy.',
                 'data' => null,
             ], 404);
         }
 
-        $session->load('level');
-
         return response()->json([
-            'data' => ReviewSessionResource::make($session),
+            'data' => ReviewSessionResource::make($this->withProgress($session)),
         ]);
     }
 
     public function show(Request $request, ReviewSession $session): ReviewSessionResource
     {
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
-        $session->load('level');
 
-        return ReviewSessionResource::make($session);
+        return ReviewSessionResource::make($this->withProgress($session));
     }
 
     public function figureOptions(Request $request, ReviewSession $session): AnonymousResourceCollection
@@ -84,10 +82,9 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($student, $session);
         $this->ensureSessionIsActive($session);
 
-        $session->loadMissing('level');
-        $figures = $this->figureSelectionService->getSelectableFigures($student, $session->level);
-
-        return LevelContentResource::collection($figures);
+        return LevelContentResource::collection(
+            $this->figureSelectionService->optionsForSession($session, $student)
+        );
     }
 
     public function storeFigures(
@@ -98,20 +95,15 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($student, $session);
         $this->ensureSessionIsActive($session);
 
-        $session->loadMissing('level');
-        $allowedIds = $this->figureSelectionService
-            ->getSelectableFigures($student, $session->level)
-            ->pluck('id')
-            ->all();
-
+        $this->figureSelectionService->optionsForSession($session, $student);
         $this->figureSelectionService->storeSelectedFigures(
             $session,
             $request->validated('level_content_ids'),
-            $allowedIds,
         );
 
         return response()->json([
-            'message' => 'Figures stored successfully.',
+            'message' => 'Figuras guardadas.',
+            'data' => LevelContentResource::collection($this->figureSelectionService->selectedFigures($session)),
         ]);
     }
 
@@ -124,14 +116,14 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($student, $session);
         $this->ensureSessionIsActive($session);
 
-        if ($content->level_id !== $session->level_id) {
+        if ($session->selectedFigures()->whereKey($content->id)->doesntExist()) {
             abort(404);
         }
 
         $this->figureSelectionService->recordView($student, $content);
 
         return response()->json([
-            'message' => 'Figure view recorded successfully.',
+            'message' => 'Figura registrada.',
         ]);
     }
 
@@ -148,18 +140,30 @@ final class ReviewSessionController extends Controller
         return RecommendedSongResource::collection($session->songs);
     }
 
+    /**
+     * Finishing is allowed after the timer runs out (the 30 minutes are a window, not a
+     * hard stop), but only once the student chose the figures to review (unless the
+     * catalog had none to offer).
+     */
     public function complete(Request $request, ReviewSession $session): JsonResponse
     {
         $student = $this->authenticatedStudent($request);
         $this->authorizeReviewSession($student, $session);
 
+        if (! $this->figureSelectionService->canComplete($session)) {
+            throw ReviewSessionNotCompletableException::missingFigures();
+        }
+
+        $wasAlreadyCompleted = $session->completed_at !== null;
         $session = $this->sessionService->markCompleted($session);
-        $streak = $this->streakService->recordCompletion($student);
-        $session->load('level');
+
+        $streak = $wasAlreadyCompleted
+            ? $this->streakService->getOrCreate($student)
+            : $this->streakService->recordCompletion($student);
 
         return response()->json([
             'data' => [
-                'session' => ReviewSessionResource::make($session),
+                'session' => ReviewSessionResource::make($this->withProgress($session)),
                 'streak' => StudentStreakResource::make($streak),
             ],
         ]);

@@ -2,8 +2,10 @@
 
 use App\Exceptions\Review\ActiveEnrollmentNotFoundException;
 use App\Exceptions\Review\InvalidFigureSelectionException;
+use App\Exceptions\Review\QuizAnswerRejectedException;
 use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Exceptions\Review\ReviewSessionExpiredException;
+use App\Exceptions\Review\ReviewSessionNotCompletableException;
 use App\Exceptions\Review\StudentNotIdentifiableException;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
@@ -63,11 +65,23 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ReviewDailyLimitException $exception, Request $request) {
             if ($request->is('api/*')) {
-                return response()->json(['message' => $exception->getMessage()], 409);
+                return response()->json(['message' => $exception->getMessage(), 'locked' => true], 409);
             }
         });
 
         $exceptions->render(function (InvalidFigureSelectionException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+        });
+
+        $exceptions->render(function (QuizAnswerRejectedException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 409);
+            }
+        });
+
+        $exceptions->render(function (ReviewSessionNotCompletableException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => $exception->getMessage()], 422);
             }

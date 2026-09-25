@@ -11,9 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Sesión de repaso de un alumno: registra duración, nivel y si fue completada.
+ * Sesión de repaso de un alumno: registra duración y nivel.
+ *
+ * `completed` indica que la sesión está cerrada (terminada o vencida);
+ * `completed_at` solo se llena cuando el alumno la terminó de verdad.
  */
-#[Fillable(['student_id', 'level_id', 'started_at', 'expires_at', 'completed'])]
+#[Fillable(['student_id', 'level_id', 'started_at', 'expires_at', 'completed', 'completed_at'])]
 class ReviewSession extends Model
 {
     /** @use HasFactory<ReviewSessionFactory> */
@@ -25,6 +28,7 @@ class ReviewSession extends Model
             'started_at' => 'datetime',
             'expires_at' => 'datetime',
             'completed' => 'boolean',
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -42,6 +46,11 @@ class ReviewSession extends Model
     {
         return $this->belongsToMany(LevelContent::class, 'review_session_figures')
             ->withPivot('selected_by_student');
+    }
+
+    public function selectedFigures(): BelongsToMany
+    {
+        return $this->figures()->wherePivot('selected_by_student', true);
     }
 
     public function songs(): BelongsToMany

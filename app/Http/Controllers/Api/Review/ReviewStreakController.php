@@ -8,16 +8,19 @@ use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Review\StudentStreakResource;
 use App\Services\Review\StreakService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class ReviewStreakController extends Controller
 {
     use InteractsWithReviewSessions;
 
-    public function __invoke(Request $request, StreakService $streakService): StudentStreakResource
+    public function __invoke(Request $request, StreakService $streakService): JsonResponse
     {
         $student = $this->authenticatedStudent($request);
 
-        return StudentStreakResource::make($streakService->getOrCreate($student));
+        return StudentStreakResource::make($streakService->getOrCreate($student))
+            ->response()
+            ->setStatusCode(200);
     }
 }

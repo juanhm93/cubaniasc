@@ -5,6 +5,7 @@ import {
     GraduationCap,
     LayoutGrid,
     MapPin,
+    Music,
     School,
     Users,
 } from 'lucide-react';
@@ -41,6 +42,11 @@ export function AppSidebar() {
                       title: 'Contenido',
                       href: contentIndex(),
                       icon: BookOpen,
+                  },
+                  {
+                      title: 'navigation.recommendedSongs',
+                      href: admin.recommendedSongs.index.url(),
+                      icon: Music,
                   },
               ]
             : []),

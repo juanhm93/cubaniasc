@@ -10,6 +10,6 @@ final class ActiveEnrollmentNotFoundException extends RuntimeException
 {
     public static function forStudent(): self
     {
-        return new self('The student does not have an active enrollment.');
+        return new self('No tienes una inscripción activa en un curso de Cubanía.');
     }
 }

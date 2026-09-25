@@ -71,12 +71,15 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureRateLimiting(): void
     {
-        RateLimiter::for('review-identify', function (Request $request) {
+        RateLimiter::for('review-identify', function (Request $request): array {
             $identifier = Str::transliterate(Str::lower(
                 (string) ($request->input('email') ?? $request->input('dni') ?? '')
             ).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($identifier);
+            return [
+                Limit::perMinute(5)->by('identifier:'.$identifier),
+                Limit::perMinute(20)->by('ip:'.$request->ip()),
+            ];
         });
     }
 }

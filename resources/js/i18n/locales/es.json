@@ -182,7 +182,8 @@
     "settingsTitle": "Configuración",
     "settingsDescription": "Administra tu perfil y la configuración de tu cuenta",
     "navigationMenu": "Menú de navegación",
-    "notifications": "Notificaciones"
+    "notifications": "Notificaciones",
+    "recommendedSongs": "Música del repaso"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -559,6 +560,23 @@
       "enrollInCourseOptional": "Inscribir en un curso (opcional)",
       "noCourseForNow": "Sin curso por ahora",
       "createStudent": "Crear alumno"
+    },
+    "recommendedSongs": {
+      "title": "Música del repaso",
+      "description": "Canciones que se recomiendan a los alumnos en el panel de repaso, según su nivel.",
+      "createSong": "Añadir canción",
+      "newSong": "Nueva canción",
+      "editSong": "Editar canción",
+      "formDescription": "Título, artista, enlace y niveles en los que se recomienda.",
+      "songTitle": "Título",
+      "artist": "Artista",
+      "link": "Enlace",
+      "linkHint": "YouTube, Spotify o cualquier enlace donde se pueda escuchar.",
+      "activeLabel": "Activa (se recomienda en el repaso)",
+      "noSongs": "Todavía no hay canciones. Añade la primera para que aparezca en el repaso.",
+      "noLevels": "No hay niveles creados en el catálogo de contenido.",
+      "deleteSong": "Eliminar canción",
+      "deleteConfirm": "Se eliminará «{{name}}» y dejará de recomendarse en el repaso."
     }
   },
   "twoFactor": {
@@ -592,7 +610,8 @@
       "enroll": "Inscríbete",
       "dashboard": "Panel",
       "logIn": "Entrar",
-      "register": "Registro"
+      "register": "Registro",
+      "backHome": "Volver a la página principal"
     },
     "hero": {
       "eyebrow": "En vivo desde la pista · Venezuela y Colombia",
@@ -713,7 +732,7 @@
       "events": "Eventos",
       "competitions": "Competencias",
       "blog": "Blog",
-      "gallery": "Galería",
+      "review": "Repaso",
       "contact": "Contacto",
       "whatsapp": "WhatsApp",
       "instagram": "Instagram",
@@ -749,6 +768,108 @@
       "submitting": "Enviando…",
       "countryOptional": "(opcional)",
       "countryPlaceholder": "Selecciona tu país"
+    }
+  },
+  "review": {
+    "pageTitle": "Repaso",
+    "title": "Tu repaso",
+    "titleAccent": "de hoy",
+    "subtitle": "Figuras, quiz y música de tu nivel en una sesión corta.",
+    "signOut": "Cerrar sesión",
+    "loading": "Cargando…",
+    "identify": {
+      "title": "Identifícate para repasar",
+      "lead": "Ingresa el correo o la cédula con la que estás inscrito en Cubanía. No necesitas contraseña.",
+      "email": "Correo",
+      "dni": "Cédula",
+      "emailLabel": "Correo electrónico",
+      "dniLabel": "Cédula",
+      "submit": "Entrar",
+      "submitting": "Verificando…"
+    },
+    "features": {
+      "minutes": "{{count}} min",
+      "figures": "2 figuras",
+      "quiz": "Quiz",
+      "songs": "3 canciones"
+    },
+    "dashboard": {
+      "greeting": "¡Hola, {{name}}!",
+      "lead": "Tienes {{minutes}} minutos para repasar. Una sesión al día mantiene viva tu racha.",
+      "streakLabel_one": "día seguido",
+      "streakLabel_other": "días seguidos",
+      "streakEmpty": "Empieza hoy tu racha",
+      "week": "Esta semana",
+      "start": "Empezar repaso",
+      "starting": "Preparando…"
+    },
+    "steps": {
+      "figures": "Figuras",
+      "quiz": "Quiz",
+      "songs": "Música",
+      "done": "Listo"
+    },
+    "timer": {
+      "label": "Tiempo restante"
+    },
+    "figureSelection": {
+      "title_one": "Elige {{count}} figura",
+      "title_other": "Elige {{count}} figuras",
+      "lead": "Estas son figuras de tu nivel y de niveles anteriores. Elige las dos que quieras repasar hoy.",
+      "fromLevel": "De {{level}}",
+      "counter": "{{count}}/{{total}} elegidas",
+      "continue": "Repasar estas figuras",
+      "saving": "Guardando…",
+      "empty": "Todavía no hay figuras cargadas para tu nivel. Puedes seguir con el quiz.",
+      "skip": "Seguir al quiz"
+    },
+    "figureReview": {
+      "counter": "Figura {{current}} de {{total}}",
+      "next": "Siguiente figura",
+      "toQuiz": "Ir al quiz",
+      "saving": "Registrando…"
+    },
+    "quiz": {
+      "counter": "Pregunta {{current}} de {{total}}",
+      "funFact": "Dato curioso",
+      "figure": "Figura",
+      "correct": "¡Correcto!",
+      "incorrect": "Casi. La respuesta correcta está en verde.",
+      "next": "Siguiente pregunta",
+      "loading": "Cargando pregunta…",
+      "empty": "No hay más preguntas por ahora.",
+      "continue": "Continuar"
+    },
+    "songs": {
+      "title": "Canciones para practicar",
+      "lead": "Recomendaciones de tu nivel para seguir el ritmo en casa.",
+      "empty": "Aún no hay canciones configuradas para tu nivel.",
+      "finish": "Terminar repaso",
+      "saving": "Guardando…"
+    },
+    "complete": {
+      "title": "¡Buen trabajo, {{name}}!",
+      "lead": "Terminaste el repaso de hoy. Vuelve mañana para mantener la racha.",
+      "streak_one": "{{count}} día seguido",
+      "streak_other": "{{count}} días seguidos",
+      "backHome": "Volver a la página principal"
+    },
+    "locked": {
+      "title": "Ya repasaste hoy",
+      "lead": "Tu próximo repaso se abre en",
+      "streakHint": "Vuelve mañana para no perder la racha."
+    },
+    "expired": {
+      "title": "¡Se acabó el tiempo!",
+      "lead": "Aún puedes ver tus canciones y terminar el repaso para sumar el día a tu racha.",
+      "leadNoFigures": "El tiempo terminó antes de elegir tus figuras. Vuelve mañana para un nuevo repaso.",
+      "toSongs": "Ver canciones"
+    },
+    "errors": {
+      "unexpected": "Ocurrió un error inesperado. Intenta de nuevo.",
+      "sessionEnded": "Tu sesión terminó. Identifícate de nuevo.",
+      "invalidData": "Revisa los datos e intenta de nuevo.",
+      "tooManyAttempts": "Demasiados intentos. Espera un minuto y vuelve a probar."
     }
   }
 }

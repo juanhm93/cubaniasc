@@ -68,7 +68,7 @@ class StudentIdentificationServiceTest extends TestCase
     public function test_throws_when_identifier_is_missing(): void
     {
         $this->expectException(StudentNotIdentifiableException::class);
-        $this->expectExceptionMessage('An email or DNI is required');
+        $this->expectExceptionMessage('Ingresa tu correo o tu cédula');
 
         $this->service->identify();
     }
@@ -76,7 +76,7 @@ class StudentIdentificationServiceTest extends TestCase
     public function test_throws_when_student_is_not_found(): void
     {
         $this->expectException(StudentNotIdentifiableException::class);
-        $this->expectExceptionMessage('No student matches');
+        $this->expectExceptionMessage('No encontramos un alumno con inscripción activa');
 
         $this->service->identify(email: 'missing@example.com');
     }
@@ -86,7 +86,7 @@ class StudentIdentificationServiceTest extends TestCase
         Student::factory()->create(['email' => 'solo@example.com']);
 
         $this->expectException(StudentNotIdentifiableException::class);
-        $this->expectExceptionMessage('not enrolled');
+        $this->expectExceptionMessage('No encontramos un alumno con inscripción activa');
 
         $this->service->identify(email: 'solo@example.com');
     }
@@ -101,7 +101,7 @@ class StudentIdentificationServiceTest extends TestCase
         ]);
 
         $this->expectException(StudentNotIdentifiableException::class);
-        $this->expectExceptionMessage('not enrolled');
+        $this->expectExceptionMessage('No encontramos un alumno con inscripción activa');
 
         $this->service->identify(email: 'inactive@example.com');
     }

@@ -46,6 +46,7 @@ class Level extends Model
     {
         return $this->hasMany(QuizItem::class);
     }
+
     public function courseLevels(): HasMany
     {
         return $this->hasMany(CourseLevel::class);

@@ -200,6 +200,13 @@
     border-color: var(--cubania-amarillo);
 }
 
+@media (max-width: 640px) {
+    .cubania-landing .cubania-nav__link--back {
+        padding: 8px 12px;
+        font-size: 0.72rem;
+        text-align: right;
+    }
+}
 
 /* ---------- Hero — “La Pista” ---------- */
 

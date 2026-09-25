@@ -14,6 +14,13 @@ use Illuminate\Http\JsonResponse;
 
 final class StudentIdentificationController extends Controller
 {
+    public const TOKEN_NAME = 'review-panel';
+
+    /**
+     * One active token per student; identifying again on another device replaces it.
+     */
+    public const TOKEN_LIFETIME_DAYS = 30;
+
     public function __construct(
         private readonly StudentIdentificationService $identificationService,
         private readonly StudentLevelResolver $levelResolver,
@@ -27,7 +34,12 @@ final class StudentIdentificationController extends Controller
         );
 
         $level = $this->levelResolver->resolveLevel($student);
-        $token = $student->createToken('review-panel')->plainTextToken;
+
+        $student->tokens()->where('name', self::TOKEN_NAME)->delete();
+        $token = $student->createToken(
+            self::TOKEN_NAME,
+            expiresAt: now()->addDays(self::TOKEN_LIFETIME_DAYS),
+        )->plainTextToken;
 
         return response()->json([
             'data' => [

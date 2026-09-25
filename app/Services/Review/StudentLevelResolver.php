@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Level;
 use App\Models\Student;
+use Illuminate\Support\Collection;
 
 final class StudentLevelResolver
 {
@@ -44,5 +45,30 @@ final class StudentLevelResolver
         }
 
         return $level;
+    }
+
+    /**
+     * Current level first, followed by the earlier levels of the same dance type
+     * (closest first), so the review mixes new and older material.
+     *
+     * @return Collection<int, Level>
+     */
+    public function resolveReviewLevels(Student $student): Collection
+    {
+        return $this->reviewLevelsFor($this->resolveLevel($student));
+    }
+
+    /**
+     * @return Collection<int, Level>
+     */
+    public function reviewLevelsFor(Level $currentLevel): Collection
+    {
+        $previousLevels = Level::query()
+            ->where('dance_type_id', $currentLevel->dance_type_id)
+            ->where('sort_order', '<', $currentLevel->sort_order)
+            ->orderByDesc('sort_order')
+            ->get();
+
+        return collect([$currentLevel])->concat($previousLevels)->values();
     }
 }

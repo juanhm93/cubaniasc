@@ -32,7 +32,7 @@ final class ReviewQuizController extends Controller
 
         if ($question === null) {
             return response()->json([
-                'message' => 'No quiz questions are available for this session.',
+                'message' => 'No quedan preguntas para este repaso.',
             ], 404);
         }
 
@@ -49,7 +49,7 @@ final class ReviewQuizController extends Controller
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
         $this->ensureSessionIsActive($session);
 
-        if ($item->level_id !== null && $item->level_id !== $session->level_id) {
+        if (! $this->quizGeneratorService->belongsToSessionPool($session, $item)) {
             abort(404);
         }
 
@@ -60,6 +60,7 @@ final class ReviewQuizController extends Controller
         return response()->json([
             'data' => [
                 'is_correct' => $response->is_correct,
+                'correct_option_id' => $this->quizGeneratorService->correctOptionId($item),
                 'answered_at' => $response->answered_at?->toIso8601String(),
             ],
         ]);

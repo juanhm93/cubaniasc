@@ -36,4 +36,14 @@ trait InteractsWithReviewSessions
             throw ReviewSessionExpiredException::forSession();
         }
     }
+
+    /**
+     * Loads what the panel needs to resume a session at the right step.
+     */
+    protected function withProgress(ReviewSession $session): ReviewSession
+    {
+        return $session
+            ->loadMissing(['level', 'selectedFigures.level'])
+            ->loadCount('quizResponses');
+    }
 }

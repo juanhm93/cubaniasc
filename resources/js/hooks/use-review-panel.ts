@@ -1,386 +1,479 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from '@/i18n/use-translation';
 import {
-  ReviewApiError,
-  clearReviewAuth,
-  completeReviewSession,
-  createOrResumeReviewSession,
-  fetchFigureOptions,
-  fetchNextQuizQuestion,
-  fetchReviewSession,
-  fetchSessionSongs,
-  identifyStudent,
-  loadReviewAuth,
-  logoutReview,
-  recordFigureView,
-  storeSelectedFigures,
-  submitQuizAnswer,
+    ReviewApiError,
+    clearReviewAuth,
+    completeReviewSession,
+    fetchCurrentReviewSession,
+    fetchFigureOptions,
+    fetchNextQuizQuestion,
+    fetchSessionSongs,
+    fetchStreak,
+    identifyStudent,
+    loadReviewAuth,
+    logoutReview,
+    recordFigureView,
+    startReviewSession,
+    storeSelectedFigures,
+    submitQuizAnswer,
 } from '@/lib/review-service';
 import type {
-  QuizFeedback,
-  ReviewAuth,
-  ReviewLevelContent,
-  ReviewQuizItem,
-  ReviewSession,
-  ReviewSong,
-  ReviewStep,
-  ReviewStreak,
+    CurrentSessionResult,
+    QuizFeedback,
+    ReviewAuth,
+    ReviewLevelContent,
+    ReviewQuizItem,
+    ReviewSession,
+    ReviewSong,
+    ReviewStep,
+    ReviewStreak,
 } from '@/types/review';
 
-function formatTimer(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+/**
+ * Steps that run against the clock: when the timer reaches zero the panel moves to `expired`.
+ */
+export const TIMED_STEPS: ReviewStep[] = [
+    'figures-select',
+    'figures-review',
+    'quiz',
+];
 
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+export function formatTimer(seconds: number): string {
+    const safeSeconds = Math.max(0, seconds);
+    const mins = Math.floor(safeSeconds / 60);
+    const secs = safeSeconds % 60;
+
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function useReviewPanel() {
-  const [auth, setAuth] = useState<ReviewAuth | null>(() => loadReviewAuth());
-  const [step, setStep] = useState<ReviewStep>(() => (loadReviewAuth() ? 'figures-select' : 'identify'));
-  const [session, setSession] = useState<ReviewSession | null>(null);
-  const [figureOptions, setFigureOptions] = useState<ReviewLevelContent[]>([]);
-  const [selectedFigureIds, setSelectedFigureIds] = useState<number[]>([]);
-  const [reviewFigureIndex, setReviewFigureIndex] = useState(0);
-  const [selectedFigures, setSelectedFigures] = useState<ReviewLevelContent[]>([]);
-  const [quizItem, setQuizItem] = useState<ReviewQuizItem | null>(null);
-  const [quizFeedback, setQuizFeedback] = useState<QuizFeedback | null>(null);
-  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
-  const [songs, setSongs] = useState<ReviewSong[]>([]);
-  const [streak, setStreak] = useState<ReviewStreak | null>(null);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dailyLocked, setDailyLocked] = useState(false);
+    const { t } = useTranslation();
+    const [auth, setAuth] = useState<ReviewAuth | null>(() => loadReviewAuth());
+    const [step, setStep] = useState<ReviewStep>(() =>
+        loadReviewAuth() ? 'dashboard' : 'identify',
+    );
+    const [syncing, setSyncing] = useState(() => loadReviewAuth() !== null);
+    const [session, setSession] = useState<ReviewSession | null>(null);
+    const [figureOptions, setFigureOptions] = useState<ReviewLevelContent[]>(
+        [],
+    );
+    const [selectedFigureIds, setSelectedFigureIds] = useState<number[]>([]);
+    const [selectedFigures, setSelectedFigures] = useState<
+        ReviewLevelContent[]
+    >([]);
+    const [reviewFigureIndex, setReviewFigureIndex] = useState(0);
+    const [quizItem, setQuizItem] = useState<ReviewQuizItem | null>(null);
+    const [quizFeedback, setQuizFeedback] = useState<QuizFeedback | null>(null);
+    const [selectedOptionId, setSelectedOptionId] = useState<number | null>(
+        null,
+    );
+    const [answeredCount, setAnsweredCount] = useState(0);
+    const [songs, setSongs] = useState<ReviewSong[]>([]);
+    const [streak, setStreak] = useState<ReviewStreak | null>(null);
+    const [previousStreakCount, setPreviousStreakCount] = useState(0);
+    const [remainingSeconds, setRemainingSeconds] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const isExpired = Boolean(session?.expired) || remainingSeconds <= 0;
+    const resetPanelState = useCallback(() => {
+        setSession(null);
+        setFigureOptions([]);
+        setSelectedFigureIds([]);
+        setSelectedFigures([]);
+        setReviewFigureIndex(0);
+        setQuizItem(null);
+        setQuizFeedback(null);
+        setSelectedOptionId(null);
+        setAnsweredCount(0);
+        setSongs([]);
+        setRemainingSeconds(0);
+    }, []);
 
-  const selectedFiguresForReview = useMemo(
-    () => figureOptions.filter((figure) => selectedFigureIds.includes(figure.id)),
-    [figureOptions, selectedFigureIds],
-  );
+    const handleApiError = useCallback(
+        (err: unknown) => {
+            if (!(err instanceof ReviewApiError)) {
+                setError(t('review.errors.unexpected'));
 
-  const resetPanelState = useCallback(() => {
-    setSession(null);
-    setFigureOptions([]);
-    setSelectedFigureIds([]);
-    setSelectedFigures([]);
-    setReviewFigureIndex(0);
-    setQuizItem(null);
-    setQuizFeedback(null);
-    setSelectedOptionId(null);
-    setSongs([]);
-    setStreak(null);
-    setRemainingSeconds(0);
-  }, []);
+                return;
+            }
 
-  const handleApiError = useCallback((err: unknown) => {
-    if (err instanceof ReviewApiError) {
-      if (err.status === 401) {
-        clearReviewAuth();
-        setAuth(null);
-        resetPanelState();
-        setDailyLocked(false);
-        setStep('identify');
-      }
+            switch (err.status) {
+                case 401:
+                    clearReviewAuth();
+                    setAuth(null);
+                    setStreak(null);
+                    resetPanelState();
+                    setStep('identify');
+                    setError(t('review.errors.sessionEnded'));
 
-      if (err.status === 409) {
-        setDailyLocked(true);
-        setStep('identify');
-        resetPanelState();
-      }
+                    return;
+                case 409:
+                    if (err.isDailyLock) {
+                        resetPanelState();
+                        setStep('locked');
+                        setError(null);
 
-      setError(err.message);
+                        return;
+                    }
 
-      return;
-    }
+                    break;
+                case 410:
+                    setStep('expired');
+                    setError(null);
 
-    setError('Ocurrió un error inesperado. Intenta de nuevo.');
-  }, [resetPanelState]);
+                    return;
+                case 422:
+                    if (err.hasValidationErrors) {
+                        setError(t('review.errors.invalidData'));
 
-  const bootstrapSession = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+                        return;
+                    }
 
-    try {
-      const created = await createOrResumeReviewSession();
-      setSession(created);
-      setRemainingSeconds(created.remaining_seconds);
-      setDailyLocked(false);
+                    break;
+                case 429:
+                    setError(t('review.errors.tooManyAttempts'));
 
-      const options = await fetchFigureOptions(created.id);
-      setFigureOptions(options);
-      setStep('figures-select');
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleApiError]);
+                    return;
+            }
 
-  useEffect(() => {
-    if (auth && !session && step !== 'identify' && !dailyLocked) {
-      void bootstrapSession();
-    }
-  }, [auth, session, step, dailyLocked, bootstrapSession]);
+            setError(err.message || t('review.errors.unexpected'));
+        },
+        [resetPanelState, t],
+    );
 
-  useEffect(() => {
-    if (!session || isExpired) {
-      return;
-    }
+    const applySession = useCallback((fresh: ReviewSession) => {
+        setSession(fresh);
+        setRemainingSeconds(fresh.remaining_seconds);
+        setAnsweredCount(fresh.quiz_answered_count ?? 0);
+        setSelectedFigures(fresh.selected_figures ?? []);
+    }, []);
 
-    const interval = window.setInterval(() => {
-      setRemainingSeconds((current) => {
-        if (current <= 1) {
-          void fetchReviewSession(session.id)
-            .then((fresh) => {
-              setSession(fresh);
-              setRemainingSeconds(fresh.remaining_seconds);
-            })
-            .catch(() => undefined);
+    const goToSongs = useCallback(async (sessionId: number) => {
+        const sessionSongs = await fetchSessionSongs(sessionId);
+        setSongs(sessionSongs);
+        setStep('songs');
+    }, []);
 
-          return 0;
+    const goToNextQuestion = useCallback(
+        async (sessionId: number) => {
+            const question = await fetchNextQuizQuestion(sessionId);
+
+            setQuizFeedback(null);
+            setSelectedOptionId(null);
+
+            if (question === null) {
+                await goToSongs(sessionId);
+
+                return;
+            }
+
+            setQuizItem(question);
+            setStep('quiz');
+        },
+        [goToSongs],
+    );
+
+    /**
+     * Puts the panel on the step that matches the server state, so a reload or a second
+     * device resumes the same session instead of starting over.
+     */
+    const resumeSession = useCallback(
+        async (active: ReviewSession) => {
+            applySession(active);
+
+            if (active.expired) {
+                setStep('expired');
+
+                return;
+            }
+
+            if ((active.selected_figures ?? []).length === 0) {
+                setFigureOptions(await fetchFigureOptions(active.id));
+                setStep('figures-select');
+
+                return;
+            }
+
+            if ((active.quiz_answered_count ?? 0) > 0) {
+                await goToNextQuestion(active.id);
+
+                return;
+            }
+
+            setReviewFigureIndex(0);
+            setStep('figures-review');
+        },
+        [applySession, goToNextQuestion],
+    );
+
+    /**
+     * Applies the server state (current session + streak) to the panel.
+     */
+    const applyServerState = useCallback(
+        async ([current, currentStreak]: [
+            CurrentSessionResult,
+            ReviewStreak,
+        ]) => {
+            setStreak(currentStreak);
+            setError(null);
+
+            if (current.status === 'locked') {
+                resetPanelState();
+                setStep('locked');
+
+                return;
+            }
+
+            if (current.status === 'none') {
+                resetPanelState();
+                setStep('dashboard');
+
+                return;
+            }
+
+            await resumeSession(current.session);
+        },
+        [resetPanelState, resumeSession],
+    );
+
+    const syncWithServer = useCallback(async () => {
+        setSyncing(true);
+
+        try {
+            await applyServerState(
+                await Promise.all([fetchCurrentReviewSession(), fetchStreak()]),
+            );
+        } catch (err) {
+            handleApiError(err);
+        } finally {
+            setSyncing(false);
+        }
+    }, [applyServerState, handleApiError]);
+
+    useEffect(() => {
+        if (loadReviewAuth() === null) {
+            return;
         }
 
-        return current - 1;
-      });
-    }, 1000);
+        Promise.all([fetchCurrentReviewSession(), fetchStreak()])
+            .then(applyServerState)
+            .catch(handleApiError)
+            .finally(() => setSyncing(false));
+    }, [applyServerState, handleApiError]);
 
-    return () => window.clearInterval(interval);
-  }, [session, isExpired]);
+    const isTimedStep = TIMED_STEPS.includes(step);
 
-  const identify = async (payload: { email?: string; dni?: string }) => {
-    setLoading(true);
-    setError(null);
-    setDailyLocked(false);
-
-    try {
-      const nextAuth = await identifyStudent(payload);
-      setAuth(nextAuth);
-      setStep('figures-select');
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleFigure = (figureId: number) => {
-    setSelectedFigureIds((current) => {
-      if (current.includes(figureId)) {
-        return current.filter((id) => id !== figureId);
-      }
-
-      if (current.length >= 2) {
-        return current;
-      }
-
-      return [...current, figureId];
-    });
-  };
-
-  const confirmFigureSelection = async () => {
-    if (!session || selectedFigureIds.length !== 2) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await storeSelectedFigures(session.id, selectedFigureIds);
-      const figures = figureOptions.filter((figure) => selectedFigureIds.includes(figure.id));
-      setSelectedFigures(figures);
-      setReviewFigureIndex(0);
-      setStep('figures-review');
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const goToSongs = async () => {
-    if (!session) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const sessionSongs = await fetchSessionSongs(session.id);
-      setSongs(sessionSongs);
-      setStep('songs');
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const continueFigureReview = async () => {
-    if (!session) {
-      return;
-    }
-
-    const currentFigure = selectedFigures[reviewFigureIndex];
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await recordFigureView(session.id, currentFigure.id);
-
-      if (reviewFigureIndex < selectedFigures.length - 1) {
-        setReviewFigureIndex((index) => index + 1);
-      } else {
-        const question = await fetchNextQuizQuestion(session.id);
-
-        if (question === null) {
-          await goToSongs();
-
-          return;
+    useEffect(() => {
+        if (!session || !isTimedStep) {
+            return;
         }
 
-        setQuizItem(question);
-        setStep('quiz');
-      }
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const expiresAt = Date.parse(session.expires_at);
+        const tick = (): void => {
+            const seconds = Math.max(
+                0,
+                Math.round((expiresAt - Date.now()) / 1000),
+            );
 
-  const answerQuiz = async (optionId: number) => {
-    if (!session || !quizItem || quizFeedback) {
-      return;
-    }
+            setRemainingSeconds(seconds);
 
-    setSelectedOptionId(optionId);
-    setLoading(true);
-    setError(null);
+            if (seconds === 0) {
+                setStep('expired');
+            }
+        };
 
-    try {
-      const feedback = await submitQuizAnswer(session.id, quizItem.id, optionId);
-      setQuizFeedback(feedback);
-    } catch (err) {
-      handleApiError(err);
-      setSelectedOptionId(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const interval = window.setInterval(tick, 1000);
 
-  const continueQuiz = async () => {
-    if (!session) {
-      return;
-    }
+        return () => window.clearInterval(interval);
+    }, [session, isTimedStep]);
 
-    if (isExpired) {
-      await goToSongs();
+    const run = async (action: () => Promise<void>): Promise<void> => {
+        setLoading(true);
+        setError(null);
 
-      return;
-    }
+        try {
+            await action();
+        } catch (err) {
+            handleApiError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    setLoading(true);
-    setError(null);
-    setQuizFeedback(null);
-    setSelectedOptionId(null);
+    const identify = (payload: { email?: string; dni?: string }) =>
+        run(async () => {
+            const nextAuth = await identifyStudent(payload);
+            setAuth(nextAuth);
+            await syncWithServer();
+        });
 
-    try {
-      const question = await fetchNextQuizQuestion(session.id);
+    const startReview = () =>
+        run(async () => {
+            const created = await startReviewSession();
+            await resumeSession(created);
+        });
 
-      if (question === null) {
-        await goToSongs();
+    const toggleFigure = (figureId: number) => {
+        setSelectedFigureIds((current) => {
+            if (current.includes(figureId)) {
+                return current.filter((id) => id !== figureId);
+            }
 
-        return;
-      }
+            if (current.length >= 2) {
+                return current;
+            }
 
-      setQuizItem(question);
-    } catch (err) {
-      if (err instanceof ReviewApiError && (err.status === 410 || err.status === 404)) {
-        await goToSongs();
+            return [...current, figureId];
+        });
+    };
 
-        return;
-      }
+    const confirmFigureSelection = () =>
+        run(async () => {
+            if (!session) {
+                return;
+            }
 
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (figureOptions.length === 0) {
+                await goToNextQuestion(session.id);
 
-  const finishSession = async () => {
-    if (!session) {
-      return;
-    }
+                return;
+            }
 
-    setLoading(true);
-    setError(null);
+            if (
+                selectedFigureIds.length !== Math.min(2, figureOptions.length)
+            ) {
+                return;
+            }
 
-    try {
-      const result = await completeReviewSession(session.id);
-      setSession(result.session);
-      setStreak(result.streak);
-      setStep('complete');
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+            const figures = await storeSelectedFigures(
+                session.id,
+                selectedFigureIds,
+            );
+            setSelectedFigures(figures);
+            setReviewFigureIndex(0);
+            setStep('figures-review');
+        });
 
-  const signOut = async () => {
-    setLoading(true);
+    const continueFigureReview = () =>
+        run(async () => {
+            const currentFigure = selectedFigures[reviewFigureIndex];
 
-    try {
-      await logoutReview();
-    } finally {
-      setAuth(null);
-      resetPanelState();
-      setDailyLocked(false);
-      setStep('identify');
-      setLoading(false);
-      setError(null);
-    }
-  };
+            if (!session || !currentFigure) {
+                return;
+            }
 
-  const restart = () => {
-    resetPanelState();
-    setDailyLocked(false);
-    setStep('figures-select');
-    void bootstrapSession();
-  };
+            await recordFigureView(session.id, currentFigure.id);
 
-  return {
-    auth,
-    step,
-    session,
-    figureOptions,
-    selectedFigureIds,
-    selectedFiguresForReview,
-    reviewFigureIndex,
-    quizItem,
-    quizFeedback,
-    selectedOptionId,
-    songs,
-    streak,
-    remainingSeconds,
-    formattedTimer: formatTimer(Math.max(0, remainingSeconds)),
-    isExpired,
-    loading,
-    error,
-    dailyLocked,
-    identify,
-    toggleFigure,
-    confirmFigureSelection,
-    continueFigureReview,
-    answerQuiz,
-    continueQuiz,
-    goToSongs,
-    finishSession,
-    signOut,
-    restart,
-    setStep,
-  };
+            if (reviewFigureIndex < selectedFigures.length - 1) {
+                setReviewFigureIndex((index) => index + 1);
+
+                return;
+            }
+
+            await goToNextQuestion(session.id);
+        });
+
+    const answerQuiz = (optionId: number) =>
+        run(async () => {
+            if (!session || !quizItem || quizFeedback) {
+                return;
+            }
+
+            setSelectedOptionId(optionId);
+
+            try {
+                const feedback = await submitQuizAnswer(
+                    session.id,
+                    quizItem.id,
+                    optionId,
+                );
+                setQuizFeedback(feedback);
+                setAnsweredCount((count) => count + 1);
+            } catch (err) {
+                setSelectedOptionId(null);
+
+                throw err;
+            }
+        });
+
+    const continueQuiz = () =>
+        run(async () => {
+            if (!session) {
+                return;
+            }
+
+            await goToNextQuestion(session.id);
+        });
+
+    const showSongs = () =>
+        run(async () => {
+            if (!session) {
+                return;
+            }
+
+            await goToSongs(session.id);
+        });
+
+    const finishSession = () =>
+        run(async () => {
+            if (!session) {
+                return;
+            }
+
+            setPreviousStreakCount(streak?.current_streak ?? 0);
+
+            const result = await completeReviewSession(session.id);
+            setSession(result.session);
+            setStreak(result.streak);
+            setStep('complete');
+        });
+
+    const signOut = async () => {
+        setLoading(true);
+
+        try {
+            await logoutReview();
+        } catch {
+            // The local token is cleared anyway.
+        } finally {
+            setAuth(null);
+            setStreak(null);
+            resetPanelState();
+            setStep('identify');
+            setLoading(false);
+            setError(null);
+        }
+    };
+
+    return {
+        auth,
+        step,
+        syncing,
+        session,
+        figureOptions,
+        selectedFigureIds,
+        selectedFigures,
+        reviewFigureIndex,
+        quizItem,
+        quizFeedback,
+        selectedOptionId,
+        answeredCount,
+        songs,
+        streak,
+        previousStreakCount,
+        remainingSeconds,
+        loading,
+        error,
+        identify,
+        startReview,
+        toggleFigure,
+        confirmFigureSelection,
+        continueFigureReview,
+        answerQuiz,
+        continueQuiz,
+        showSongs,
+        finishSession,
+        signOut,
+        refresh: syncWithServer,
+    };
 }

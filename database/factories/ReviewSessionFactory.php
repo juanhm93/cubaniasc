@@ -31,8 +31,9 @@ class ReviewSessionFactory extends Factory
 
     public function completed(): static
     {
-        return $this->state(fn (): array => [
+        return $this->state(fn (array $attributes): array => [
             'completed' => true,
+            'completed_at' => $attributes['started_at'],
         ]);
     }
 
