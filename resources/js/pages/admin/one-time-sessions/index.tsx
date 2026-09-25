@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import admin from '@/routes/admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
 
 type SessionRow = {
     id: number;
@@ -20,15 +21,18 @@ type OneTimeSessionsIndexProps = {
     sessions: SessionRow[];
 };
 
-const sessionTypeLabels: Record<string, string> = {
-    workshop: 'Taller',
-    private_class: 'Clase personalizada',
-    event: 'Evento',
+const SESSION_TYPE_KEYS: Record<string, string> = {
+    workshop: 'admin.sessionTypes.workshop',
+    private_class: 'admin.sessionTypes.privateClass',
+    event: 'admin.sessionTypes.event',
 };
 
-function formatDateTime(value: string | null): string {
+function formatDateTime(
+    value: string | null,
+    emptyLabel: string,
+): string {
     if (!value) {
-        return '—';
+        return emptyLabel;
     }
 
     const date = new Date(value);
@@ -42,26 +46,26 @@ function formatDateTime(value: string | null): string {
 export default function OneTimeSessionsIndex({
     sessions,
 }: OneTimeSessionsIndexProps) {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title="Clases especiales" />
+            <Head title={t('admin.oneTimeSessions.title')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            Clases especiales
+                            {t('admin.oneTimeSessions.title')}
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Talleres, clases personalizadas y eventos de una sola
-                            oportunidad, ordenados del m&aacute;s reciente al m&aacute;s
-                            viejo.
+                            {t('admin.oneTimeSessions.description')}
                         </p>
                     </div>
                     <div className="flex justify-end">
                         <Button asChild>
                             <Link href={admin.oneTimeSessions.create.url()}>
-                                Crear clase especial
+                                {t('admin.oneTimeSessions.createSession')}
                             </Link>
                         </Button>
                     </div>
@@ -71,31 +75,31 @@ export default function OneTimeSessionsIndex({
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Nombre
+                                        {t('common.name')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Tipo
+                                        {t('common.type')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Inicio
+                                        {t('common.start')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Fin
+                                        {t('common.end')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Lugar
+                                        {t('common.place')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Profesor
+                                        {t('common.teacher')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Participantes
+                                        {t('common.participants')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Precio
+                                        {t('common.price')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Estado
+                                        {t('common.status')}
                                     </th>
                                 </tr>
                             </thead>
@@ -106,7 +110,7 @@ export default function OneTimeSessionsIndex({
                                             colSpan={9}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
-                                            No hay clases especiales registradas.
+                                            {t('admin.oneTimeSessions.noSessions')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -119,33 +123,51 @@ export default function OneTimeSessionsIndex({
                                                 {session.name}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {sessionTypeLabels[session.type] ??
-                                                    session.type}
+                                                {SESSION_TYPE_KEYS[session.type]
+                                                    ? t(
+                                                          SESSION_TYPE_KEYS[
+                                                              session.type
+                                                          ],
+                                                      )
+                                                    : session.type}
                                             </td>
                                             <td className="px-3 py-3 align-middle whitespace-nowrap">
-                                                {formatDateTime(session.starts_at)}
+                                                {formatDateTime(
+                                                    session.starts_at,
+                                                    t('common.emDash'),
+                                                )}
                                             </td>
                                             <td className="px-3 py-3 align-middle whitespace-nowrap">
-                                                {formatDateTime(session.ends_at)}
+                                                {formatDateTime(
+                                                    session.ends_at,
+                                                    t('common.emDash'),
+                                                )}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {session.place_name ?? '—'}
+                                                {session.place_name ??
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {session.teacher_name ?? '—'}
+                                                {session.teacher_name ??
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 {session.attendees_count}
                                             </td>
                                             <td className="px-3 py-3 align-middle whitespace-nowrap">
-                                                {session.price ?? '—'}
+                                                {session.price ??
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 {session.is_active ? (
-                                                    <Badge>Activa</Badge>
+                                                    <Badge>
+                                                        {t('common.activeFemale')}
+                                                    </Badge>
                                                 ) : (
                                                     <Badge variant="secondary">
-                                                        Inactiva
+                                                        {t(
+                                                            'common.inactiveFemale',
+                                                        )}
                                                     </Badge>
                                                 )}
                                             </td>
@@ -164,7 +186,7 @@ export default function OneTimeSessionsIndex({
 OneTimeSessionsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Clases especiales',
+            title: 'navigation.oneTimeSessions',
             href: admin.oneTimeSessions.index.url(),
         },
     ],

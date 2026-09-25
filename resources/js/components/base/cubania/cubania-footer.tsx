@@ -1,24 +1,30 @@
 import type { ReactNode } from 'react';
-
-const WHATSAPP_URL = 'https://wa.me/+584122801334';
-const INSTAGRAM_URL = 'https://www.instagram.com/cubania.sc';
+import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
+import { useTranslation } from '@/i18n/use-translation';
 
 /**
  * Site footer with columns and social links.
  */
 export function CubaniaFooter(): ReactNode {
+    const { t } = useTranslation();
+    const { social } = useCubaniaConfig();
+
     return (
-        <footer className="cubania-footer" id="nosotros">
+        <footer className="cubania-footer">
             <div className="cubania-footer__top">
                 <div>
-                    <div className="cubania-footer__logo">Cubanía</div>
+                    <div className="cubania-footer__logo">
+                        {t('navigation.appName')}
+                    </div>
                     <p className="cubania-footer__tagline">
-                        Sigue bailando, cree en ti.
+                        {t('landing.footer.tagline')}
                     </p>
                 </div>
                 <div className="cubania-footer__columns">
                     <div>
-                        <h3 className="cubania-footer__col-title">Academia</h3>
+                        <h3 className="cubania-footer__col-title">
+                            {t('landing.footer.academy')}
+                        </h3>
                         <ul className="cubania-footer__list">
                             <li>
                                 <a
@@ -26,7 +32,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Clases
+                                    {t('landing.footer.classes')}
                                 </a>
                             </li>
                             <li>
@@ -35,7 +41,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Horarios
+                                    {t('landing.footer.schedule')}
                                 </a>
                             </li>
                             <li>
@@ -44,7 +50,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Precios
+                                    {t('landing.footer.prices')}
                                 </a>
                             </li>
                             <li>
@@ -53,13 +59,15 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Instructores
+                                    {t('landing.footer.instructors')}
                                 </a>
                             </li>
                         </ul>
                     </div>
                     <div>
-                        <h3 className="cubania-footer__col-title">Comunidad</h3>
+                        <h3 className="cubania-footer__col-title">
+                            {t('landing.footer.community')}
+                        </h3>
                         <ul className="cubania-footer__list">
                             <li>
                                 <a
@@ -67,7 +75,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Eventos
+                                    {t('landing.footer.events')}
                                 </a>
                             </li>
                             <li>
@@ -76,7 +84,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Competencias
+                                    {t('landing.footer.competitions')}
                                 </a>
                             </li>
                             <li>
@@ -85,7 +93,7 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Blog
+                                    {t('landing.footer.blog')}
                                 </a>
                             </li>
                             <li>
@@ -94,43 +102,62 @@ export function CubaniaFooter(): ReactNode {
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Galería
+                                    {t('landing.footer.gallery')}
                                 </a>
                             </li>
                         </ul>
                     </div>
                     <div>
-                        <h3 className="cubania-footer__col-title">Contacto</h3>
+                        <h3 className="cubania-footer__col-title">
+                            {t('landing.footer.contact')}
+                        </h3>
                         <ul className="cubania-footer__list">
-                            <li>
-                                <a
-                                    href={WHATSAPP_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    WhatsApp
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href={INSTAGRAM_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    Instagram
-                                </a>
-                            </li>
+                            {social.whatsapp ? (
+                                <li>
+                                    <a
+                                        href={social.whatsapp}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.whatsapp')}
+                                    </a>
+                                </li>
+                            ) : null}
+                            {social.instagram ? (
+                                <li>
+                                    <a
+                                        href={social.instagram}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.instagram')}
+                                    </a>
+                                </li>
+                            ) : null}
+                            {social.tiktok ? (
+                                <li>
+                                    <a
+                                        href={social.tiktok}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="cubania-footer__link"
+                                        data-cubania-cursor="interactive"
+                                    >
+                                        {t('landing.footer.tiktok')}
+                                    </a>
+                                </li>
+                            ) : null}
                             <li>
                                 <a
                                     href="#"
                                     className="cubania-footer__link"
                                     data-cubania-cursor="interactive"
                                 >
-                                    Ubicación
+                                    {t('landing.footer.location')}
                                 </a>
                             </li>
                         </ul>
@@ -140,28 +167,44 @@ export function CubaniaFooter(): ReactNode {
 
             <div className="cubania-footer__bottom">
                 <span>
-                    © {new Date().getFullYear()} Cubanía · Academia de Salsa
-                    Casino y Bachata
+                    {t('landing.footer.copyright', {
+                        year: new Date().getFullYear(),
+                    })}
                 </span>
                 <div className="cubania-footer__social">
-                    <a
-                        href={INSTAGRAM_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cubania-footer__social-link"
-                        data-cubania-cursor="interactive"
-                    >
-                        Instagram
-                    </a>
-                    <a
-                        href={WHATSAPP_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cubania-footer__social-link"
-                        data-cubania-cursor="interactive"
-                    >
-                        WhatsApp
-                    </a>
+                    {social.instagram ? (
+                        <a
+                            href={social.instagram}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.instagram')}
+                        </a>
+                    ) : null}
+                    {social.tiktok ? (
+                        <a
+                            href={social.tiktok}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.tiktok')}
+                        </a>
+                    ) : null}
+                    {social.whatsapp ? (
+                        <a
+                            href={social.whatsapp}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cubania-footer__social-link"
+                            data-cubania-cursor="interactive"
+                        >
+                            {t('landing.footer.whatsapp')}
+                        </a>
+                    ) : null}
                 </div>
             </div>
         </footer>

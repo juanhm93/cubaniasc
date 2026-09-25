@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\PreRegistrationCountry;
 use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Models\PreRegistration;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,7 +45,50 @@ class PaymentsPageTest extends TestCase
                 ->has('calendarYears')
                 ->has('preRegistrations')
                 ->has('selectedMonth')
-                ->has('rows'));
+                ->has('rows')
+                ->where('selectedTab', 'alumnos')
+                ->where('highlightedPreRegistrationId', null));
+    }
+
+    public function test_notification_link_opens_the_pre_registration_tab_filtered(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin', 'name' => 'Admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $pre = PreRegistration::factory()->create(['country' => PreRegistrationCountry::Colombia]);
+
+        $this->actingAs($admin);
+
+        $this->get(route('admin.payments.index', [
+            'tab' => 'mas',
+            'preRegistration' => $pre->id,
+        ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/payments')
+                ->where('selectedTab', 'mas')
+                ->where('highlightedPreRegistrationId', $pre->id)
+                ->where('preRegistrations.0.country_label', 'Colombia'));
+    }
+
+    public function test_an_unknown_tab_falls_back_to_the_students_tab(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin', 'name' => 'Admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        $this->get(route('admin.payments.index', ['tab' => 'basura', 'preRegistration' => 'abc']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('selectedTab', 'alumnos')
+                ->where('highlightedPreRegistrationId', null));
     }
 
     public function test_non_admin_cannot_view_payments_page(): void
@@ -155,7 +200,8 @@ class PaymentsPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/students/show')
-                ->has('student'));
+                ->has('student')
+                ->where('canUpdateEmail', true));
     }
 
     public function test_store_saves_receipt_file(): void

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EnrollmentStatus;
+use App\Enums\PlatformAbility;
 use App\Models\Course;
 use App\Models\Student;
 use Inertia\Inertia;
@@ -37,7 +38,7 @@ class DashboardController extends Controller
                 'administrativeStaff' => 1,
                 'administrators' => 2,
             ],
-            'canManageCourses' => $user !== null && $user->isAdmin(),
+            'canManageCourses' => $user !== null && $user->hasAbility(PlatformAbility::Courses),
         ]);
     }
 }

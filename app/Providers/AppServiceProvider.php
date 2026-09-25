@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\DanceType;
 use App\Models\Level;
+use App\Models\Student;
+use App\Policies\DanceTypePolicy;
 use App\Policies\LevelPolicy;
+use App\Policies\StudentPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -11,6 +15,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -40,8 +45,14 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDefaults(): void
     {
         Gate::policy(Level::class, LevelPolicy::class);
+        Gate::policy(DanceType::class, DanceTypePolicy::class);
+        Gate::policy(Student::class, StudentPolicy::class);
 
         Date::use(CarbonImmutable::class);
+
+        if (! $this->app->environment(['local', 'testing'])) {
+            URL::forceHttps();
+        }
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),

@@ -181,6 +181,43 @@ class CourseAdminTest extends TestCase
                 ->where('levelContents.0.video_url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'));
     }
 
+    public function test_course_show_excludes_enrollments_of_deleted_students(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $admin = User::factory()->create([
+            'status' => 'active',
+            'role_id' => $role->id,
+        ]);
+
+        $course = Course::factory()->create([
+            'company_id' => $admin->company_id,
+            'user_id' => $admin->id,
+        ]);
+
+        $activeStudent = Student::factory()->create(['name' => 'Alumno activo']);
+        $deletedStudent = Student::factory()->create();
+
+        foreach ([$activeStudent, $deletedStudent] as $student) {
+            Enrollment::factory()->create([
+                'course_id' => $course->id,
+                'student_id' => $student->id,
+                'status' => EnrollmentStatus::Active,
+            ]);
+        }
+
+        $deletedStudent->delete();
+
+        $this->actingAs($admin);
+
+        $this->get(route('admin.courses.show', $course))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/courses/show')
+                ->has('enrollments', 1)
+                ->where('enrollments.0.student_id', $activeStudent->id)
+                ->where('enrollments.0.student_name', 'Alumno activo'));
+    }
+
     public function test_admin_can_toggle_course_active(): void
     {
         $role = Role::factory()->create(['slug' => 'admin']);
@@ -360,5 +397,87 @@ class CourseAdminTest extends TestCase
             ->assertRedirect(route('admin.courses.show', $course));
 
         $this->assertSame($levelB->id, $course->fresh()->level_id);
+    }
+
+    public function test_courses_index_exposes_delete_flag_only_to_owner(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $owner = User::factory()->create(['role_id' => $role->id, 'is_owner' => 1]);
+        $admin = User::factory()->create(['role_id' => $role->id, 'is_owner' => 0]);
+
+        $this->actingAs($owner)
+            ->get(route('admin.courses.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('canDeleteCourses', true));
+
+        $this->actingAs($admin)
+            ->get(route('admin.courses.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('canDeleteCourses', false));
+    }
+
+    public function test_owner_can_soft_delete_course(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $owner = User::factory()->create(['role_id' => $role->id, 'is_owner' => 1]);
+        $course = Course::factory()->create(['company_id' => $owner->company_id]);
+        $student = Student::factory()->create();
+        $enrollment = Enrollment::factory()->create([
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('admin.courses.destroy', $course))
+            ->assertRedirect(route('admin.courses.index'));
+
+        $this->assertSoftDeleted($course);
+        $this->assertNotSoftDeleted($enrollment);
+
+        $this->get(route('admin.courses.index'))
+            ->assertInertia(fn (Assert $page) => $page->has('courses', 0));
+    }
+
+    public function test_non_owner_admin_cannot_delete_course(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $admin = User::factory()->create(['role_id' => $role->id, 'is_owner' => 0]);
+        $course = Course::factory()->create(['company_id' => $admin->company_id]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.courses.destroy', $course))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($course);
+    }
+
+    public function test_teacher_cannot_delete_course(): void
+    {
+        $role = Role::factory()->create(['slug' => 'teacher']);
+        $teacher = User::factory()->create(['role_id' => $role->id]);
+        $course = Course::factory()->create(['company_id' => $teacher->company_id]);
+
+        $this->actingAs($teacher)
+            ->delete(route('admin.courses.destroy', $course))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($course);
+    }
+
+    public function test_owner_cannot_delete_course_from_another_company(): void
+    {
+        $role = Role::factory()->create(['slug' => 'admin']);
+        $owner = User::factory()->create([
+            'role_id' => $role->id,
+            'is_owner' => 1,
+            'company_id' => Company::factory()->create()->id,
+        ]);
+        $course = Course::factory()->create(['company_id' => Company::factory()->create()->id]);
+
+        $this->actingAs($owner)
+            ->delete(route('admin.courses.destroy', $course))
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($course);
     }
 }

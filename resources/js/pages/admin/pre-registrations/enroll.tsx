@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 
 type CourseOption = {
     id: number;
@@ -46,6 +47,7 @@ export default function AdminPreRegistrationEnroll({
     courses,
     studentDraft,
 }: EnrollPageProps) {
+    const { t } = useTranslation();
     const form = useForm({
         name: studentDraft.name,
         email: studentDraft.email,
@@ -72,47 +74,49 @@ export default function AdminPreRegistrationEnroll({
 
     return (
         <>
-            <Head title="Inscribir desde preinscripción" />
+            <Head title={t('admin.preRegistrations.headTitle')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            Convertir preinscripción en alumno
+                            {t('admin.preRegistrations.title')}
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Completa los datos adicionales del alumno. Los campos
-                            vacíos puedes rellenarlos ahora o después desde la
-                            ficha.
+                            {t('admin.preRegistrations.description')}
                         </p>
                     </div>
                     <Button variant="outline" size="sm" asChild>
-                        <Link href={admin.payments.index.url()}>Volver a pagos</Link>
+                        <Link href={admin.payments.index.url()}>
+                            {t('admin.preRegistrations.backToPayments')}
+                        </Link>
                     </Button>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                     <h2 className="mb-2 text-sm font-medium text-muted-foreground">
-                        Preinscripción (referencia)
+                        {t('admin.preRegistrations.reference')}
                     </h2>
                     <dl className="grid gap-2 text-sm sm:grid-cols-3">
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Nombre
+                                {t('common.name')}
                             </dt>
                             <dd>{preRegistration.name}</dd>
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Correo
+                                {t('common.email')}
                             </dt>
                             <dd>{preRegistration.email}</dd>
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Teléfono
+                                {t('common.phone')}
                             </dt>
-                            <dd>{preRegistration.phone ?? '—'}</dd>
+                            <dd>
+                                {preRegistration.phone ?? t('common.emDash')}
+                            </dd>
                         </div>
                     </dl>
                 </div>
@@ -121,11 +125,15 @@ export default function AdminPreRegistrationEnroll({
                     onSubmit={submit}
                     className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
                 >
-                    <h2 className="mb-4 text-lg font-medium">Datos del alumno</h2>
+                    <h2 className="mb-4 text-lg font-medium">
+                        {t('admin.preRegistrations.studentData')}
+                    </h2>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="stu-name">Nombre completo</Label>
+                            <Label htmlFor="stu-name">
+                                {t('common.fullName')}
+                            </Label>
                             <Input
                                 id="stu-name"
                                 name="name"
@@ -140,7 +148,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-email">Correo</Label>
+                            <Label htmlFor="stu-email">
+                                {t('common.email')}
+                            </Label>
                             <Input
                                 id="stu-email"
                                 type="email"
@@ -156,7 +166,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-phone">Teléfono</Label>
+                            <Label htmlFor="stu-phone">
+                                {t('common.phone')}
+                            </Label>
                             <Input
                                 id="stu-phone"
                                 name="phone"
@@ -170,7 +182,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-dni">DNI / documento</Label>
+                            <Label htmlFor="stu-dni">
+                                {t('admin.preRegistrations.dniDocument')}
+                            </Label>
                             <Input
                                 id="stu-dni"
                                 name="dni"
@@ -184,7 +198,7 @@ export default function AdminPreRegistrationEnroll({
 
                         <div className="grid gap-2">
                             <Label htmlFor="stu-birthday">
-                                Fecha de nacimiento
+                                {t('common.birthday')}
                             </Label>
                             <Input
                                 id="stu-birthday"
@@ -199,7 +213,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2 sm:col-span-2">
-                            <Label htmlFor="stu-address">Dirección</Label>
+                            <Label htmlFor="stu-address">
+                                {t('common.address')}
+                            </Label>
                             <Input
                                 id="stu-address"
                                 name="address"
@@ -213,7 +229,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-city">Ciudad</Label>
+                            <Label htmlFor="stu-city">
+                                {t('common.city')}
+                            </Label>
                             <Input
                                 id="stu-city"
                                 name="city"
@@ -226,7 +244,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-state">Estado / provincia</Label>
+                            <Label htmlFor="stu-state">
+                                {t('common.stateProvince')}
+                            </Label>
                             <Input
                                 id="stu-state"
                                 name="state"
@@ -239,7 +259,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-zip">Código postal</Label>
+                            <Label htmlFor="stu-zip">
+                                {t('common.zipCode')}
+                            </Label>
                             <Input
                                 id="stu-zip"
                                 name="zip"
@@ -252,7 +274,9 @@ export default function AdminPreRegistrationEnroll({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="stu-country">País</Label>
+                            <Label htmlFor="stu-country">
+                                {t('common.country')}
+                            </Label>
                             <Input
                                 id="stu-country"
                                 name="country"
@@ -266,7 +290,7 @@ export default function AdminPreRegistrationEnroll({
 
                         <div className="grid gap-2">
                             <Label htmlFor="stu-emergency-name">
-                                Contacto emergencia (nombre)
+                                {t('admin.preRegistrations.emergencyContactName')}
                             </Label>
                             <Input
                                 id="stu-emergency-name"
@@ -286,7 +310,7 @@ export default function AdminPreRegistrationEnroll({
 
                         <div className="grid gap-2">
                             <Label htmlFor="stu-emergency-phone">
-                                Contacto emergencia (teléfono)
+                                {t('admin.preRegistrations.emergencyContactPhone')}
                             </Label>
                             <Input
                                 id="stu-emergency-phone"
@@ -306,7 +330,7 @@ export default function AdminPreRegistrationEnroll({
 
                         <div className="grid gap-2 sm:col-span-2">
                             <Label htmlFor="stu-course">
-                                Inscribir en curso (opcional)
+                                {t('admin.preRegistrations.enrollInCourseOptional')}
                             </Label>
                             <select
                                 id="stu-course"
@@ -318,7 +342,7 @@ export default function AdminPreRegistrationEnroll({
                                 }
                             >
                                 <option value="">
-                                    — Sin curso por ahora —
+                                    {t('admin.preRegistrations.noCourseForNow')}
                                 </option>
                                 {courses.map((c) => (
                                     <option key={c.id} value={String(c.id)}>
@@ -333,12 +357,12 @@ export default function AdminPreRegistrationEnroll({
                     <div className="mt-6 flex flex-wrap gap-2">
                         <Button type="submit" disabled={form.processing}>
                             {form.processing
-                                ? 'Guardando…'
-                                : 'Crear alumno'}
+                                ? t('common.saving')
+                                : t('admin.preRegistrations.createStudent')}
                         </Button>
                         <Button type="button" variant="outline" asChild>
                             <Link href={admin.payments.index.url()}>
-                                Cancelar
+                                {t('common.cancel')}
                             </Link>
                         </Button>
                     </div>
@@ -351,11 +375,11 @@ export default function AdminPreRegistrationEnroll({
 AdminPreRegistrationEnroll.layout = {
     breadcrumbs: [
         {
-            title: 'Pagos',
+            title: 'navigation.payments',
             href: admin.payments.index.url(),
         },
         {
-            title: 'Inscribir',
+            title: 'admin.breadcrumbs.enroll',
             href: '#',
         },
     ],

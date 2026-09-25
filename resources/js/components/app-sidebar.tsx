@@ -1,15 +1,14 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     CreditCard,
-    FolderGit2,
     GraduationCap,
     LayoutGrid,
+    MapPin,
     School,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -21,72 +20,77 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAbilities } from '@/hooks/use-abilities';
+import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
-import { dashboard, levels } from '@/routes';
+import { index as contentIndex } from '@/routes/content';
 import type { NavItem } from '@/types';
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
-    const { auth } = usePage().props as {
-        auth?: {
-            user?: {
-                role?: {
-                    slug?: string;
-                } | null;
-            } | null;
-        };
-    };
+    const abilities = useAbilities();
 
-    const isAdmin = auth?.user?.role?.slug === 'admin';
     const mainNavItems: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'navigation.dashboard',
             href: dashboard(),
             icon: LayoutGrid,
         },
-        ...(isAdmin
+        ...(abilities.content
             ? [
                   {
-                      title: 'Levels',
-                      href: levels(),
+                      title: 'Contenido',
+                      href: contentIndex(),
                       icon: BookOpen,
                   },
+              ]
+            : []),
+        ...(abilities.payments
+            ? [
                   {
-                      title: 'Pagos',
+                      title: 'navigation.payments',
                       href: admin.payments.index.url(),
                       icon: CreditCard,
                   },
+              ]
+            : []),
+        ...(abilities.courses
+            ? [
                   {
-                      title: 'Cursos',
+                      title: 'navigation.courses',
                       href: admin.courses.index.url(),
                       icon: GraduationCap,
                   },
+              ]
+            : []),
+        ...(abilities.oneTimeSessions
+            ? [
                   {
-                      title: 'Clases especiales',
+                      title: 'navigation.oneTimeSessions',
                       href: admin.oneTimeSessions.index.url(),
                       icon: GraduationCap,
                   },
+              ]
+            : []),
+        ...(abilities.students
+            ? [
                   {
-                      title: 'Alumnos',
+                      title: 'navigation.students',
                       href: admin.students.index.url(),
                       icon: School,
                   },
+              ]
+            : []),
+        ...(abilities.adminUsers
+            ? [
                   {
-                      title: 'Admin users',
+                      title: 'navigation.adminUsers',
                       href: '/admin/users',
                       icon: Users,
+                  },
+                  {
+                      title: 'navigation.places',
+                      href: admin.places.index.url(),
+                      icon: MapPin,
                   },
               ]
             : []),
@@ -111,7 +115,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

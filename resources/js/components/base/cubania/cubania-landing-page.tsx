@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CubaniaAboutSection } from '@/components/base/cubania/cubania-about-section';
 import { CubaniaCtaBand } from '@/components/base/cubania/cubania-cta-band';
 import { CubaniaCursor } from '@/components/base/cubania/cubania-cursor';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
@@ -6,12 +7,14 @@ import { CubaniaHero } from '@/components/base/cubania/cubania-hero';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
 import { CubaniaStylesSection } from '@/components/base/cubania/cubania-styles-section';
 import { CubaniaTestimonialsSection } from '@/components/base/cubania/cubania-testimonials-section';
+import { CubaniaWhatsappFloat } from '@/components/base/cubania/cubania-whatsapp-float';
 import { useCubaniaSmoothScroll } from '@/components/base/cubania/use-cubania-smooth-scroll';
 
 import '../../../../css/landing/cubania-landing.css';
 
 export type CubaniaLandingPageProps = {
     isAuthenticated: boolean;
+    canLogin: boolean;
     canRegister: boolean;
     /** When `true`, hides the system cursor and shows the Cubanía dot + ring. */
     customCursor?: boolean;
@@ -22,6 +25,7 @@ export type CubaniaLandingPageProps = {
  */
 export function CubaniaLandingPage({
     isAuthenticated,
+    canLogin,
     canRegister,
     customCursor = false,
 }: CubaniaLandingPageProps): ReactNode {
@@ -29,23 +33,26 @@ export function CubaniaLandingPage({
 
     return (
         <div
-            className={`cubania-landing${customCursor ? ' cubania-landing--custom-cursor' : ''}`.trim()}
+            className={[
+                'cubania-landing',
+                customCursor ? 'cubania-landing--custom-cursor' : '',
+            ]
+                .filter(Boolean)
+                .join(' ')}
         >
             {customCursor ? <CubaniaCursor /> : null}
             <CubaniaNav
                 isAuthenticated={isAuthenticated}
+                canLogin={canLogin}
                 canRegister={canRegister}
             />
             <CubaniaHero />
             <CubaniaStylesSection />
-            <section
-                id="horarios"
-                className="cubania-section-anchor"
-                aria-label="Horarios"
-            />
             <CubaniaCtaBand />
+            <CubaniaAboutSection />
             <CubaniaTestimonialsSection />
             <CubaniaFooter />
+            <CubaniaWhatsappFloat />
         </div>
     );
 }

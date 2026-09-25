@@ -1,7 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
-import admin from '@/routes/admin';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/i18n/use-translation';
+import admin from '@/routes/admin';
 
 type CourseRow = {
     id: number;
@@ -15,26 +18,51 @@ type CourseRow = {
 
 type CoursesIndexProps = {
     courses: CourseRow[];
+    canDeleteCourses?: boolean;
 };
 
-export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
+export default function AdminCoursesIndex({
+    courses,
+    canDeleteCourses = false,
+}: CoursesIndexProps) {
+    const { t } = useTranslation();
+    const [courseToDelete, setCourseToDelete] = useState<CourseRow | null>(
+        null,
+    );
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingCourse, setDeletingCourse] = useState(false);
+
+    const confirmDeleteCourse = (): void => {
+        if (courseToDelete === null) {
+            return;
+        }
+
+        router.delete(admin.courses.destroy.url(courseToDelete.id), {
+            preserveScroll: true,
+            onStart: () => setDeletingCourse(true),
+            onSuccess: () => setDeleteDialogOpen(false),
+            onFinish: () => setDeletingCourse(false),
+        });
+    };
+
     return (
         <>
-            <Head title="Cursos" />
+            <Head title={t('admin.courses.title')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-semibold">Cursos</h1>
+                            <h1 className="text-2xl font-semibold">
+                                {t('admin.courses.title')}
+                            </h1>
                             <p className="text-sm text-muted-foreground">
-                                Grupos activos en la academia: alumnos,
-                                asistencia y figuras por nivel.
+                                {t('admin.courses.description')}
                             </p>
                         </div>
                         <Button asChild>
                             <Link href={admin.courses.create.url()}>
-                                Crear curso
+                                {t('admin.courses.createCourse')}
                             </Link>
                         </Button>
                     </div>
@@ -44,25 +72,25 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Nivel actual
+                                        {t('admin.courses.currentLevel')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Lugar
+                                        {t('common.place')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Profesor
+                                        {t('common.teacher')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Horario
+                                        {t('common.schedule')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Precio
+                                        {t('common.price')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        Estado
+                                        {t('common.status')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-right align-middle font-medium text-muted-foreground">
-                                        Acción
+                                        {t('common.action')}
                                     </th>
                                 </tr>
                             </thead>
@@ -73,7 +101,7 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                                             colSpan={7}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
-                                            No hay cursos registrados.
+                                            {t('admin.courses.noCourses')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -83,38 +111,64 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                                             className="border-b border-sidebar-border/70 last:border-0"
                                         >
                                             <td className="px-3 py-3 align-middle font-medium">
-                                                {c.level_name || '—'}
+                                                {c.level_name ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {c.place_name || '—'}
+                                                {c.place_name ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
-                                                {c.teacher_name || '—'}
+                                                {c.teacher_name ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="max-w-[220px] px-3 py-3 align-middle text-xs leading-snug text-muted-foreground">
-                                                {c.schedule_summary || '—'}
+                                                {c.schedule_summary ||
+                                                    t('common.emDash')}
                                             </td>
                                             <td className="px-3 py-3 align-middle whitespace-nowrap">
                                                 {c.price}
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 {c.is_active ? (
-                                                    <Badge>Activo</Badge>
+                                                    <Badge>
+                                                        {t('common.active')}
+                                                    </Badge>
                                                 ) : (
                                                     <Badge variant="secondary">
-                                                        Inactivo
+                                                        {t('common.inactive')}
                                                     </Badge>
                                                 )}
                                             </td>
                                             <td className="px-3 py-3 text-right align-middle">
-                                                <Link
-                                                    href={admin.courses.show.url(
-                                                        c.id,
-                                                    )}
-                                                    className="text-sm text-primary underline-offset-4 hover:underline"
-                                                >
-                                                    Ver curso
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Link
+                                                        href={admin.courses.show.url(
+                                                            c.id,
+                                                        )}
+                                                        className="text-sm text-primary underline-offset-4 hover:underline"
+                                                    >
+                                                        {t(
+                                                            'admin.courses.viewCourse',
+                                                        )}
+                                                    </Link>
+                                                    {canDeleteCourses ? (
+                                                        <button
+                                                            type="button"
+                                                            className="text-sm text-destructive underline-offset-4 hover:underline"
+                                                            onClick={() => {
+                                                                setCourseToDelete(
+                                                                    c,
+                                                                );
+                                                                setDeleteDialogOpen(
+                                                                    true,
+                                                                );
+                                                            }}
+                                                        >
+                                                            {t('common.delete')}
+                                                        </button>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -124,6 +178,23 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
                     </div>
                 </div>
             </div>
+
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                title={t('admin.courses.deleteCourse')}
+                description={t('admin.courses.deleteConfirm', {
+                    name:
+                        courseToDelete?.level_name ||
+                        t('admin.courses.courseLabel'),
+                })}
+                confirming={deletingCourse}
+                onOpenChange={(open) => {
+                    if (!open && !deletingCourse) {
+                        setDeleteDialogOpen(false);
+                    }
+                }}
+                onConfirm={confirmDeleteCourse}
+            />
         </>
     );
 }
@@ -131,7 +202,7 @@ export default function AdminCoursesIndex({ courses }: CoursesIndexProps) {
 AdminCoursesIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Cursos',
+            title: 'navigation.courses',
             href: admin.courses.index.url(),
         },
     ],

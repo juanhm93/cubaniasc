@@ -5,10 +5,12 @@ use App\Exceptions\Review\InvalidFigureSelectionException;
 use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Exceptions\Review\ReviewSessionExpiredException;
 use App\Exceptions\Review\StudentNotIdentifiableException;
+use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureOwnerUser;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectIfRegistrationDisabled;
 use App\Http\Middleware\RedirectIfUserPending;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -24,14 +26,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
         $middleware->alias([
             'active' => RedirectIfUserPending::class,
             'admin' => EnsureAdminRole::class,
+            'ability' => EnsureAbility::class,
             'owner' => EnsureOwnerUser::class,
         ]);
 
         $middleware->web(append: [
+            RedirectIfRegistrationDisabled::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

@@ -1,28 +1,26 @@
 import { Head, Link } from '@inertiajs/react';
+import { useTranslation } from '@/i18n/use-translation';
 import { logout } from '@/routes';
 
 export default function AccountPending() {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title="Cuenta pendiente" />
+            <Head title={t('account.pending.headTitle')} />
 
             <div className="space-y-4 text-center text-sm leading-relaxed text-muted-foreground">
                 <p className="text-base font-medium text-foreground">
-                    Tu cuenta se creó correctamente.
+                    {t('account.pending.created')}
                 </p>
                 <p>
-                    Por ahora tu usuario está en estado{' '}
-                    <span className="font-medium text-foreground">pendiente</span>
-                    : necesita ser aprobado por el propietario o un administrador
-                    de la academia antes de que puedas usar el resto de la
-                    plataforma.
+                    {t('account.pending.statusExplanation')}{' '}
+                    <span className="font-medium text-foreground">
+                        {t('account.pending.statusPending')}
+                    </span>
+                    {t('account.pending.statusDetails')}
                 </p>
-                <p>
-                    Cuando tu cuenta sea activada, podrás iniciar sesión y
-                    acceder al panel, cursos y el resto de herramientas. Si
-                    llevas tiempo esperando, escribe a la administración o al
-                    contacto que te invitó a registrarte.
-                </p>
+                <p>{t('account.pending.activationInfo')}</p>
 
                 <Link
                     href={logout()}
@@ -30,7 +28,7 @@ export default function AccountPending() {
                     as="button"
                     className="inline-block pt-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
                 >
-                    Cerrar sesión
+                    {t('account.pending.logOut')}
                 </Link>
             </div>
         </>
@@ -38,7 +36,6 @@ export default function AccountPending() {
 }
 
 AccountPending.layout = {
-    title: 'Cuenta pendiente',
-    description:
-        'Tu registro está en revisión. Te avisaremos cuando puedas acceder.',
+    title: 'account.pending.layoutTitle',
+    description: 'account.pending.layoutDescription',
 };

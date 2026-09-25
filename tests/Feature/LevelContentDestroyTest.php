@@ -49,4 +49,27 @@ class LevelContentDestroyTest extends TestCase
             'id' => $content->id,
         ]);
     }
+
+    public function test_non_admin_users_cannot_delete_level_content(): void
+    {
+        $teacherRole = Role::factory()->create([
+            'name' => 'Teacher',
+            'slug' => 'teacher',
+        ]);
+        $user = User::factory()->create([
+            'role_id' => $teacherRole->id,
+        ]);
+        $level = Level::factory()->create();
+        $content = LevelContent::factory()->for($level)->create();
+
+        $this->actingAs($user);
+
+        $this->deleteJson(route('api.level-contents.destroy', [
+            'levelContent' => $content->id,
+        ]))->assertForbidden();
+
+        $this->assertNotSoftDeleted('level_contents', [
+            'id' => $content->id,
+        ]);
+    }
 }

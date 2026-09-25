@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/i18n/use-translation';
 
 type Option = {
     id: number;
@@ -16,16 +17,17 @@ type CreateOneTimeSessionProps = {
     teachers: Option[];
 };
 
-const TYPE_OPTIONS: { value: string; label: string }[] = [
-    { value: 'workshop', label: 'Taller' },
-    { value: 'private_class', label: 'Clase personalizada' },
-    { value: 'event', label: 'Evento' },
+const TYPE_OPTIONS: { value: string; key: string }[] = [
+    { value: 'workshop', key: 'workshop' },
+    { value: 'private_class', key: 'privateClass' },
+    { value: 'event', key: 'event' },
 ];
 
 export default function OneTimeSessionCreate({
     places,
     teachers,
 }: CreateOneTimeSessionProps) {
+    const { t } = useTranslation();
     const form = useForm({
         type: 'workshop',
         name: '',
@@ -50,33 +52,34 @@ export default function OneTimeSessionCreate({
 
     return (
         <>
-            <Head title="Nueva clase especial" />
+            <Head title={t('admin.oneTimeSessions.newSession')} />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-semibold">
-                                Nueva clase especial
+                                {t('admin.oneTimeSessions.newSession')}
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                                Registra talleres, clases personalizadas o eventos
-                                de una sola oportunidad.
+                                {t('admin.oneTimeSessions.newSessionDescription')}
                             </p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
                             <Link href={admin.oneTimeSessions.index.url()}>
-                                Volver
+                                {t('common.back')}
                             </Link>
                         </Button>
                     </div>
 
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-                            <h2 className="text-sm font-medium">Datos generales</h2>
+                            <h2 className="text-sm font-medium">
+                                {t('common.generalData')}
+                            </h2>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="type">Tipo</Label>
+                                <Label htmlFor="type">{t('common.type')}</Label>
                                 <select
                                     id="type"
                                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -91,7 +94,9 @@ export default function OneTimeSessionCreate({
                                             key={type.value}
                                             value={type.value}
                                         >
-                                            {type.label}
+                                            {t(
+                                                `admin.sessionTypes.${type.key}`,
+                                            )}
                                         </option>
                                     ))}
                                 </select>
@@ -99,7 +104,7 @@ export default function OneTimeSessionCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Nombre</Label>
+                                <Label htmlFor="name">{t('common.name')}</Label>
                                 <Input
                                     id="name"
                                     value={form.data.name}
@@ -112,7 +117,9 @@ export default function OneTimeSessionCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="description">Descripción</Label>
+                                <Label htmlFor="description">
+                                    {t('common.description')}
+                                </Label>
                                 <textarea
                                     id="description"
                                     className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -129,7 +136,9 @@ export default function OneTimeSessionCreate({
 
                             <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="starts_at">Inicio</Label>
+                                    <Label htmlFor="starts_at">
+                                        {t('common.start')}
+                                    </Label>
                                     <Input
                                         id="starts_at"
                                         type="datetime-local"
@@ -145,7 +154,9 @@ export default function OneTimeSessionCreate({
                                     <InputError message={form.errors.starts_at} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="ends_at">Fin</Label>
+                                    <Label htmlFor="ends_at">
+                                        {t('common.end')}
+                                    </Label>
                                     <Input
                                         id="ends_at"
                                         type="datetime-local"
@@ -163,7 +174,9 @@ export default function OneTimeSessionCreate({
 
                             <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="price">Precio</Label>
+                                    <Label htmlFor="price">
+                                        {t('common.price')}
+                                    </Label>
                                     <Input
                                         id="price"
                                         type="number"
@@ -178,7 +191,9 @@ export default function OneTimeSessionCreate({
                                     <InputError message={form.errors.price} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="capacity">Capacidad</Label>
+                                    <Label htmlFor="capacity">
+                                        {t('common.capacity')}
+                                    </Label>
                                     <Input
                                         id="capacity"
                                         type="number"
@@ -198,7 +213,9 @@ export default function OneTimeSessionCreate({
 
                             <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="place_id">Lugar</Label>
+                                    <Label htmlFor="place_id">
+                                        {t('common.place')}
+                                    </Label>
                                     <select
                                         id="place_id"
                                         className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -211,7 +228,7 @@ export default function OneTimeSessionCreate({
                                         }
                                     >
                                         <option value="">
-                                            Sin lugar específico
+                                            {t('common.noPlace')}
                                         </option>
                                         {places.map((place) => (
                                             <option
@@ -225,7 +242,9 @@ export default function OneTimeSessionCreate({
                                     <InputError message={form.errors.place_id} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="user_id">Profesor</Label>
+                                    <Label htmlFor="user_id">
+                                        {t('common.teacher')}
+                                    </Label>
                                     <select
                                         id="user_id"
                                         className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -238,7 +257,7 @@ export default function OneTimeSessionCreate({
                                         }
                                     >
                                         <option value="">
-                                            Sin profesor asignado
+                                            {t('common.noTeacherAssigned')}
                                         </option>
                                         {teachers.map((teacher) => (
                                             <option
@@ -254,7 +273,9 @@ export default function OneTimeSessionCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="notes">Observaciones</Label>
+                                <Label htmlFor="notes">
+                                    {t('common.observations')}
+                                </Label>
                                 <textarea
                                     id="notes"
                                     className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -267,7 +288,9 @@ export default function OneTimeSessionCreate({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="is_active">Estado</Label>
+                                <Label htmlFor="is_active">
+                                    {t('common.status')}
+                                </Label>
                                 <select
                                     id="is_active"
                                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -279,8 +302,12 @@ export default function OneTimeSessionCreate({
                                         )
                                     }
                                 >
-                                    <option value="1">Activa</option>
-                                    <option value="0">Inactiva</option>
+                                    <option value="1">
+                                        {t('common.activeFemale')}
+                                    </option>
+                                    <option value="0">
+                                        {t('common.inactiveFemale')}
+                                    </option>
                                 </select>
                                 <InputError message={form.errors.is_active} />
                             </div>
@@ -289,12 +316,12 @@ export default function OneTimeSessionCreate({
                         <div className="flex flex-wrap gap-2">
                             <Button type="submit" disabled={form.processing}>
                                 {form.processing
-                                    ? 'Guardando...'
-                                    : 'Crear clase especial'}
+                                    ? t('common.saving')
+                                    : t('admin.oneTimeSessions.createSession')}
                             </Button>
                             <Button type="button" variant="outline" asChild>
                                 <Link href={admin.oneTimeSessions.index.url()}>
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </Link>
                             </Button>
                         </div>
@@ -308,11 +335,11 @@ export default function OneTimeSessionCreate({
 OneTimeSessionCreate.layout = {
     breadcrumbs: [
         {
-            title: 'Clases especiales',
+            title: 'navigation.oneTimeSessions',
             href: admin.oneTimeSessions.index.url(),
         },
         {
-            title: 'Nueva',
+            title: 'admin.breadcrumbs.new',
             href: admin.oneTimeSessions.create.url(),
         },
     ],

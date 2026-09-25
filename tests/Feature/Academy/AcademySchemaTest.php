@@ -4,8 +4,10 @@ namespace Tests\Feature\Academy;
 
 use App\Enums\AttendanceStatus;
 use App\Models\Attendance;
+use App\Models\DanceType;
 use App\Models\Enrollment;
 use App\Models\Level;
+use App\Models\LevelContent;
 use Database\Seeders\LevelCatalogSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,22 +46,31 @@ class AcademySchemaTest extends TestCase
         ]);
     }
 
-    public function test_level_catalog_seeder_creates_expected_levels_and_basico_one_figures(): void
+    public function test_level_catalog_seeder_creates_salsa_casino_levels_and_figures(): void
     {
         $this->seed(LevelCatalogSeeder::class);
 
-        $this->assertSame(13, Level::query()->count());
+        $salsa = DanceType::query()->where('slug', 'salsa-casino')->firstOrFail();
+
+        $this->assertSame(15, Level::query()->where('dance_type_id', $salsa->id)->count());
 
         $basico1 = Level::query()->where('slug', 'basico_1')->firstOrFail();
+        $master2 = Level::query()->where('slug', 'master_2')->firstOrFail();
+
+        $this->assertSame($salsa->id, $basico1->dance_type_id);
+        $this->assertSame('Máster 2', $master2->name);
 
         $names = $basico1->levelContents()->orderBy('sort_order')->pluck('name')->all();
 
+        $this->assertSame('Ángulos', $names[0]);
+        $this->assertSame('Exhíbela (Doble y N…)', $names[array_key_last($names)]);
+        $this->assertCount(13, $names);
+
         $this->assertSame(
-            [
-                'Vamos para arriba',
-                'Dame un cachito',
-            ],
-            $names
+            246,
+            LevelContent::query()
+                ->whereIn('level_id', Level::query()->where('dance_type_id', $salsa->id)->select('id'))
+                ->count()
         );
     }
 }

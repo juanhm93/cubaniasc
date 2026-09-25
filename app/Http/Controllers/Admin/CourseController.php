@@ -58,6 +58,7 @@ class CourseController extends Controller
 
         return Inertia::render('admin/courses/index', [
             'courses' => $courses,
+            'canDeleteCourses' => $request->user()?->isOwner() ?? false,
         ]);
     }
 
@@ -69,9 +70,16 @@ class CourseController extends Controller
         $companyId = $request->user()?->company_id;
 
         $levels = Level::query()
+            ->with('danceType:id,name')
             ->orderBy('dance_type_id')
             ->orderBy('sort_order')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'dance_type_id'])
+            ->map(fn (Level $level): array => [
+                'id' => $level->id,
+                'name' => $level->danceType !== null
+                    ? $level->danceType->name.' — '.$level->name
+                    : $level->name,
+            ]);
 
         $places = Place::query()
             ->when($companyId !== null, fn ($query) => $query->where('company_id', $companyId))
@@ -172,6 +180,7 @@ class CourseController extends Controller
 
         $enrollments = $course->enrollments()
             ->where('status', EnrollmentStatus::Active)
+            ->whereHas('student')
             ->with(['student:id,name,email'])
             ->orderBy('id')
             ->get();
@@ -337,6 +346,23 @@ class CourseController extends Controller
         ]);
 
         return redirect()->route('admin.courses.show', $course);
+    }
+
+    /**
+     * Soft delete a course (owner only, enforced by route middleware).
+     */
+    public function destroy(Request $request, Course $course): RedirectResponse
+    {
+        $this->authorizeCourseCompany($request, $course);
+
+        $course->delete();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Curso eliminado.',
+        ]);
+
+        return redirect()->route('admin.courses.index');
     }
 
     public function advanceLevel(Request $request, Course $course): RedirectResponse

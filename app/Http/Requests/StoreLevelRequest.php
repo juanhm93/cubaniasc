@@ -26,7 +26,7 @@ class StoreLevelRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
-            'dance_type_id' => ['nullable', 'integer', 'exists:dance_types,id'],
+            'dance_type_id' => ['required', 'integer', 'exists:dance_types,id'],
         ];
     }
 }

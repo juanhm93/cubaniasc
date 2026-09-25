@@ -46,4 +46,13 @@ class Level extends Model
     {
         return $this->hasMany(QuizItem::class);
     }
+    public function courseLevels(): HasMany
+    {
+        return $this->hasMany(CourseLevel::class);
+    }
+
+    public function isUsedByCourses(): bool
+    {
+        return $this->courses()->exists() || $this->courseLevels()->exists();
+    }
 }
