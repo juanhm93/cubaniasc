@@ -27,6 +27,7 @@ class LevelFactory extends Factory
             'description' => fake()->optional()->sentence(),
             'sort_order' => fake()->unique()->numberBetween(1, 500),
             'dance_type_id' => DanceType::factory(),
+            'review_duration_seconds' => 1800,
         ];
     }
 }

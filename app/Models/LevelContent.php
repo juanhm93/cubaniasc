@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -24,5 +25,16 @@ class LevelContent extends Model
     public function sessionLevelContents(): HasMany
     {
         return $this->hasMany(SessionLevelContent::class);
+    }
+
+    public function reviewSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(ReviewSession::class, 'review_session_figures')
+            ->withPivot('selected_by_student');
+    }
+
+    public function studentFigureViews(): HasMany
+    {
+        return $this->hasMany(StudentFigureView::class);
     }
 }

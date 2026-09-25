@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
 use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
+use App\Http\Controllers\Admin\RecommendedSongController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Api\DanceTypeController as ApiDanceTypeController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
 use App\Http\Controllers\PublicScheduleController;
+use App\Http\Controllers\ReviewPanelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,6 +34,8 @@ Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
 Route::post('pre-inscripcion', [PreRegistrationController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('pre-registration.store');
+
+Route::get('repaso', ReviewPanelController::class)->name('review-panel');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('account/pending', function () {
@@ -71,6 +75,15 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
 
         Route::get('levels', [LevelController::class, 'index'])->name('levels');
         Route::get('levels/{level}', [LevelController::class, 'show'])->name('levels.show');
+
+        Route::get('admin/recommended-songs', [RecommendedSongController::class, 'index'])
+            ->name('admin.recommended-songs.index');
+        Route::post('admin/recommended-songs', [RecommendedSongController::class, 'store'])
+            ->name('admin.recommended-songs.store');
+        Route::patch('admin/recommended-songs/{recommendedSong}', [RecommendedSongController::class, 'update'])
+            ->name('admin.recommended-songs.update');
+        Route::delete('admin/recommended-songs/{recommendedSong}', [RecommendedSongController::class, 'destroy'])
+            ->name('admin.recommended-songs.destroy');
 
         Route::prefix('api')->name('api.')->group(function () {
             Route::get('dance-types', [ApiDanceTypeController::class, 'index'])->name('dance-types.index');

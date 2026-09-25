@@ -1,13 +1,17 @@
+import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
+import { reviewPanel } from '@/routes';
 
 /**
  * Site footer with columns and social links.
  */
 export function CubaniaFooter(): ReactNode {
     const { t } = useTranslation();
-    const { social } = useCubaniaConfig();
+    const { social, footer } = useCubaniaConfig();
+    const { community } = footer;
+    const hasCommunityLinks = Object.values(community).some(Boolean);
 
     return (
         <footer className="cubania-footer">
@@ -64,49 +68,59 @@ export function CubaniaFooter(): ReactNode {
                             </li>
                         </ul>
                     </div>
-                    <div>
-                        <h3 className="cubania-footer__col-title">
-                            {t('landing.footer.community')}
-                        </h3>
-                        <ul className="cubania-footer__list">
-                            <li>
-                                <a
-                                    href="#"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.events')}
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.competitions')}
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.blog')}
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#"
-                                    className="cubania-footer__link"
-                                    data-cubania-cursor="interactive"
-                                >
-                                    {t('landing.footer.gallery')}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    {hasCommunityLinks ? (
+                        <div>
+                            <h3 className="cubania-footer__col-title">
+                                {t('landing.footer.community')}
+                            </h3>
+                            <ul className="cubania-footer__list">
+                                {community.events ? (
+                                    <li>
+                                        <a
+                                            href="#"
+                                            className="cubania-footer__link"
+                                            data-cubania-cursor="interactive"
+                                        >
+                                            {t('landing.footer.events')}
+                                        </a>
+                                    </li>
+                                ) : null}
+                                {community.competitions ? (
+                                    <li>
+                                        <a
+                                            href="#"
+                                            className="cubania-footer__link"
+                                            data-cubania-cursor="interactive"
+                                        >
+                                            {t('landing.footer.competitions')}
+                                        </a>
+                                    </li>
+                                ) : null}
+                                {community.blog ? (
+                                    <li>
+                                        <a
+                                            href="#"
+                                            className="cubania-footer__link"
+                                            data-cubania-cursor="interactive"
+                                        >
+                                            {t('landing.footer.blog')}
+                                        </a>
+                                    </li>
+                                ) : null}
+                                {community.review ? (
+                                    <li>
+                                        <Link
+                                            href={reviewPanel()}
+                                            className="cubania-footer__link"
+                                            data-cubania-cursor="interactive"
+                                        >
+                                            {t('landing.footer.review')}
+                                        </Link>
+                                    </li>
+                                ) : null}
+                            </ul>
+                        </div>
+                    ) : null}
                     <div>
                         <h3 className="cubania-footer__col-title">
                             {t('landing.footer.contact')}

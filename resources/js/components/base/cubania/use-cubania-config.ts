@@ -29,6 +29,14 @@ const fallbackCubania: CubaniaShared = {
         '/cubania-assets/slider/slider-3.webp',
         '/cubania-assets/slider/slider-4.webp',
     ],
+    footer: {
+        community: {
+            events: false,
+            competitions: false,
+            blog: false,
+            review: false,
+        },
+    },
 };
 
 export function useCubaniaConfig(): CubaniaShared {
