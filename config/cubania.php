@@ -94,4 +94,16 @@ return [
         'enabled' => (bool) env('MODE_HELP_CONTENT_CREATE', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Academy timezone
+    |--------------------------------------------------------------------------
+    |
+    | Timestamps are stored in UTC, but "today" for the daily review limit and
+    | the review streak is measured in the academy's local timezone.
+    |
+    */
+
+    'timezone' => env('CUBANIA_TIMEZONE', 'America/Caracas'),
+
 ];

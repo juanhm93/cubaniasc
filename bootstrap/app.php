@@ -1,5 +1,12 @@
 <?php
 
+use App\Exceptions\Review\ActiveEnrollmentNotFoundException;
+use App\Exceptions\Review\InvalidFigureSelectionException;
+use App\Exceptions\Review\QuizAnswerRejectedException;
+use App\Exceptions\Review\ReviewDailyLimitException;
+use App\Exceptions\Review\ReviewSessionExpiredException;
+use App\Exceptions\Review\ReviewSessionNotCompletableException;
+use App\Exceptions\Review\StudentNotIdentifiableException;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureOwnerUser;
@@ -11,10 +18,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -36,5 +45,45 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (StudentNotIdentifiableException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 404);
+            }
+        });
+
+        $exceptions->render(function (ActiveEnrollmentNotFoundException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 404);
+            }
+        });
+
+        $exceptions->render(function (ReviewSessionExpiredException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 410);
+            }
+        });
+
+        $exceptions->render(function (ReviewDailyLimitException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage(), 'locked' => true], 409);
+            }
+        });
+
+        $exceptions->render(function (InvalidFigureSelectionException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+        });
+
+        $exceptions->render(function (QuizAnswerRejectedException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 409);
+            }
+        });
+
+        $exceptions->render(function (ReviewSessionNotCompletableException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+        });
     })->create();
