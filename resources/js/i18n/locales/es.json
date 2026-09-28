@@ -829,6 +829,20 @@
       "toQuiz": "Ir al quiz",
       "saving": "Registrando…"
     },
+    "player": {
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "replay": "Repetir",
+      "rewind": "Retroceder 15 segundos",
+      "forward": "Adelantar 15 segundos",
+      "speed": "Velocidad",
+      "progress": "Progreso del video",
+      "mute": "Silenciar",
+      "unmute": "Activar sonido",
+      "fullscreen": "Pantalla completa",
+      "exitFullscreen": "Salir de pantalla completa",
+      "loading": "Cargando video…"
+    },
     "quiz": {
       "counter": "Pregunta {{current}} de {{total}}",
       "funFact": "Dato curioso",

@@ -43,3 +43,19 @@ export function youtubeWatchUrlToEmbedUrl(watchUrl: string): string {
 
     return trimmed;
 }
+
+const YOUTUBE_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
+
+/**
+ * Extracts the 11-character video id from a YouTube watch, youtu.be,
+ * embed or shorts URL. Returns null when the URL is not a YouTube video.
+ */
+export function youtubeVideoId(videoUrl: string): string | null {
+    const embedUrl = youtubeWatchUrlToEmbedUrl(videoUrl);
+    const match = embedUrl.match(
+        /^https:\/\/www\.youtube\.com\/embed\/([^/?#]+)/,
+    );
+    const id = match?.[1] ?? null;
+
+    return id !== null && YOUTUBE_ID_PATTERN.test(id) ? id : null;
+}
