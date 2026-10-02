@@ -14,9 +14,21 @@ export type CubaniaInstructor = {
     image: string;
 };
 
+export type CubaniaFooterCommunityLinks = {
+    events: boolean;
+    competitions: boolean;
+    blog: boolean;
+    review: boolean;
+};
+
+export type CubaniaFooterConfig = {
+    community: CubaniaFooterCommunityLinks;
+};
+
 export type CubaniaShared = {
     social: CubaniaSocialLinks;
     hero: CubaniaHeroConfig;
     instructors: CubaniaInstructor[];
     sliderImages: string[];
+    footer: CubaniaFooterConfig;
 };

@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
         User::factory(3)->create();
 
         $this->call(LevelCatalogSeeder::class);
+        $this->call(ReviewPanelSeeder::class);
         $this->call(PreRegistrationSeeder::class);
         $this->call(PaymentsDemoSeeder::class);
     }
