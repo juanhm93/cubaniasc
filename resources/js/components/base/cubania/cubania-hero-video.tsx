@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import {
+    isYouTubeOrigin,
+    parseYouTubeMessage,
+    readPlayerState,
+    youtubeCommand,
+    YT_ENDED,
+    YT_PAUSED,
+    YT_PLAYING,
+} from '@/components/base/cubania/youtube-iframe-messages';
 
 type CubaniaHeroVideoProps = {
     videoId: string;
@@ -7,51 +16,6 @@ type CubaniaHeroVideoProps = {
     showControls?: boolean;
     paused?: boolean;
 };
-
-const YT_ENDED = 0;
-const YT_PLAYING = 1;
-const YT_PAUSED = 2;
-
-function youtubeCommand(
-    win: Window,
-    func: string,
-    args: Array<number | string | boolean> = [],
-): void {
-    win.postMessage(
-        JSON.stringify({
-            event: 'command',
-            func,
-            args,
-        }),
-        '*',
-    );
-}
-
-function isYouTubeOrigin(origin: string): boolean {
-    return (
-        origin === 'https://www.youtube.com' ||
-        origin === 'https://www.youtube-nocookie.com'
-    );
-}
-
-function readPlayerState(payload: {
-    event?: string;
-    info?: number | { playerState?: number };
-}): number | null {
-    if (payload.event === 'onStateChange' && typeof payload.info === 'number') {
-        return payload.info;
-    }
-
-    if (
-        payload.event === 'infoDelivery' &&
-        typeof payload.info === 'object' &&
-        typeof payload.info?.playerState === 'number'
-    ) {
-        return payload.info.playerState;
-    }
-
-    return null;
-}
 
 export function CubaniaHeroVideo({
     videoId,
@@ -144,24 +108,12 @@ export function CubaniaHeroVideo({
                 return;
             }
 
-            let data: unknown = event.data;
+            const payload = parseYouTubeMessage(event.data);
 
-            if (typeof data === 'string') {
-                try {
-                    data = JSON.parse(data);
-                } catch {
-                    return;
-                }
-            }
-
-            if (!data || typeof data !== 'object') {
+            if (!payload) {
                 return;
             }
 
-            const payload = data as {
-                event?: string;
-                info?: number | { playerState?: number };
-            };
             const playerState = readPlayerState(payload);
 
             if (playerState === null) {

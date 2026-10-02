@@ -90,6 +90,34 @@ class LandingCubaniaConfigTest extends TestCase
                 ->has('cubania.sliderImages', 2));
     }
 
+    public function test_landing_hides_unfinished_footer_community_links_by_default(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('welcome')
+                ->where('cubania.footer.community.events', false)
+                ->where('cubania.footer.community.competitions', false)
+                ->where('cubania.footer.community.blog', false));
+    }
+
+    public function test_landing_shares_review_link_visibility_from_config(): void
+    {
+        config(['landingpage.footer.community.review' => true]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('cubania.footer.community.review', true));
+
+        config(['landingpage.footer.community.review' => false]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('cubania.footer.community.review', false));
+    }
+
     public function test_pre_registration_page_receives_cubania_social_links(): void
     {
         config([

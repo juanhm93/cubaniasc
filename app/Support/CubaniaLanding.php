@@ -15,7 +15,8 @@ final class CubaniaLanding
      *     social: array{instagram: string, tiktok: string, whatsapp: string},
      *     hero: array{youtubeUrl: string, youtubeId: string|null, playbackRate: float},
      *     instructors: list<array{image: string}>,
-     *     sliderImages: list<string>
+     *     sliderImages: list<string>,
+     *     footer: array{community: array{events: bool, competitions: bool, blog: bool, review: bool}}
      * }
      */
     public static function shared(): array
@@ -45,6 +46,14 @@ final class CubaniaLanding
                 $instructors,
             ),
             'sliderImages' => self::sliderImages(),
+            'footer' => [
+                'community' => [
+                    'events' => (bool) config('landingpage.footer.community.events'),
+                    'competitions' => (bool) config('landingpage.footer.community.competitions'),
+                    'blog' => (bool) config('landingpage.footer.community.blog'),
+                    'review' => (bool) config('landingpage.footer.community.review'),
+                ],
+            ],
         ];
     }
 
