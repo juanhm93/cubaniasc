@@ -10,8 +10,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAbilities } from '@/hooks/use-abilities';
 import { useTranslation } from '@/i18n/use-translation';
+import { presentNotification } from '@/lib/notification-registry';
 import { cn } from '@/lib/utils';
-import admin from '@/routes/admin';
 import {
     getNotifications,
     markAllNotificationsAsRead,
@@ -115,19 +115,14 @@ export function NotificationBell() {
             }
         }
 
-        if (!abilities.payments) {
+        const { href } = presentNotification(notification, t, abilities);
+
+        if (href === null) {
             return;
         }
 
         setOpen(false);
-        router.visit(
-            admin.payments.index.url({
-                query: {
-                    tab: 'mas',
-                    preRegistration: notification.data.pre_registration_id,
-                },
-            }),
-        );
+        router.visit(href);
     }
 
     return (
@@ -199,42 +194,54 @@ export function NotificationBell() {
 
                 {status === 'success' && notifications.length > 0 ? (
                     <ul className="divide-y">
-                        {notifications.map((notification) => (
-                            <li key={notification.id}>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        void handleSelect(notification)
-                                    }
-                                    className={cn(
-                                        'w-full px-3 py-3 text-left transition-colors hover:bg-accent',
-                                        abilities.payments
-                                            ? 'cursor-pointer'
-                                            : 'cursor-default',
-                                        notification.read_at === null &&
-                                            'bg-accent/40',
-                                    )}
-                                >
-                                    <p className="text-sm font-medium">
-                                        {t('notifications.newPreRegistration', {
-                                            name: notification.data.name,
-                                        })}
-                                    </p>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                        {notification.data.email}
-                                        {notification.data.country_label
-                                            ? ` · ${notification.data.country_label}`
-                                            : ''}
-                                    </p>
-                                    <p className="mt-1 text-[11px] text-muted-foreground">
-                                        {formatRelativeEs(
-                                            notification.created_at,
-                                            t('common.emDash'),
+                        {notifications.map((notification) => {
+                            const presentation = presentNotification(
+                                notification,
+                                t,
+                                abilities,
+                            );
+                            const Icon = presentation.icon;
+
+                            return (
+                                <li key={notification.id}>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            void handleSelect(notification)
+                                        }
+                                        className={cn(
+                                            'flex w-full gap-3 px-3 py-3 text-left transition-colors hover:bg-accent',
+                                            presentation.href !== null
+                                                ? 'cursor-pointer'
+                                                : 'cursor-default',
+                                            notification.read_at === null &&
+                                                'bg-accent/40',
                                         )}
-                                    </p>
-                                </button>
-                            </li>
-                        ))}
+                                    >
+                                        <Icon
+                                            aria-hidden="true"
+                                            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-sm font-medium">
+                                                {presentation.title}
+                                            </span>
+                                            {presentation.subtitle ? (
+                                                <span className="block truncate text-xs text-muted-foreground">
+                                                    {presentation.subtitle}
+                                                </span>
+                                            ) : null}
+                                            <span className="mt-1 block text-[11px] text-muted-foreground">
+                                                {formatRelativeEs(
+                                                    notification.created_at,
+                                                    t('common.emDash'),
+                                                )}
+                                            </span>
+                                        </span>
+                                    </button>
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : null}
             </DropdownMenuContent>

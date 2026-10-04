@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyPaymentRecorded;
 use App\Enums\EnrollmentStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
@@ -9,6 +10,7 @@ use App\Http\Requests\StorePaymentRequest;
 use App\Models\Enrollment;
 use App\Models\Payment;
 use App\Models\PreRegistration;
+use App\Support\BillingPeriod;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +39,6 @@ class PaymentController extends Controller
         }
 
         $monthStart = $monthCarbon->copy()->startOfMonth();
-        $monthEnd = $monthCarbon->copy()->endOfMonth();
 
         $calendarMonths = [];
 
@@ -100,7 +101,8 @@ class PaymentController extends Controller
 
         $lastInMonth = DB::table('payments')
             ->whereNull('deleted_at')
-            ->whereRaw('COALESCE(paid_at, created_at) BETWEEN ? AND ?', [$monthStart, $monthEnd])
+            ->whereDate('period', $monthStart->toDateString())
+            ->where('status', '!=', PaymentStatus::Cancelled->value)
             ->selectRaw('student_id, course_id, MAX(COALESCE(paid_at, created_at)) as dt')
             ->groupBy('student_id', 'course_id')
             ->get()
@@ -134,13 +136,16 @@ class PaymentController extends Controller
             'preRegistrations' => $preRegistrations,
             'selectedTab' => $selectedTab,
             'highlightedPreRegistrationId' => $highlightedPreRegistrationId,
+            'defaultPeriod' => $request->query('month') === $monthKey && $monthKey !== now()->format('Y-m')
+                ? $monthKey
+                : BillingPeriod::key(BillingPeriod::defaultForNewPayment()),
         ]);
     }
 
     /**
      * Store a payment row (reference and/or receipt; cash exempt from both).
      */
-    public function store(StorePaymentRequest $request): RedirectResponse
+    public function store(StorePaymentRequest $request, NotifyPaymentRecorded $notifyPaymentRecorded): RedirectResponse
     {
         $data = $request->validatedForPayment();
 
@@ -165,18 +170,25 @@ class PaymentController extends Controller
             ? Carbon::parse((string) $data['due_at'])
             : null;
 
-        Payment::query()->create([
+        $period = isset($data['period'])
+            ? BillingPeriod::fromKey((string) $data['period'])
+            : BillingPeriod::defaultForNewPayment();
+
+        $payment = Payment::query()->create([
             'amount' => $data['amount'],
             'reference' => $data['reference'] ?? null,
             'receipt_path' => $receiptPath,
             'course_id' => $data['course_id'],
             'student_id' => $data['student_id'],
+            'period' => $period->toDateString(),
             'status' => $data['status'] ?? PaymentStatus::Paid,
             'due_at' => $dueAt,
             'paid_at' => $paidAt,
             'method' => $method,
             'notes' => $data['notes'] ?? null,
         ]);
+
+        $notifyPaymentRecorded->execute($payment, $request->user());
 
         Inertia::flash('toast', [
             'type' => 'success',

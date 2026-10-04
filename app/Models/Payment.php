@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
     'receipt_path',
     'course_id',
     'student_id',
+    'period',
     'status',
     'due_at',
     'paid_at',
@@ -51,6 +52,7 @@ class Payment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'period' => 'date',
             'status' => PaymentStatus::class,
             'due_at' => 'datetime',
             'paid_at' => 'datetime',

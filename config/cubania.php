@@ -106,4 +106,29 @@ return [
 
     'timezone' => env('CUBANIA_TIMEZONE', 'America/Caracas'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    |
+    | The host has no queue worker and no cron, so monthly payment reminders
+    | are triggered by the first web visits of each reminder day and sent after
+    | the response, in small batches. The same work can be run by hand (or by a
+    | future cPanel cron) with `php artisan cubania:send-payment-reminders`.
+    |
+    | Catalog edits alert the owner by email at most once per figure in the
+    | cooldown window; the bell always records every change.
+    |
+    */
+
+    'notifications' => [
+        'payment_reminders' => [
+            'auto' => (bool) env('CUBANIA_PAYMENT_REMINDERS_AUTO', true),
+            'send_from_hour' => (int) env('CUBANIA_PAYMENT_REMINDERS_FROM_HOUR', 9),
+            'batch_size' => (int) env('CUBANIA_PAYMENT_REMINDERS_BATCH_SIZE', 40),
+            'throttle_minutes' => (int) env('CUBANIA_PAYMENT_REMINDERS_EVERY_MINUTES', 15),
+        ],
+        'content_mail_cooldown_minutes' => (int) env('CUBANIA_CONTENT_MAIL_COOLDOWN_MINUTES', 30),
+    ],
+
 ];

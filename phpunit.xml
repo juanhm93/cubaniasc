@@ -34,5 +34,6 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="AUTH_REGISTRATION_ENABLED" value="true"/>
         <env name="AUTH_LOGIN_VISIBLE" value="true"/>
+        <env name="CUBANIA_PAYMENT_REMINDERS_AUTO" value="false"/>
     </php>
 </phpunit>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyOneTimeSessionCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOneTimeSessionRequest;
 use App\Models\OneTimeSession;
@@ -66,7 +67,7 @@ class OneTimeSessionController extends Controller
         ]);
     }
 
-    public function store(StoreOneTimeSessionRequest $request): RedirectResponse
+    public function store(StoreOneTimeSessionRequest $request, NotifyOneTimeSessionCreated $notifyOneTimeSessionCreated): RedirectResponse
     {
         $companyId = $request->user()?->company_id;
 
@@ -76,7 +77,7 @@ class OneTimeSessionController extends Controller
 
         $data = $request->validated();
 
-        OneTimeSession::query()->create([
+        $session = OneTimeSession::query()->create([
             'company_id' => $companyId,
             'place_id' => $data['place_id'] ?? null,
             'user_id' => $data['user_id'] ?? null,
@@ -90,6 +91,8 @@ class OneTimeSessionController extends Controller
             'is_active' => (bool) $data['is_active'],
             'notes' => $data['notes'] ?? null,
         ]);
+
+        $notifyOneTimeSessionCreated->execute($session, $request->user());
 
         return redirect()->route('admin.one-time-sessions.index');
     }

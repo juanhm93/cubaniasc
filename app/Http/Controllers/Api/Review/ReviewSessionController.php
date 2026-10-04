@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Review;
 
+use App\Actions\Notifications\NotifyReviewCompleted;
 use App\Exceptions\Review\ReviewSessionNotCompletableException;
 use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
@@ -31,6 +32,7 @@ final class ReviewSessionController extends Controller
         private readonly FigureSelectionService $figureSelectionService,
         private readonly SongRecommendationService $songRecommendationService,
         private readonly StreakService $streakService,
+        private readonly NotifyReviewCompleted $notifyReviewCompleted,
     ) {}
 
     public function store(Request $request): JsonResponse
@@ -160,6 +162,10 @@ final class ReviewSessionController extends Controller
         $streak = $wasAlreadyCompleted
             ? $this->streakService->getOrCreate($student)
             : $this->streakService->recordCompletion($student);
+
+        if (! $wasAlreadyCompleted) {
+            $this->notifyReviewCompleted->execute($student, $session, $this->streakService->currentStreak($streak));
+        }
 
         return response()->json([
             'data' => [

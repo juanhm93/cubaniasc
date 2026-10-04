@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyEnrollmentCreated;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentFromPreRegistrationRequest;
@@ -39,7 +40,7 @@ class PaymentStudentEnrollmentController extends Controller
     /**
      * Persist student (and optional enrollment) from the payments workspace.
      */
-    public function store(StoreStudentFromPreRegistrationRequest $request): RedirectResponse
+    public function store(StoreStudentFromPreRegistrationRequest $request, NotifyEnrollmentCreated $notifyEnrollmentCreated): RedirectResponse
     {
         $attributes = $request->validatedStudentAttributes();
 
@@ -49,11 +50,13 @@ class PaymentStudentEnrollmentController extends Controller
             ? (int) $validated['course_id']
             : null;
 
-        $student = DB::transaction(function () use ($attributes, $courseId): Student {
+        [$student, $enrollment] = DB::transaction(function () use ($attributes, $courseId): array {
             $student = Student::query()->create($attributes);
 
+            $enrollment = null;
+
             if ($courseId !== null) {
-                Enrollment::query()->create([
+                $enrollment = Enrollment::query()->create([
                     'course_id' => $courseId,
                     'student_id' => $student->id,
                     'status' => EnrollmentStatus::Active,
@@ -61,8 +64,12 @@ class PaymentStudentEnrollmentController extends Controller
                 ]);
             }
 
-            return $student;
+            return [$student, $enrollment];
         });
+
+        if ($enrollment !== null) {
+            $notifyEnrollmentCreated->execute($enrollment, $request->user());
+        }
 
         return redirect()->route('admin.students.show', $student);
     }

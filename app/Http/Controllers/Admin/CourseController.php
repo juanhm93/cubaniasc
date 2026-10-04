@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyCourseContentCovered;
+use App\Actions\Notifications\NotifyCourseLevelAdvanced;
+use App\Actions\Notifications\NotifyTeacherAssigned;
 use App\Enums\AttendanceStatus;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
@@ -20,9 +23,9 @@ use App\Models\Level;
 use App\Models\LevelContent;
 use App\Models\Place;
 use App\Models\User;
+use App\Support\CourseSummary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -53,7 +56,7 @@ class CourseController extends Controller
                 'level_name' => $course->level?->name ?? '',
                 'place_name' => $course->place?->name ?? '',
                 'teacher_name' => $course->teacher?->name ?? '',
-                'schedule_summary' => self::formatScheduleSummary($course->scheduleSlots),
+                'schedule_summary' => CourseSummary::schedule($course->scheduleSlots),
             ]);
 
         return Inertia::render('admin/courses/index', [
@@ -101,7 +104,7 @@ class CourseController extends Controller
     /**
      * Persist new course and schedule slots.
      */
-    public function store(StoreCourseRequest $request): RedirectResponse
+    public function store(StoreCourseRequest $request, NotifyTeacherAssigned $notifyTeacherAssigned): RedirectResponse
     {
         $companyId = $request->user()?->company_id;
 
@@ -136,6 +139,8 @@ class CourseController extends Controller
 
             return $course;
         });
+
+        $notifyTeacherAssigned->execute($course, $request->user());
 
         return redirect()->route('admin.courses.show', $course);
     }
@@ -304,11 +309,11 @@ class CourseController extends Controller
                 'teacher' => $course->teacher ? ['id' => $course->teacher->id, 'name' => $course->teacher->name] : null,
                 'schedule_slots' => $course->scheduleSlots->map(fn (CourseScheduleSlot $slot): array => [
                     'weekday' => $slot->weekday,
-                    'weekday_label' => self::weekdayShortEs((int) $slot->weekday),
-                    'starts_at' => self::formatTimeSlot($slot->starts_at),
-                    'ends_at' => self::formatTimeSlot($slot->ends_at),
+                    'weekday_label' => CourseSummary::weekdayShort((int) $slot->weekday),
+                    'starts_at' => CourseSummary::time($slot->starts_at),
+                    'ends_at' => CourseSummary::time($slot->ends_at),
                 ])->values()->all(),
-                'schedule_summary' => self::formatScheduleSummary($course->scheduleSlots),
+                'schedule_summary' => CourseSummary::schedule($course->scheduleSlots),
             ],
             'levelsPath' => $levelsPath,
             'nextLevel' => $nextLevel ? ['id' => $nextLevel->id, 'name' => $nextLevel->name] : null,
@@ -333,7 +338,7 @@ class CourseController extends Controller
         ]);
     }
 
-    public function update(UpdateAdminCourseRequest $request, Course $course): RedirectResponse
+    public function update(UpdateAdminCourseRequest $request, Course $course, NotifyTeacherAssigned $notifyTeacherAssigned): RedirectResponse
     {
         $this->authorizeCourseCompany($request, $course);
 
@@ -344,6 +349,10 @@ class CourseController extends Controller
             'user_id' => $data['user_id'],
             'place_id' => $data['place_id'],
         ]);
+
+        if ($course->wasChanged('user_id')) {
+            $notifyTeacherAssigned->execute($course, $request->user());
+        }
 
         return redirect()->route('admin.courses.show', $course);
     }
@@ -365,7 +374,7 @@ class CourseController extends Controller
         return redirect()->route('admin.courses.index');
     }
 
-    public function advanceLevel(Request $request, Course $course): RedirectResponse
+    public function advanceLevel(Request $request, Course $course, NotifyCourseLevelAdvanced $notifyCourseLevelAdvanced): RedirectResponse
     {
         $this->authorizeCourseCompany($request, $course);
 
@@ -376,6 +385,8 @@ class CourseController extends Controller
                 'level' => 'El curso no tiene nivel asignado.',
             ]);
         }
+
+        $previousLevel = $course->level;
 
         $next = Level::query()
             ->where('dance_type_id', $course->level->dance_type_id)
@@ -405,6 +416,8 @@ class CourseController extends Controller
             $course->level_id = $next->id;
             $course->save();
         });
+
+        $notifyCourseLevelAdvanced->execute($course, $previousLevel, $request->user());
 
         return redirect()->route('admin.courses.show', $course);
     }
@@ -440,17 +453,18 @@ class CourseController extends Controller
     public function toggleCourseLevelContent(
         ToggleCourseLevelContentRequest $request,
         Course $course,
+        NotifyCourseContentCovered $notifyCourseContentCovered,
     ): RedirectResponse {
         $this->authorizeCourseCompany($request, $course);
 
         $levelContentId = (int) $request->validated('level_content_id');
 
-        $belongsToCurrentLevel = LevelContent::query()
+        $figure = LevelContent::query()
             ->where('id', $levelContentId)
             ->where('level_id', $course->level_id)
-            ->exists();
+            ->first();
 
-        if (! $belongsToCurrentLevel) {
+        if ($figure === null) {
             return redirect()->route('admin.courses.show', $course)->withErrors([
                 'level_content_id' => 'La figura no pertenece al nivel actual del curso.',
             ]);
@@ -469,6 +483,8 @@ class CourseController extends Controller
                 'level_content_id' => $levelContentId,
                 'completed_at' => now(),
             ]);
+
+            $notifyCourseContentCovered->execute($course, $figure, $request->user());
         }
 
         return redirect()->route('admin.courses.show', $course);
@@ -481,55 +497,5 @@ class CourseController extends Controller
         if ($companyId !== null && (int) $course->company_id !== (int) $companyId) {
             abort(403);
         }
-    }
-
-    /**
-     * @param  Collection<int, CourseScheduleSlot>  $slots
-     */
-    private static function formatScheduleSummary(Collection $slots): string
-    {
-        if ($slots->isEmpty()) {
-            return '';
-        }
-
-        return $slots
-            ->sortBy(fn (CourseScheduleSlot $s): array => [$s->sort_order, $s->weekday])
-            ->map(function (CourseScheduleSlot $slot): string {
-                $day = self::weekdayShortEs((int) $slot->weekday);
-                $from = self::formatTimeSlot($slot->starts_at);
-                $to = self::formatTimeSlot($slot->ends_at);
-
-                return "{$day} {$from}–{$to}";
-            })
-            ->implode(' · ');
-    }
-
-    private static function weekdayShortEs(int $weekday): string
-    {
-        return match ($weekday) {
-            1 => 'Lun',
-            2 => 'Mar',
-            3 => 'Mié',
-            4 => 'Jue',
-            5 => 'Vie',
-            6 => 'Sáb',
-            7 => 'Dom',
-            default => '?',
-        };
-    }
-
-    private static function formatTimeSlot(mixed $value): string
-    {
-        if ($value === null || $value === '') {
-            return '';
-        }
-
-        $str = is_string($value) ? $value : (string) $value;
-
-        if (preg_match('/^\d{2}:\d{2}/', $str, $m)) {
-            return substr($m[0], 0, 5);
-        }
-
-        return $str;
     }
 }

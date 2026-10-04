@@ -72,10 +72,13 @@ El esquema está casi todo en `database/migrations/2026_04_29_000000_create_acad
 
 ### Notificaciones y correo
 
-- **Producción no tiene worker de colas.** Notificaciones y mails se envían de forma síncrona a propósito. No implementes `ShouldQueue` en ellos.
-- `NewPreRegistrationNotification` usa los canales `['database', 'mail']` en ese orden, para que la campana funcione aunque falle el SMTP.
-- `PreRegistrationController` notifica a cada destinatario (`PreRegistrationRecipients::staff()`: owner, admin, teacher, admin_staff activos) dentro de `try/catch` + `report()`. Un fallo de correo nunca rompe el formulario público.
-- El payload en base de datos no guarda URLs; el frontend construye el enlace a partir del id.
+- **Producción no tiene worker de colas ni cron.** No implementes `ShouldQueue`. Las notificaciones se envían en el mismo proceso PHP con `SafeNotifier::afterResponse()` (envuelve `defer()`): corren después de enviar la respuesta y solo si es < 400.
+- Cada evento tiene su acción en `app/Actions/Notifications/Notify*.php` (`execute($modelo, ?User $actor)`); el controlador la llama después de la transacción. Los destinatarios salen de `NotificationRecipients` (`withAbility`, `ownersAndAdmins`, `owners`, `teachersOf`, `combine`), que solo devuelve usuarios activos y excluye al actor.
+- `SafeNotifier::notifyEach()` / `attempt()` envuelven cada envío en `try/catch` + `report()`: un fallo de correo nunca rompe la acción.
+- Canales: staff `['database', 'mail']` en ese orden (la campana funciona aunque falle el SMTP) o solo `['database']`; alumnos (`Student` es `Notifiable`) y usuarios sin campana, solo `['mail']`. Vistas en `resources/views/mail/<dominio>/`; plantilla base publicada en `resources/views/vendor/mail`.
+- Matriz: preinscripción, inscripción con curso, pago (`payments` + recibo al alumno), figura marcada como vista (owner/admin), cambios de figuras del catálogo (solo owner, correo máx. 1 por figura cada 30 min), repaso diario terminado (correo al alumno, campana a sus profesores + owner/admin), subida de nivel (staff + correo a alumnos), usuario pendiente (`adminUsers`), cuenta aprobada, profesor asignado y nuevo taller/evento.
+- **Recordatorios de pago**: `payments.period` es el mes que cubre cada pago (`BillingPeriod`). `SendPaymentReminders` manda el día −5 (`window`) y el último día (`last_day`) a quien no tenga pago `paid` del mes siguiente; `payment_reminders` (único por alumno, periodo y tipo) evita duplicados. Lo dispara el middleware `TriggerPaymentReminders` en visitas web desde las 9:00 hora local, en lotes cada 15 min (`config('cubania.notifications')`); también `php artisan cubania:send-payment-reminders`. En tests está apagado (`CUBANIA_PAYMENT_REMINDERS_AUTO=false`).
+- El payload en base de datos no guarda URLs; `resources/js/lib/notification-registry.ts` decide icono, texto y enlace por `type` (class basename). Un tipo nuevo necesita su entrada ahí, su tipo en `types/notifications.ts` y sus claves en `es.json`.
 - `Api\NotificationController` busca por la relación del usuario (no por route binding) para que nadie marque notificaciones ajenas.
 
 ### Frontend

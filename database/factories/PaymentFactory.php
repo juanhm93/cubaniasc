@@ -26,6 +26,7 @@ class PaymentFactory extends Factory
             'receipt_path' => null,
             'course_id' => Course::factory(),
             'student_id' => Student::factory(),
+            'period' => now()->startOfMonth()->toDateString(),
             'status' => PaymentStatus::Pending,
             'due_at' => now()->addDays(7),
             'paid_at' => null,

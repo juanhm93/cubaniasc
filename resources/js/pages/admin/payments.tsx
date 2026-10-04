@@ -57,6 +57,7 @@ type PaymentsProps = {
     preRegistrations: PreRegistrationRow[];
     selectedTab: 'alumnos' | 'mas';
     highlightedPreRegistrationId: number | null;
+    defaultPeriod: string;
 };
 
 type PaymentMethod = 'efectivo' | 'transferencia' | 'otro';
@@ -65,6 +66,7 @@ type PaymentFormData = {
     student_id: number;
     course_id: number;
     amount: string;
+    period: string;
     method: PaymentMethod;
     reference: string;
     receipt: File | null;
@@ -96,11 +98,15 @@ function formatDateEs(iso: string | null, emptyLabel: string): string {
     }
 }
 
-function emptyPaymentForm(returnMonth: string): PaymentFormData {
+function emptyPaymentForm(
+    returnMonth: string,
+    defaultPeriod: string,
+): PaymentFormData {
     return {
         student_id: 0,
         course_id: 0,
         amount: '',
+        period: defaultPeriod,
         method: 'transferencia',
         reference: '',
         receipt: null,
@@ -137,6 +143,7 @@ export default function AdminPayments({
     preRegistrations,
     selectedTab,
     highlightedPreRegistrationId,
+    defaultPeriod,
 }: PaymentsProps) {
     const { t } = useTranslation();
     const abilities = useAbilities();
@@ -152,7 +159,9 @@ export default function AdminPayments({
 
     const receiptRef = useRef<HTMLInputElement>(null);
 
-    const form = useForm<PaymentFormData>(emptyPaymentForm(selectedMonth));
+    const form = useForm<PaymentFormData>(
+        emptyPaymentForm(selectedMonth, defaultPeriod),
+    );
 
     useEffect(() => {
         form.setData('return_month', selectedMonth);
@@ -161,7 +170,7 @@ export default function AdminPayments({
     function openPaymentModal(row: EnrollmentRow): void {
         form.clearErrors();
         form.setData({
-            ...emptyPaymentForm(selectedMonth),
+            ...emptyPaymentForm(selectedMonth, defaultPeriod),
             student_id: row.student_id,
             course_id: row.course_id,
             paid_at: toDatetimeLocalValue(new Date()),
@@ -596,6 +605,27 @@ export default function AdminPayments({
                                     disabled={form.processing}
                                 />
                                 <InputError message={form.errors.amount} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="pay-period">
+                                    {t('admin.payments.period')}
+                                </Label>
+                                <Input
+                                    id="pay-period"
+                                    name="period"
+                                    type="month"
+                                    required
+                                    value={form.data.period}
+                                    onChange={(e) =>
+                                        form.setData('period', e.target.value)
+                                    }
+                                    disabled={form.processing}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    {t('admin.payments.periodHint')}
+                                </p>
+                                <InputError message={form.errors.period} />
                             </div>
 
                             <div className="grid gap-2">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyEnrollmentCreated;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentFromPreRegistrationRequest;
@@ -61,7 +62,7 @@ class PreRegistrationEnrollmentController extends Controller
     /**
      * Persist student (and optional enrollment), remove pre-registration.
      */
-    public function store(StoreStudentFromPreRegistrationRequest $request, PreRegistration $preRegistration): RedirectResponse
+    public function store(StoreStudentFromPreRegistrationRequest $request, PreRegistration $preRegistration, NotifyEnrollmentCreated $notifyEnrollmentCreated): RedirectResponse
     {
         $attributes = $request->validatedStudentAttributes();
 
@@ -71,12 +72,14 @@ class PreRegistrationEnrollmentController extends Controller
             ? (int) $validated['course_id']
             : null;
 
-        $student = DB::transaction(function () use ($attributes, $courseId, $preRegistration): Student {
+        [$student, $enrollment] = DB::transaction(function () use ($attributes, $courseId, $preRegistration): array {
             $student = Student::query()->create($attributes);
             $preRegistration->delete();
 
+            $enrollment = null;
+
             if ($courseId !== null) {
-                Enrollment::query()->create([
+                $enrollment = Enrollment::query()->create([
                     'course_id' => $courseId,
                     'student_id' => $student->id,
                     'status' => EnrollmentStatus::Active,
@@ -84,8 +87,12 @@ class PreRegistrationEnrollmentController extends Controller
                 ]);
             }
 
-            return $student;
+            return [$student, $enrollment];
         });
+
+        if ($enrollment !== null) {
+            $notifyEnrollmentCreated->execute($enrollment, $request->user());
+        }
 
         return redirect()->route('admin.students.show', $student);
     }

@@ -7,12 +7,12 @@ use App\Mail\PreRegistrationConfirmationMail;
 use App\Models\PreRegistration;
 use App\Notifications\NewPreRegistrationNotification;
 use App\Support\PreRegistrationRecipients;
+use App\Support\SafeNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
-use Throwable;
 
 class PreRegistrationController extends Controller
 {
@@ -50,22 +50,12 @@ class PreRegistrationController extends Controller
      */
     private function dispatchPreRegistrationMail(PreRegistration $preRegistration): void
     {
-        $notification = new NewPreRegistrationNotification($preRegistration);
+        SafeNotifier::notifyEach(
+            PreRegistrationRecipients::staff(),
+            new NewPreRegistrationNotification($preRegistration),
+        );
 
-        foreach (PreRegistrationRecipients::staff() as $recipient) {
-            $this->attempt(fn () => $recipient->notify($notification));
-        }
-
-        $this->attempt(fn () => Mail::to($preRegistration->email)
+        SafeNotifier::attempt(fn () => Mail::to($preRegistration->email)
             ->send(new PreRegistrationConfirmationMail($preRegistration)));
-    }
-
-    private function attempt(callable $stage): void
-    {
-        try {
-            $stage();
-        } catch (Throwable $exception) {
-            report($exception);
-        }
     }
 }

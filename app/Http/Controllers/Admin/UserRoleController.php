@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\NotifyUserApproved;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
@@ -43,7 +44,7 @@ class UserRoleController extends Controller
         return back()->with('success', 'Role updated successfully.');
     }
 
-    public function updateStatus(Request $request, User $user): RedirectResponse
+    public function updateStatus(Request $request, User $user, NotifyUserApproved $notifyUserApproved): RedirectResponse
     {
         if ($user->isOwner()) {
             abort(403);
@@ -53,8 +54,14 @@ class UserRoleController extends Controller
             'status' => ['required', Rule::in(['active', 'pending'])],
         ]);
 
+        $wasPending = $user->isPending();
+
         $user->status = $validated['status'];
         $user->save();
+
+        if ($wasPending && $user->isActive()) {
+            $notifyUserApproved->execute($user);
+        }
 
         return back()->with('success', 'User status updated successfully.');
     }
