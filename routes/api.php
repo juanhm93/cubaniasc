@@ -5,7 +5,32 @@ use App\Http\Controllers\Api\Review\ReviewQuizController;
 use App\Http\Controllers\Api\Review\ReviewSessionController;
 use App\Http\Controllers\Api\Review\ReviewStreakController;
 use App\Http\Controllers\Api\Review\StudentIdentificationController;
+use App\Http\Controllers\Api\V1\Auth\LogoutController;
+use App\Http\Controllers\Api\V1\Auth\RequestLoginCodeController;
+use App\Http\Controllers\Api\V1\Auth\VerifyLoginCodeController;
+use App\Http\Controllers\Api\V1\MeController;
 use Illuminate\Support\Facades\Route;
+
+/*
+| API v1 for the mobile app. Students sign in with a one-time code emailed to them
+| and receive a Sanctum token with the `app` ability. Contract: docs/api/v1/openapi.yaml
+*/
+Route::prefix('v1')->name('v1.')->group(function (): void {
+    Route::prefix('auth')->name('auth.')->group(function (): void {
+        Route::post('request-code', RequestLoginCodeController::class)
+            ->middleware('throttle:app-login-request')
+            ->name('request-code');
+
+        Route::post('verify-code', VerifyLoginCodeController::class)
+            ->middleware('throttle:app-login-verify')
+            ->name('verify-code');
+    });
+
+    Route::middleware(['auth:sanctum', 'app.student'])->group(function (): void {
+        Route::get('me', MeController::class)->name('me');
+        Route::post('auth/logout', LogoutController::class)->name('auth.logout');
+    });
+});
 
 Route::prefix('review')->name('review.')->group(function (): void {
     Route::post('identify', StudentIdentificationController::class)

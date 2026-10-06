@@ -62,6 +62,11 @@ class Student extends Authenticatable
         return $this->hasMany(StudentFigureView::class);
     }
 
+    public function loginCodes(): HasMany
+    {
+        return $this->hasMany(StudentLoginCode::class);
+    }
+
     public function streak(): HasOne
     {
         return $this->hasOne(StudentStreak::class);

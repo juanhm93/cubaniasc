@@ -81,5 +81,29 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(20)->by('ip:'.$request->ip()),
             ];
         });
+
+        RateLimiter::for('app-login-request', function (Request $request): array {
+            return [
+                Limit::perMinute(3)->by('app-request:'.$this->loginIdentifier($request)),
+                Limit::perMinute(10)->by('app-request-ip:'.$request->ip()),
+            ];
+        });
+
+        RateLimiter::for('app-login-verify', function (Request $request): array {
+            return [
+                Limit::perMinute(5)->by('app-verify:'.$this->loginIdentifier($request)),
+                Limit::perMinute(20)->by('app-verify-ip:'.$request->ip()),
+            ];
+        });
+    }
+
+    /**
+     * Email or DNI plus IP, so one person cannot lock out another from elsewhere.
+     */
+    private function loginIdentifier(Request $request): string
+    {
+        return Str::transliterate(Str::lower(
+            (string) ($request->input('email') ?? $request->input('dni') ?? '')
+        ).'|'.$request->ip());
     }
 }
