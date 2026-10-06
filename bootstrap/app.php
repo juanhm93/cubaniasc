@@ -9,6 +9,7 @@ use App\Exceptions\Review\ReviewSessionNotCompletableException;
 use App\Exceptions\Review\StudentNotIdentifiableException;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
+use App\Http\Middleware\EnsureAppStudentToken;
 use App\Http\Middleware\EnsureOwnerUser;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureAdminRole::class,
             'ability' => EnsureAbility::class,
             'owner' => EnsureOwnerUser::class,
+            'app.student' => EnsureAppStudentToken::class,
         ]);
 
         $middleware->web(append: [
@@ -45,6 +47,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // API clients (like the Flutter app) always get JSON errors, even without an Accept header.
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
+        );
+
         $exceptions->render(function (StudentNotIdentifiableException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => $exception->getMessage()], 404);

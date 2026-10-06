@@ -1,0 +1,256 @@
+openapi: 3.1.0
+info:
+  title: Cubanía API v1
+  version: 1.0.0
+  description: |
+    API para la app móvil (Flutter) de Cubanía.
+
+    **Autenticación del alumno (sin contraseña):**
+    1. `POST /auth/request-code` con el correo o la cédula. Si el alumno tiene una inscripción
+       activa, recibe un código de 6 dígitos en su correo. La respuesta es siempre la misma
+       para no revelar quién está inscrito.
+    2. `POST /auth/verify-code` con el mismo identificador, el código y el nombre del
+       dispositivo. Devuelve un token Bearer (válido 60 días) y el perfil del alumno.
+    3. Enviar `Authorization: Bearer <token>` en las rutas protegidas.
+
+    Iniciar sesión en un teléfono nuevo cierra la sesión de la app en el anterior.
+
+    **Convenciones:**
+    - Enviar siempre `Accept: application/json`. Los errores bajo `/api` salen en JSON igualmente.
+    - Las respuestas exitosas envuelven el contenido en `data`.
+    - Fechas en ISO 8601. `birthday` es `YYYY-MM-DD`.
+    - Errores de validación (422) siguen el formato estándar de Laravel: `message` + `errors`.
+servers:
+  - url: https://cubaniasc.com/api/v1
+    description: Producción
+  - url: https://cubania.purphura.com/api/v1
+    description: Staging
+  - url: http://10.0.2.2:8000/api/v1
+    description: Local desde el emulador de Android (php artisan serve)
+  - url: http://localhost:8000/api/v1
+    description: Local desde el simulador de iOS (php artisan serve)
+
+tags:
+  - name: Auth
+    description: Inicio y cierre de sesión del alumno con código por correo.
+  - name: Perfil
+    description: Datos del alumno autenticado.
+
+paths:
+  /auth/request-code:
+    post:
+      tags: [Auth]
+      summary: Solicitar un código de acceso por correo
+      operationId: requestLoginCode
+      security: []
+      description: |
+        Límite: 3 solicitudes por minuto por identificador y 10 por IP.
+        Pedir un código nuevo invalida el anterior.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentIdentifier'
+            examples:
+              porCorreo:
+                value: { email: ana@example.com }
+              porCedula:
+                value: { dni: V-12345678 }
+      responses:
+        '202':
+          description: Solicitud recibida. Si el alumno existe y está inscrito, se envió el código.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, data]
+                properties:
+                  message:
+                    type: string
+                    example: Si los datos corresponden a un alumno con inscripción activa, enviamos un código a su correo registrado.
+                  data:
+                    type: object
+                    required: [code_length, expires_in_minutes]
+                    properties:
+                      code_length: { type: integer, example: 6 }
+                      expires_in_minutes: { type: integer, example: 10 }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /auth/verify-code:
+    post:
+      tags: [Auth]
+      summary: Canjear el código por un token
+      operationId: verifyLoginCode
+      security: []
+      description: |
+        Límite: 5 intentos por minuto por identificador y 20 por IP.
+        Cada código vence a los 10 minutos, sirve una sola vez y se invalida tras 5 intentos fallidos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/StudentIdentifier'
+                - type: object
+                  required: [code, device_name]
+                  properties:
+                    code:
+                      type: string
+                      pattern: '^\d{6}$'
+                      description: Se aceptan espacios (se eliminan antes de validar).
+                      example: '482913'
+                    device_name:
+                      type: string
+                      maxLength: 100
+                      example: Pixel 8
+      responses:
+        '200':
+          description: Sesión iniciada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [token, token_type, expires_at, student]
+                    properties:
+                      token: { type: string, example: '12|q8Yf3...' }
+                      token_type: { type: string, enum: [Bearer] }
+                      expires_at: { type: string, format: date-time }
+                      student: { $ref: '#/components/schemas/StudentProfile' }
+        '422':
+          description: |
+            Datos inválidos, o código incorrecto/vencido. En ese caso el error viene en `errors.code`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationError' }
+              example:
+                message: El código no es válido o ya venció. Solicita uno nuevo.
+                errors:
+                  code: [El código no es válido o ya venció. Solicita uno nuevo.]
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /me:
+    get:
+      tags: [Perfil]
+      summary: Perfil del alumno autenticado
+      operationId: getMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Perfil del alumno.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/StudentProfile' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Cerrar la sesión actual
+      operationId: logout
+      description: Revoca solo el token usado en la petición.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Sesión cerrada. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token Sanctum emitido por `/auth/verify-code`.
+
+  schemas:
+    StudentIdentifier:
+      type: object
+      description: Enviar `email` o `dni` (al menos uno). Si llegan ambos, se usa el correo.
+      properties:
+        email: { type: string, format: email, maxLength: 255 }
+        dni: { type: string, maxLength: 32 }
+
+    StudentProfile:
+      type: object
+      required: [id, name, email, dni, phone, birthday, current_level]
+      properties:
+        id: { type: integer, example: 42 }
+        name: { type: string, example: Ana López }
+        email: { type: string, format: email }
+        dni: { type: [string, 'null'] }
+        phone: { type: [string, 'null'] }
+        birthday: { type: [string, 'null'], format: date }
+        current_level:
+          description: Nivel del curso activo del alumno. `null` si ya no tiene inscripción activa.
+          oneOf:
+            - $ref: '#/components/schemas/Level'
+            - type: 'null'
+
+    Level:
+      type: object
+      required: [id, name, slug, dance_type]
+      properties:
+        id: { type: integer }
+        name: { type: string, example: Básico 1 }
+        slug: { type: string, example: basico-1 }
+        dance_type:
+          oneOf:
+            - type: object
+              required: [id, name]
+              properties:
+                id: { type: integer }
+                name: { type: string, example: Salsa casino }
+            - type: 'null'
+
+    Message:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+    ValidationError:
+      type: object
+      required: [message, errors]
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+  responses:
+    ValidationError:
+      description: Datos inválidos.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ValidationError' }
+    Unauthenticated:
+      description: Falta el token, venció o fue revocado. La app debe volver al login.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Unauthenticated. }
+    Forbidden:
+      description: El token no es de la app (por ejemplo, un token del panel de repaso).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Este token no tiene acceso a la app. }
+    TooManyRequests:
+      description: Demasiados intentos. Esperar antes de reintentar (ver header `Retry-After`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Too Many Attempts. }

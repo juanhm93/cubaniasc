@@ -48,6 +48,19 @@ final class StudentLevelResolver
     }
 
     /**
+     * Like resolveLevel(), but returns null instead of throwing when the
+     * student has no active enrollment.
+     */
+    public function findLevel(Student $student): ?Level
+    {
+        try {
+            return $this->resolveLevel($student);
+        } catch (ActiveEnrollmentNotFoundException) {
+            return null;
+        }
+    }
+
+    /**
      * Current level first, followed by the earlier levels of the same dance type
      * (closest first), so the review mixes new and older material.
      *
