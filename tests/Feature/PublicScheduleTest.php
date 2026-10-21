@@ -26,7 +26,7 @@ class PublicScheduleTest extends TestCase
             ->assertJsonPath('days.0.weekday', 1)
             ->assertJsonPath('days.4.weekday', 5)
             ->assertJsonPath('days.0.cells.0.occupied', false)
-            ->assertJsonPath('days.0.cells.0.labels', []);
+            ->assertJsonPath('days.0.cells.0.classes', []);
     }
 
     public function test_active_course_slots_occupy_matching_weekday_hours(): void
@@ -38,8 +38,8 @@ class PublicScheduleTest extends TestCase
 
         $response = $this->getJson(route('schedule.index'))->assertOk();
 
-        $this->assertCell($response->json('days'), 1, '17:00', true, ['Salsa Casino']);
-        $this->assertCell($response->json('days'), 3, '17:00', true, ['Salsa Casino']);
+        $this->assertCell($response->json('days'), 1, '17:00', true, [$this->scheduleClass('Salsa Casino')]);
+        $this->assertCell($response->json('days'), 3, '17:00', true, [$this->scheduleClass('Salsa Casino')]);
         $this->assertCell($response->json('days'), 1, '16:00', false, []);
         $this->assertCell($response->json('days'), 2, '17:00', false, []);
     }
@@ -103,7 +103,7 @@ class PublicScheduleTest extends TestCase
             5,
             '16:00',
             true,
-            ['Salsa Casino'],
+            [$this->scheduleClass('Salsa Casino')],
         );
     }
 
@@ -115,8 +115,8 @@ class PublicScheduleTest extends TestCase
 
         $days = $this->getJson(route('schedule.index'))->assertOk()->json('days');
 
-        $this->assertCell($days, 1, '19:00', true, ['Bachata']);
-        $this->assertCell($days, 1, '20:00', true, ['Bachata']);
+        $this->assertCell($days, 1, '19:00', true, [$this->scheduleClass('Bachata')]);
+        $this->assertCell($days, 1, '20:00', true, [$this->scheduleClass('Bachata')]);
         $this->assertCell($days, 1, '21:00', false, []);
     }
 
@@ -148,17 +148,83 @@ class PublicScheduleTest extends TestCase
         );
 
         $this->assertTrue($cell['occupied']);
-        $this->assertEqualsCanonicalizing(['Salsa Casino', 'Bachata'], $cell['labels']);
+        $this->assertEqualsCanonicalizing(
+            [$this->scheduleClass('Salsa Casino'), $this->scheduleClass('Bachata')],
+            $cell['classes'],
+        );
+    }
+
+    public function test_cells_include_the_course_current_level(): void
+    {
+        $this->createCourseWithSlots('Salsa Casino', [
+            ['weekday' => 3, 'starts_at' => '17:00:00', 'ends_at' => '18:00:00'],
+        ], levelName: 'Avanzado 3');
+
+        $this->getJson(route('schedule.index'))
+            ->assertOk()
+            ->assertJsonPath('days.2.cells.1.classes', [
+                ['danceType' => 'Salsa Casino', 'level' => 'Avanzado 3'],
+            ]);
+    }
+
+    public function test_same_dance_type_with_different_levels_in_the_same_hour_lists_both(): void
+    {
+        $danceType = DanceType::factory()->create(['name' => 'Salsa Casino']);
+
+        $this->createCourseWithSlots($danceType, [
+            ['weekday' => 2, 'starts_at' => '18:00:00', 'ends_at' => '19:00:00'],
+        ], levelName: 'Básico 1');
+        $this->createCourseWithSlots($danceType, [
+            ['weekday' => 2, 'starts_at' => '18:00:00', 'ends_at' => '19:00:00'],
+        ], levelName: 'Avanzado 3');
+
+        $cell = $this->cell(
+            $this->getJson(route('schedule.index'))->assertOk()->json('days'),
+            2,
+            '18:00',
+        );
+
+        $this->assertEqualsCanonicalizing(
+            [$this->scheduleClass('Salsa Casino', 'Básico 1'), $this->scheduleClass('Salsa Casino', 'Avanzado 3')],
+            $cell['classes'],
+        );
+    }
+
+    public function test_back_to_back_courses_keep_their_own_level(): void
+    {
+        $danceType = DanceType::factory()->create(['name' => 'Salsa Casino']);
+
+        $this->createCourseWithSlots($danceType, [
+            ['weekday' => 1, 'starts_at' => '17:00:00', 'ends_at' => '18:00:00'],
+        ], levelName: 'Básico 1');
+        $this->createCourseWithSlots($danceType, [
+            ['weekday' => 1, 'starts_at' => '18:00:00', 'ends_at' => '19:00:00'],
+        ], levelName: 'Avanzado 3');
+
+        $days = $this->getJson(route('schedule.index'))->assertOk()->json('days');
+
+        $this->assertCell($days, 1, '17:00', true, [$this->scheduleClass('Salsa Casino', 'Básico 1')]);
+        $this->assertCell($days, 1, '18:00', true, [$this->scheduleClass('Salsa Casino', 'Avanzado 3')]);
     }
 
     /**
      * @param  list<array{weekday: int, starts_at: string, ends_at: string}>  $slots
      * @param  array<string, mixed>  $courseAttributes
      */
-    private function createCourseWithSlots(string $danceTypeName, array $slots, array $courseAttributes = []): Course
-    {
-        $danceType = DanceType::factory()->create(['name' => $danceTypeName]);
-        $level = Level::factory()->create(['dance_type_id' => $danceType->id]);
+    private function createCourseWithSlots(
+        DanceType|string $danceType,
+        array $slots,
+        array $courseAttributes = [],
+        string $levelName = 'Básico 1',
+    ): Course {
+        if (is_string($danceType)) {
+            $danceType = DanceType::factory()->create(['name' => $danceType]);
+        }
+
+        $level = Level::factory()->create([
+            'dance_type_id' => $danceType->id,
+            'name' => $levelName,
+        ]);
         $course = Course::factory()->create([
             'level_id' => $level->id,
             'is_active' => true,
@@ -181,20 +247,28 @@ class PublicScheduleTest extends TestCase
     }
 
     /**
-     * @param  list<array{weekday: int, cells: list<array{hour: string, occupied: bool, labels: list<string>}>}>  $days
-     * @param  list<string>  $labels
+     * @return array{danceType: string, level: ?string}
      */
-    private function assertCell(array $days, int $weekday, string $hour, bool $occupied, array $labels): void
+    private function scheduleClass(string $danceType, string $level = 'Básico 1'): array
+    {
+        return ['danceType' => $danceType, 'level' => $level];
+    }
+
+    /**
+     * @param  list<array{weekday: int, cells: list<array{hour: string, occupied: bool, classes: list<array{danceType: string, level: ?string}>}>}>  $days
+     * @param  list<array{danceType: string, level: ?string}>  $classes
+     */
+    private function assertCell(array $days, int $weekday, string $hour, bool $occupied, array $classes): void
     {
         $cell = $this->cell($days, $weekday, $hour);
 
         $this->assertSame($occupied, $cell['occupied']);
-        $this->assertSame($labels, $cell['labels']);
+        $this->assertSame($classes, $cell['classes']);
     }
 
     /**
-     * @param  list<array{weekday: int, cells: list<array{hour: string, occupied: bool, labels: list<string>}>}>  $days
-     * @return array{hour: string, occupied: bool, labels: list<string>}
+     * @param  list<array{weekday: int, cells: list<array{hour: string, occupied: bool, classes: list<array{danceType: string, level: ?string}>}>}>  $days
+     * @return array{hour: string, occupied: bool, classes: list<array{danceType: string, level: ?string}>}
      */
     private function cell(array $days, int $weekday, string $hour): array
     {
