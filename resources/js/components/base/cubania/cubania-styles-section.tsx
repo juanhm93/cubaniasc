@@ -30,15 +30,15 @@ const styleCards = [
         highlight: true,
     },
     {
-        key: 'bachata',
-        image: '/cubania-assets/bachata.webp',
-        video: BACHATA_VIDEO,
-        highlight: false,
-    },
-    {
         key: 'rueda',
         image: '/cubania-assets/rueda-casino.webp',
         video: RUEDA_VIDEO,
+        highlight: false,
+    },
+    {
+        key: 'bachata',
+        image: '/cubania-assets/bachata.webp',
+        video: BACHATA_VIDEO,
         highlight: false,
     },
 ] as const;
