@@ -51,9 +51,9 @@ class LandingCubaniaConfigTest extends TestCase
                 ->has('cubania.instructors', 3)
                 ->where('cubania.instructors.0.image', '/cubania-assets/profesor_juan.webp')
                 ->where('cubania.instructors.2.image', '/cubania-assets/profesor_javier.webp')
-                ->has('cubania.sliderImages', 4)
+                ->has('cubania.sliderImages', 9)
                 ->where('cubania.sliderImages.0', '/cubania-assets/slider/slider-1.webp')
-                ->where('cubania.sliderImages.3', '/cubania-assets/slider/slider-4.webp'));
+                ->where('cubania.sliderImages.8', '/cubania-assets/slider/slider-9.webp'));
     }
 
     public function test_landing_uses_overridden_cubania_config_values(): void
