@@ -23,26 +23,34 @@ export function CubaniaTestimonialsSection(): ReactNode {
             <div className="cubania-testimonials__grid">
                 <CubaniaReveal delayMs={0}>
                     <CubaniaTestimonialCard
-                        quote={t('landing.testimonials.maria.quote')}
-                        authorName={t('landing.testimonials.maria.authorName')}
-                        authorRole={t('landing.testimonials.maria.authorRole')}
-                        avatarLetter="M"
+                        quote={t('landing.testimonials.narcy.quote')}
+                        authorName={t('landing.testimonials.narcy.authorName')}
+                        authorRole={t('landing.testimonials.narcy.authorRole')}
+                        avatarLetter="N"
                     />
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={100}>
                     <CubaniaTestimonialCard
-                        quote={t('landing.testimonials.rafael.quote')}
-                        authorName={t('landing.testimonials.rafael.authorName')}
-                        authorRole={t('landing.testimonials.rafael.authorRole')}
-                        avatarLetter="R"
+                        quote={t('landing.testimonials.whitney.quote')}
+                        authorName={t(
+                            'landing.testimonials.whitney.authorName',
+                        )}
+                        authorRole={t(
+                            'landing.testimonials.whitney.authorRole',
+                        )}
+                        avatarLetter="W"
                     />
                 </CubaniaReveal>
                 <CubaniaReveal delayMs={200}>
                     <CubaniaTestimonialCard
-                        quote={t('landing.testimonials.laura.quote')}
-                        authorName={t('landing.testimonials.laura.authorName')}
-                        authorRole={t('landing.testimonials.laura.authorRole')}
-                        avatarLetter="L"
+                        quote={t('landing.testimonials.armando.quote')}
+                        authorName={t(
+                            'landing.testimonials.armando.authorName',
+                        )}
+                        authorRole={t(
+                            'landing.testimonials.armando.authorRole',
+                        )}
+                        avatarLetter="A"
                     />
                 </CubaniaReveal>
             </div>
