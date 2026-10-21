@@ -1726,6 +1726,7 @@
     color: rgba(249, 245, 255, 0.8);
     font-weight: 300;
     font-style: italic;
+    white-space: pre-line;
     margin: 0 0 24px;
     transition: color 0.35s ease;
 }
