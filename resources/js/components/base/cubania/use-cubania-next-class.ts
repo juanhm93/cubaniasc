@@ -1,15 +1,27 @@
 import { useMemo } from 'react';
-import type { PublicWeeklySchedule } from '@/components/base/cubania/use-public-weekly-schedule';
+import type {
+    PublicWeeklySchedule,
+    PublicWeeklyScheduleClass,
+} from '@/components/base/cubania/use-public-weekly-schedule';
 
 export type CubaniaNextClass = {
     /** ISO weekday, 1 = Monday. */
     weekday: number;
     /** Start hour in `HH:MM` form. */
     hour: string;
-    labels: string[];
+    classes: PublicWeeklyScheduleClass[];
 };
 
 const MINUTES_PER_DAY = 1440;
+
+function classesKey(classes: PublicWeeklyScheduleClass[]): string {
+    return classes
+        .map(
+            (scheduleClass) =>
+                `${scheduleClass.level ?? ''}|${scheduleClass.danceType}`,
+        )
+        .join('||');
+}
 
 /**
  * Start of every contiguous run of occupied hours, so a 6–8pm course only
@@ -19,25 +31,25 @@ function startsOfDay(
     day: PublicWeeklySchedule['days'][number],
 ): CubaniaNextClass[] {
     const starts: CubaniaNextClass[] = [];
-    let previousLabels: string | null = null;
+    let previousClasses: string | null = null;
 
     for (const cell of day.cells) {
         if (!cell.occupied) {
-            previousLabels = null;
+            previousClasses = null;
             continue;
         }
 
-        const labels = cell.labels.join('|');
+        const classes = classesKey(cell.classes);
 
-        if (labels !== previousLabels) {
+        if (classes !== previousClasses) {
             starts.push({
                 weekday: day.weekday,
                 hour: cell.hour,
-                labels: cell.labels,
+                classes: cell.classes,
             });
         }
 
-        previousLabels = labels;
+        previousClasses = classes;
     }
 
     return starts;

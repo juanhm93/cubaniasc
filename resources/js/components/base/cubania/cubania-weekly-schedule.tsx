@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import { usePublicWeeklySchedule } from '@/components/base/cubania/use-public-weekly-schedule';
-import type { PublicWeeklySchedule } from '@/components/base/cubania/use-public-weekly-schedule';
+import type {
+    PublicWeeklySchedule,
+    PublicWeeklyScheduleClass,
+} from '@/components/base/cubania/use-public-weekly-schedule';
 import { useTranslation } from '@/i18n/use-translation';
 
 const WEEKDAY_KEYS = [
@@ -31,6 +34,16 @@ function formatHourLabel(hour: string): string {
     const suffix = parsed >= 12 ? 'pm' : 'am';
 
     return `${twelveHour}${suffix}`;
+}
+
+function classTitle(classes: PublicWeeklyScheduleClass[]): string {
+    return classes
+        .map((scheduleClass) =>
+            [scheduleClass.level, scheduleClass.danceType]
+                .filter(Boolean)
+                .join(' · '),
+        )
+        .join(' / ');
 }
 
 function weekdayKey(weekday: number): (typeof WEEKDAY_KEYS)[number] {
@@ -111,9 +124,23 @@ function ScheduleTable({
                                     ]
                                         .filter(Boolean)
                                         .join(' ')}
-                                    title={cell.labels.join(' · ')}
+                                    title={classTitle(cell.classes)}
                                 >
-                                    {cell.labels.join(' · ')}
+                                    {cell.classes.map((scheduleClass) => (
+                                        <span
+                                            key={`${scheduleClass.level ?? ''}|${scheduleClass.danceType}`}
+                                            className="cubania-week-grid__class"
+                                        >
+                                            {scheduleClass.level ? (
+                                                <span className="cubania-week-grid__class-level">
+                                                    {scheduleClass.level}
+                                                </span>
+                                            ) : null}
+                                            <span className="cubania-week-grid__class-dance">
+                                                {scheduleClass.danceType}
+                                            </span>
+                                        </span>
+                                    ))}
                                 </td>
                             );
                         })}

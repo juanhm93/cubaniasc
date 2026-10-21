@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { index as scheduleIndex } from '@/routes/schedule';
 
+export type PublicWeeklyScheduleClass = {
+    danceType: string;
+    /** Current level of the course, e.g. `Avanzado 3`. */
+    level: string | null;
+};
+
 export type PublicWeeklyScheduleCell = {
     hour: string;
     occupied: boolean;
-    labels: string[];
+    classes: PublicWeeklyScheduleClass[];
 };
 
 export type PublicWeeklyScheduleDay = {
