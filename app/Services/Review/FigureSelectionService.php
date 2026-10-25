@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Services\Review;
 
 use App\Exceptions\Review\InvalidFigureSelectionException;
-use App\Models\CourseLevelContentProgress;
 use App\Models\Level;
 use App\Models\LevelContent;
 use App\Models\ReviewSession;
 use App\Models\Student;
 use App\Models\StudentFigureView;
+use App\Repositories\Review\ReviewFigureRepository;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
@@ -27,6 +27,7 @@ final class FigureSelectionService
 
     public function __construct(
         private readonly StudentLevelResolver $levelResolver,
+        private readonly ReviewFigureRepository $figures,
     ) {}
 
     /**
@@ -37,7 +38,7 @@ final class FigureSelectionService
      */
     public function optionsForSession(ReviewSession $session, Student $student): Collection
     {
-        $offered = $session->figures()->with('level')->orderBy('review_session_figures.id')->get();
+        $offered = $this->figures->offeredInSession($session);
 
         if ($offered->isNotEmpty()) {
             return $offered;
@@ -46,13 +47,24 @@ final class FigureSelectionService
         $session->loadMissing('level');
         $options = $this->getSelectableFigures($student, $session->level);
 
-        $session->figures()->syncWithoutDetaching(
-            $options->mapWithKeys(fn (LevelContent $figure): array => [
-                $figure->id => ['selected_by_student' => false],
-            ])->all(),
-        );
+        $this->figures->offerInSession($session, $this->idsOf($options));
 
         return $options;
+    }
+
+    /**
+     * Saves the student's choice among the options offered in the session (offering them
+     * first if that did not happen yet) and returns the chosen figures.
+     *
+     * @param  list<int>  $levelContentIds
+     * @return Collection<int, LevelContent>
+     */
+    public function selectForSession(ReviewSession $session, Student $student, array $levelContentIds): Collection
+    {
+        $this->optionsForSession($session, $student);
+        $this->storeSelectedFigures($session, $levelContentIds);
+
+        return $this->selectedFigures($session);
     }
 
     /**
@@ -60,16 +72,17 @@ final class FigureSelectionService
      */
     public function selectedFigures(ReviewSession $session): Collection
     {
-        return $session->figures()
-            ->wherePivot('selected_by_student', true)
-            ->with('level')
-            ->orderBy('review_session_figures.id')
-            ->get();
+        return $this->figures->selectedInSession($session);
     }
 
     public function hasSelectedFigures(ReviewSession $session): bool
     {
-        return $session->figures()->wherePivot('selected_by_student', true)->exists();
+        return $this->figures->sessionHasSelectedFigures($session);
+    }
+
+    public function isSelected(ReviewSession $session, LevelContent $figure): bool
+    {
+        return $this->figures->isSelectedInSession($session, $figure);
     }
 
     /**
@@ -81,16 +94,21 @@ final class FigureSelectionService
      */
     public function getSelectableFigures(Student $student, Level $level, int $limit = self::OPTIONS_COUNT): Collection
     {
-        $reviewLevelIds = $this->levelResolver->reviewLevelsFor($level)->pluck('id')->all();
+        $reviewLevelIds = $this->levelResolver->reviewLevelIdsFor($level);
 
-        $candidates = $this->figuresFromRecentViews($student, $reviewLevelIds, $limit);
+        $candidates = $this->figures->recentlyViewedBy($student, $reviewLevelIds, $limit);
 
         $candidates = $candidates->concat(
-            $this->figuresFromCourseProgress($student, $level, $limit, $candidates->pluck('id')->all())
+            $this->figures->coveredInCourse(
+                $this->levelResolver->resolveActiveCourse($student),
+                $level,
+                $limit,
+                $this->idsOf($candidates),
+            )
         );
 
         $candidates = $candidates->concat(
-            $this->figuresFromLevelCatalog([$level->id], $limit, $candidates->pluck('id')->all())
+            $this->figuresFromLevelCatalog([$level->id], $limit, $this->idsOf($candidates))
         )->unique('id')->values();
 
         $currentLevelFigures = $candidates
@@ -105,7 +123,7 @@ final class FigureSelectionService
             $figures = $figures->concat($this->figuresFromLevelCatalog(
                 array_values(array_diff($reviewLevelIds, [$level->id])),
                 $limit - $figures->count(),
-                $figures->pluck('id')->all(),
+                $this->idsOf($figures),
             ));
         }
 
@@ -134,7 +152,7 @@ final class FigureSelectionService
             throw InvalidFigureSelectionException::alreadySelected();
         }
 
-        $allowedLevelContentIds ??= $session->figures()->pluck('level_contents.id')->all();
+        $allowedLevelContentIds ??= $this->figures->offeredIdsInSession($session);
         $expectedCount = $this->requiredSelectionCount(count($allowedLevelContentIds));
 
         if (count($levelContentIds) !== $expectedCount) {
@@ -146,24 +164,13 @@ final class FigureSelectionService
         }
 
         $session->loadMissing('level');
-        $reviewLevelIds = $this->levelResolver->reviewLevelsFor($session->level)->pluck('id')->all();
+        $reviewLevelIds = $this->levelResolver->reviewLevelIdsFor($session->level);
 
-        $validCount = LevelContent::query()
-            ->whereIn('level_id', $reviewLevelIds)
-            ->whereIn('id', $levelContentIds)
-            ->count();
-
-        if ($validCount !== $expectedCount) {
+        if ($this->figures->countInLevels($reviewLevelIds, $levelContentIds) !== $expectedCount) {
             throw InvalidFigureSelectionException::notAllowed();
         }
 
-        $payload = [];
-
-        foreach ($levelContentIds as $levelContentId) {
-            $payload[$levelContentId] = ['selected_by_student' => true];
-        }
-
-        $session->figures()->syncWithoutDetaching($payload);
+        $this->figures->selectInSession($session, $levelContentIds);
     }
 
     /**
@@ -181,66 +188,12 @@ final class FigureSelectionService
      */
     public function canComplete(ReviewSession $session): bool
     {
-        return $this->hasSelectedFigures($session) || $session->figures()->doesntExist();
+        return $this->hasSelectedFigures($session) || ! $this->figures->sessionHasOfferedFigures($session);
     }
 
     public function recordView(Student $student, LevelContent $levelContent): StudentFigureView
     {
-        return StudentFigureView::query()->create([
-            'student_id' => $student->id,
-            'level_content_id' => $levelContent->id,
-            'viewed_at' => now(),
-        ]);
-    }
-
-    /**
-     * @param  list<int>  $levelIds
-     * @return Collection<int, LevelContent>
-     */
-    private function figuresFromRecentViews(Student $student, array $levelIds, int $limit): Collection
-    {
-        return StudentFigureView::query()
-            ->where('student_id', $student->id)
-            ->whereHas('levelContent', fn ($query) => $query->whereIn('level_id', $levelIds))
-            ->with('levelContent')
-            ->orderByDesc('viewed_at')
-            ->limit($limit * 10)
-            ->get()
-            ->unique('level_content_id')
-            ->take($limit)
-            ->pluck('levelContent')
-            ->filter()
-            ->values();
-    }
-
-    /**
-     * @param  list<int>  $excludeIds
-     * @return Collection<int, LevelContent>
-     */
-    private function figuresFromCourseProgress(
-        Student $student,
-        Level $level,
-        int $limit,
-        array $excludeIds,
-    ): Collection {
-        if ($limit <= 0) {
-            return collect();
-        }
-
-        $course = $this->levelResolver->resolveActiveCourse($student);
-
-        return CourseLevelContentProgress::query()
-            ->where('course_id', $course->id)
-            ->whereHas('levelContent', fn ($query) => $query->where('level_id', $level->id))
-            ->when($excludeIds !== [], fn ($query) => $query->whereNotIn('level_content_id', $excludeIds))
-            ->with('levelContent')
-            ->orderByDesc('completed_at')
-            ->get()
-            ->unique('level_content_id')
-            ->take($limit)
-            ->pluck('levelContent')
-            ->filter()
-            ->values();
+        return $this->figures->recordView($student, $levelContent, now());
     }
 
     /**
@@ -257,16 +210,22 @@ final class FigureSelectionService
                 break;
             }
 
-            $figures = $figures->concat(
-                LevelContent::query()
-                    ->where('level_id', $levelId)
-                    ->whereNotIn('id', [...$excludeIds, ...$figures->pluck('id')->all()])
-                    ->inRandomOrder()
-                    ->limit($limit - $figures->count())
-                    ->get()
-            );
+            $figures = $figures->concat($this->figures->randomFromLevel(
+                $levelId,
+                $limit - $figures->count(),
+                [...$excludeIds, ...$this->idsOf($figures)],
+            ));
         }
 
         return $figures->values();
+    }
+
+    /**
+     * @param  Collection<int, LevelContent>  $figures
+     * @return list<int>
+     */
+    private function idsOf(Collection $figures): array
+    {
+        return $figures->pluck('id')->map(fn (mixed $id): int => (int) $id)->values()->all();
     }
 }

@@ -7,12 +7,16 @@ namespace App\Services\Review;
 use App\Models\Level;
 use App\Models\RecommendedSong;
 use App\Models\ReviewSession;
+use App\Repositories\Review\RecommendedSongRepository;
 use Illuminate\Support\Collection;
 
 final class SongRecommendationService
 {
+    public const SONGS_PER_SESSION = 3;
+
     public function __construct(
         private readonly StudentLevelResolver $levelResolver,
+        private readonly RecommendedSongRepository $songs,
     ) {}
 
     /**
@@ -21,7 +25,7 @@ final class SongRecommendationService
      *
      * @return Collection<int, RecommendedSong>
      */
-    public function recommendForLevel(Level $level, int $count = 3): Collection
+    public function recommendForLevel(Level $level, int $count = self::SONGS_PER_SESSION): Collection
     {
         $songs = collect();
 
@@ -30,15 +34,11 @@ final class SongRecommendationService
                 break;
             }
 
-            $songs = $songs->concat(
-                RecommendedSong::query()
-                    ->where('is_active', true)
-                    ->whereHas('levels', fn ($query) => $query->whereKey($reviewLevel->id))
-                    ->whereNotIn('id', $songs->pluck('id')->all())
-                    ->inRandomOrder()
-                    ->limit($count - $songs->count())
-                    ->get()
-            );
+            $songs = $songs->concat($this->songs->randomActiveForLevel(
+                $reviewLevel,
+                $count - $songs->count(),
+                $songs->pluck('id')->map(fn (mixed $id): int => (int) $id)->all(),
+            ));
         }
 
         return $songs->values();
@@ -47,16 +47,37 @@ final class SongRecommendationService
     /**
      * @return Collection<int, RecommendedSong>
      */
-    public function assignToSession(ReviewSession $session, int $count = 3): Collection
+    public function assignToSession(ReviewSession $session, int $count = self::SONGS_PER_SESSION): Collection
     {
         $session->loadMissing('level');
 
         $songs = $this->recommendForLevel($session->level, $count);
 
-        if ($songs->isNotEmpty()) {
-            $session->songs()->syncWithoutDetaching($songs->pluck('id')->all());
-        }
+        $this->songs->assignToSession($session, $songs->pluck('id')->map(fn (mixed $id): int => (int) $id)->all());
 
         return $songs;
+    }
+
+    /**
+     * Songs of the session. They are picked the first time they are asked for, so a
+     * reload shows the same songs.
+     *
+     * @return Collection<int, RecommendedSong>
+     */
+    public function forSession(ReviewSession $session): Collection
+    {
+        if (! $this->songs->sessionHasSongs($session)) {
+            $this->assignToSession($session);
+        }
+
+        return $this->songs->forSession($session);
+    }
+
+    /**
+     * Songs are only picked once the student reaches the music step.
+     */
+    public function hasReachedSongs(ReviewSession $session): bool
+    {
+        return $this->songs->sessionHasSongs($session);
     }
 }

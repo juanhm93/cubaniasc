@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Review;
 
-use App\Models\ReviewSession;
 use App\Models\Student;
 use App\Models\StudentStreak;
+use App\Repositories\Review\ReviewSessionRepository;
+use App\Repositories\Review\StudentStreakRepository;
 use Carbon\CarbonImmutable;
 
 /**
@@ -14,15 +15,14 @@ use Carbon\CarbonImmutable;
  */
 final class StreakService
 {
+    public function __construct(
+        private readonly StudentStreakRepository $streaks,
+        private readonly ReviewSessionRepository $sessions,
+    ) {}
+
     public function getOrCreate(Student $student): StudentStreak
     {
-        return StudentStreak::query()->firstOrCreate(
-            ['student_id' => $student->id],
-            [
-                'current_streak' => 0,
-                'last_review_at' => null,
-            ],
-        );
+        return $this->streaks->firstOrCreateFor($student);
     }
 
     public function recordCompletion(Student $student): StudentStreak
@@ -34,12 +34,7 @@ final class StreakService
             return $streak;
         }
 
-        $streak->update([
-            'current_streak' => $this->calculateNextStreak($streak),
-            'last_review_at' => now(),
-        ]);
-
-        return $streak->fresh();
+        return $this->streaks->update($streak, $this->calculateNextStreak($streak), now());
     }
 
     /**
@@ -66,12 +61,8 @@ final class StreakService
     {
         [$rangeStart] = ReviewSessionService::localDayBounds(now()->subDays($days - 1));
 
-        $completedDates = ReviewSession::query()
-            ->where('student_id', $student->id)
-            ->whereNotNull('completed_at')
-            ->where('completed_at', '>=', $rangeStart)
-            ->pluck('completed_at')
-            ->map(fn ($completedAt): string => ReviewSessionService::localDate(CarbonImmutable::parse($completedAt)))
+        $completedDates = $this->sessions->completionTimesSince($student, $rangeStart)
+            ->map(fn (CarbonImmutable $completedAt): string => ReviewSessionService::localDate($completedAt))
             ->unique()
             ->all();
 

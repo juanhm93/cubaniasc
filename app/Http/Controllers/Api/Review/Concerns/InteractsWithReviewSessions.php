@@ -42,8 +42,6 @@ trait InteractsWithReviewSessions
      */
     protected function withProgress(ReviewSession $session): ReviewSession
     {
-        return $session
-            ->loadMissing(['level', 'selectedFigures.level'])
-            ->loadCount('quizResponses');
+        return app(ReviewSessionService::class)->withProgress($session);
     }
 }

@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RequestLoginCodeController;
 use App\Http\Controllers\Api\V1\Auth\VerifyLoginCodeController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\Review\ReviewQuizController as AppReviewQuizController;
+use App\Http\Controllers\Api\V1\Review\ReviewSessionController as AppReviewSessionController;
+use App\Http\Controllers\Api\V1\Review\ReviewTodayController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,6 +32,28 @@ Route::prefix('v1')->name('v1.')->group(function (): void {
     Route::middleware(['auth:sanctum', 'app.student'])->group(function (): void {
         Route::get('me', MeController::class)->name('me');
         Route::post('auth/logout', LogoutController::class)->name('auth.logout');
+
+        // Daily review ("repaso"). Shares services and repositories with the web panel below.
+        Route::prefix('review')->name('review.')->group(function (): void {
+            Route::get('today', ReviewTodayController::class)->name('today');
+
+            Route::post('sessions', [AppReviewSessionController::class, 'store'])->name('sessions.store');
+            Route::get('sessions/{session}', [AppReviewSessionController::class, 'show'])->name('sessions.show');
+            Route::get('sessions/{session}/figure-options', [AppReviewSessionController::class, 'figureOptions'])
+                ->name('sessions.figure-options');
+            Route::post('sessions/{session}/figures', [AppReviewSessionController::class, 'storeFigures'])
+                ->name('sessions.figures.store');
+            Route::post('sessions/{session}/figures/{figure}/view', [AppReviewSessionController::class, 'recordFigureView'])
+                ->name('sessions.figures.view');
+            Route::get('sessions/{session}/songs', [AppReviewSessionController::class, 'songs'])
+                ->name('sessions.songs');
+            Route::get('sessions/{session}/quiz/next', [AppReviewQuizController::class, 'next'])
+                ->name('sessions.quiz.next');
+            Route::post('sessions/{session}/quiz/{item}/answer', [AppReviewQuizController::class, 'answer'])
+                ->name('sessions.quiz.answer');
+            Route::post('sessions/{session}/complete', [AppReviewSessionController::class, 'complete'])
+                ->name('sessions.complete');
+        });
     });
 });
 
