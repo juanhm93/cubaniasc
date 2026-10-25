@@ -12,9 +12,10 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation } from '@/i18n/use-translation';
 
-const SALSA_CASINO_VIDEO = 'https://www.youtube.com/watch?v=s4DT0BFxDEk';
-const BACHATA_VIDEO = 'https://www.youtube.com/watch?v=2Fdz_9UI3Oo';
-const RUEDA_VIDEO = 'https://www.youtube.com/watch?v=3FZ3_lzhbHI';
+const SALSA_CASINO_VIDEO = 'https://www.youtube.com/watch?v=XyrGBXvFfaY';
+const BACHATA_VIDEO = 'https://www.youtube.com/watch?v=cimmJ_ka_FQ';
+const RUEDA_VIDEO = 'https://www.youtube.com/watch?v=Tsj8_OJNZk4';
+
 
 const TABS = ['styles', 'teachers'] as const;
 
