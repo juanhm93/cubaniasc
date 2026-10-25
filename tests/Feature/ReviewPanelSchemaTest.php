@@ -15,6 +15,7 @@ use App\Models\StudentFigureView;
 use App\Models\StudentStreak;
 use Database\Seeders\LevelCatalogSeeder;
 use Database\Seeders\ReviewPanelSeeder;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -177,5 +178,47 @@ class ReviewPanelSchemaTest extends TestCase
             ->all();
 
         $this->assertContains(['review_session_id', 'quiz_item_id'], $uniqueIndexes);
+    }
+
+    public function test_review_panel_migration_can_run_again_on_a_migrated_database(): void
+    {
+        $this->reviewPanelMigration()->up();
+
+        $this->assertTrue(Schema::hasColumn('levels', 'review_duration_seconds'));
+        $this->assertTrue(Schema::hasTable('review_quiz_responses'));
+    }
+
+    public function test_review_panel_migration_resumes_after_a_partial_run(): void
+    {
+        Schema::dropIfExists('review_quiz_responses');
+        Schema::dropIfExists('quiz_options');
+        Schema::dropIfExists('quiz_items');
+        Schema::dropIfExists('student_streaks');
+        Schema::dropIfExists('student_figure_views');
+        Schema::dropIfExists('review_session_songs');
+        Schema::dropIfExists('review_session_figures');
+        Schema::dropIfExists('review_sessions');
+
+        $this->reviewPanelMigration()->up();
+
+        foreach ([
+            'review_sessions',
+            'review_session_figures',
+            'review_session_songs',
+            'student_figure_views',
+            'student_streaks',
+            'quiz_items',
+            'quiz_options',
+            'review_quiz_responses',
+        ] as $table) {
+            $this->assertTrue(Schema::hasTable($table), "Missing table {$table}.");
+        }
+
+        $this->assertSame('datetime', Schema::getColumnType('review_sessions', 'expires_at'));
+    }
+
+    private function reviewPanelMigration(): Migration
+    {
+        return require database_path('migrations/2026_07_11_040726_create_review_panel_schema.php');
     }
 }
