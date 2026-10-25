@@ -705,20 +705,20 @@
       "sectionLabel": "Lo que dicen",
       "sectionTitleLine1": "La comunidad",
       "sectionTitleLine2": "Cubanía",
-      "maria": {
-        "quote": "Llegué sin saber bailar y ahora no puedo imaginar mi semana sin Cubanía. Es más que clases, es una familia.",
-        "authorName": "María G.",
-        "authorRole": "Estudiante · Nivel Intermedio"
-      },
-      "rafael": {
-        "quote": "Los profesores tienen una energía increíble. Aprendes técnica pero también filosofía del baile.",
-        "authorName": "Rafael T.",
+      "narcy": {
+        "quote": "Profesores que inspiran, compañeros que se vuelven equipo y la certeza de estar en el lugar correcto.\nEso es Cubanía 💜💛",
+        "authorName": "Narcy G.",
         "authorRole": "Estudiante · Nivel Avanzado"
       },
-      "laura": {
-        "quote": "La sede en el Ministerio de Cultura es preciosa. Cada clase es una experiencia diferente y auténtica.",
-        "authorName": "Laura P.",
-        "authorRole": "Estudiante · Nivel Principiante"
+      "whitney": {
+        "quote": "Llegar a mis clases en Cubanía después de un día agotador es como presionar un botón de reinicio, empieza la música y los problemas de afuera desaparecen por completo.\nAquí se baila con el corazón y el estrés desaparece",
+        "authorName": "Whitney C.",
+        "authorRole": "Estudiante · Nivel Avanzado"
+      },
+      "armando": {
+        "quote": "Lo que comenzó como \"una clase y ya, para aprender\" se convirtieron en 4 años de pasión, amor por el baile, y por la familia tan bonita que representa Cubanía 💜💛\nAhora no imagino mis tardes sin buen baile",
+        "authorName": "Armando M.",
+        "authorRole": "Estudiante · Nivel Avanzado"
       }
     },
     "footer": {
@@ -747,7 +747,7 @@
     "about": {
       "eyebrow": "Nosotros",
       "title": "En Cubanía creamos algo diferente.",
-      "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "body": "Llevamos más de 9 años creando un espacio para soltar el estrés, dejar el celular a un lado y conectar con gente real. Miles de personas han descubierto con nosotros que bailar salsa no es un don: se aprende y se disfruta.",
       "cta": "Empieza ahora",
       "sliderAriaLabel": "Galería de Cubanía",
       "sliderAlt": "Momentos de Cubanía",

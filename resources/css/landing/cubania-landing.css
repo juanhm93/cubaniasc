@@ -698,6 +698,22 @@
     color: rgba(249, 245, 255, 0.72);
 }
 
+.cubania-landing .cubania-next-class__class {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.cubania-landing .cubania-next-class__class + .cubania-next-class__class {
+    margin-top: 10px;
+}
+
+.cubania-landing .cubania-next-class__level {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--cubania-blanco);
+}
+
 .cubania-landing .cubania-next-class__cta {
     width: 100%;
     gap: 10px;
@@ -1266,6 +1282,23 @@
     color: var(--cubania-amarillo);
 }
 
+.cubania-landing .cubania-week-grid__class,
+.cubania-landing .cubania-week-grid__class-level,
+.cubania-landing .cubania-week-grid__class-dance {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cubania-landing .cubania-week-grid__class + .cubania-week-grid__class {
+    margin-top: 2px;
+}
+
+.cubania-landing .cubania-week-grid__class-dance {
+    font-weight: 400;
+    opacity: 0.8;
+}
+
 .cubania-landing .cubania-week-grid__cell--loading {
     animation: cubania-week-grid-pulse 1.2s ease-in-out infinite;
 }
@@ -1693,6 +1726,7 @@
     color: rgba(249, 245, 255, 0.8);
     font-weight: 300;
     font-style: italic;
+    white-space: pre-line;
     margin: 0 0 24px;
     transition: color 0.35s ease;
 }

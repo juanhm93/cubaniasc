@@ -24,7 +24,7 @@ final class BuildPublicWeeklySchedule
      *     hours: list<string>,
      *     days: list<array{
      *         weekday: int,
-     *         cells: list<array{hour: string, occupied: bool, labels: list<string>}>
+     *         cells: list<array{hour: string, occupied: bool, classes: list<array{danceType: string, level: ?string}>}>
      *     }>
      * }
      */
@@ -35,12 +35,12 @@ final class BuildPublicWeeklySchedule
             ->with(['scheduleSlots', 'level.danceType'])
             ->get();
 
-        /** @var array<int, array<int, list<string>>> $labelsByWeekdayAndHour */
-        $labelsByWeekdayAndHour = [];
+        /** @var array<int, array<int, list<array{danceType: string, level: ?string}>>> $classesByWeekdayAndHour */
+        $classesByWeekdayAndHour = [];
         $lastHour = self::DEFAULT_END_HOUR;
 
         foreach ($courses as $course) {
-            $label = $this->courseLabel($course);
+            $class = $this->courseClass($course);
 
             foreach ($course->scheduleSlots as $slot) {
                 $weekday = (int) $slot->weekday;
@@ -51,10 +51,10 @@ final class BuildPublicWeeklySchedule
 
                 foreach ($this->occupiedHours($slot) as $hour) {
                     $lastHour = max($lastHour, $hour);
-                    $labelsByWeekdayAndHour[$weekday][$hour] ??= [];
+                    $classesByWeekdayAndHour[$weekday][$hour] ??= [];
 
-                    if (! in_array($label, $labelsByWeekdayAndHour[$weekday][$hour], true)) {
-                        $labelsByWeekdayAndHour[$weekday][$hour][] = $label;
+                    if (! in_array($class, $classesByWeekdayAndHour[$weekday][$hour], true)) {
+                        $classesByWeekdayAndHour[$weekday][$hour][] = $class;
                     }
                 }
             }
@@ -69,12 +69,12 @@ final class BuildPublicWeeklySchedule
             $cells = [];
 
             foreach ($hours as $hour) {
-                $labels = $labelsByWeekdayAndHour[$weekday][$hour] ?? [];
+                $classes = $classesByWeekdayAndHour[$weekday][$hour] ?? [];
 
                 $cells[] = [
                     'hour' => $this->formatHour($hour),
-                    'occupied' => $labels !== [],
-                    'labels' => $labels,
+                    'occupied' => $classes !== [],
+                    'classes' => $classes,
                 ];
             }
 
@@ -90,21 +90,20 @@ final class BuildPublicWeeklySchedule
         ];
     }
 
-    private function courseLabel(Course $course): string
+    /**
+     * Dance type and current level shown for a course on the public timetable.
+     *
+     * @return array{danceType: string, level: ?string}
+     */
+    private function courseClass(Course $course): array
     {
         $danceTypeName = $course->level?->danceType?->name;
-
-        if (is_string($danceTypeName) && $danceTypeName !== '') {
-            return $danceTypeName;
-        }
-
         $levelName = $course->level?->name;
 
-        if (is_string($levelName) && $levelName !== '') {
-            return $levelName;
-        }
-
-        return 'Clase';
+        return [
+            'danceType' => is_string($danceTypeName) && $danceTypeName !== '' ? $danceTypeName : 'Clase',
+            'level' => is_string($levelName) && $levelName !== '' ? $levelName : null,
+        ];
     }
 
     /**

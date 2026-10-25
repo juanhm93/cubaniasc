@@ -28,6 +28,11 @@ const fallbackCubania: CubaniaShared = {
         '/cubania-assets/slider/slider-2.webp',
         '/cubania-assets/slider/slider-3.webp',
         '/cubania-assets/slider/slider-4.webp',
+        '/cubania-assets/slider/slider-5.webp',
+        '/cubania-assets/slider/slider-6.webp',
+        '/cubania-assets/slider/slider-7.webp',
+        '/cubania-assets/slider/slider-8.webp',
+        '/cubania-assets/slider/slider-9.webp',
     ],
     footer: {
         community: {

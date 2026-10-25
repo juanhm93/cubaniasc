@@ -50,6 +50,23 @@ class LandingStyleAssetsTest extends TestCase
         $this->assertStringContainsString('font-size: 1.75rem', $css);
     }
 
+    public function test_rueda_de_casino_card_sits_in_the_middle(): void
+    {
+        $section = (string) file_get_contents(
+            resource_path('js/components/base/cubania/cubania-styles-section.tsx'),
+        );
+
+        $salsaPosition = strpos($section, "key: 'salsaCasino'");
+        $ruedaPosition = strpos($section, "key: 'rueda'");
+        $bachataPosition = strpos($section, "key: 'bachata'");
+
+        $this->assertNotFalse($salsaPosition);
+        $this->assertNotFalse($ruedaPosition);
+        $this->assertNotFalse($bachataPosition);
+        $this->assertLessThan($ruedaPosition, $salsaPosition);
+        $this->assertLessThan($bachataPosition, $ruedaPosition);
+    }
+
     public function test_about_band_uses_strong_cubania_purple(): void
     {
         $css = (string) file_get_contents(

@@ -43,10 +43,6 @@ export function CubaniaNextClassCard(): ReactNode {
     const weekdayKey = nextClass
         ? (WEEKDAY_KEYS[nextClass.weekday - 1] ?? 'monday')
         : null;
-    const subtitle =
-        nextClass && nextClass.labels.length > 0
-            ? `${nextClass.labels.join(' · ')} · ${t('landing.hero.nextClass.allLevels')}`
-            : t('landing.hero.nextClass.fallbackBody');
 
     return (
         <aside className="cubania-next-class" aria-live="polite">
@@ -86,11 +82,32 @@ export function CubaniaNextClassCard(): ReactNode {
                 </p>
             )}
 
-            <p className="cubania-next-class__what">
-                {status === 'loading'
-                    ? t('landing.hero.nextClass.loading')
-                    : subtitle}
-            </p>
+            {status !== 'loading' &&
+            nextClass &&
+            nextClass.classes.length > 0 ? (
+                <div className="cubania-next-class__what">
+                    {nextClass.classes.map((scheduleClass) => (
+                        <p
+                            key={`${scheduleClass.level ?? ''}|${scheduleClass.danceType}`}
+                            className="cubania-next-class__class"
+                        >
+                            <span className="cubania-next-class__level">
+                                {scheduleClass.level ??
+                                    t('landing.hero.nextClass.allLevels')}
+                            </span>
+                            <span className="cubania-next-class__dance">
+                                {scheduleClass.danceType}
+                            </span>
+                        </p>
+                    ))}
+                </div>
+            ) : (
+                <p className="cubania-next-class__what">
+                    {status === 'loading'
+                        ? t('landing.hero.nextClass.loading')
+                        : t('landing.hero.nextClass.fallbackBody')}
+                </p>
+            )}
 
             <Link
                 href={preRegistration.create.url()}
