@@ -8,9 +8,14 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * A table left by a run that failed halfway on MySQL (DDL is not
+     * transactional) is rebuilt, since it may be MyISAM and lack its indexes.
      */
     public function up(): void
     {
+        Schema::dropIfExists('personal_access_tokens');
+
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');
