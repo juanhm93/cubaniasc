@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class HostingDatabaseMigrationsTest extends TestCase
@@ -34,6 +36,40 @@ class HostingDatabaseMigrationsTest extends TestCase
         $indexedColumns = collect(Schema::getIndexes('personal_access_tokens'))->pluck('columns')->all();
 
         $this->assertContains(['tokenable_type', 'tokenable_id'], $indexedColumns);
+    }
+
+    public function test_notifications_migration_repairs_a_leftover_table_and_keeps_its_rows(): void
+    {
+        Schema::drop('notifications');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->string('notifiable_type');
+            $table->unsignedBigInteger('notifiable_id');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
+
+        $notificationId = (string) Str::uuid();
+        DB::table('notifications')->insert([
+            'id' => $notificationId,
+            'type' => 'App\\Notifications\\NewPreRegistrationNotification',
+            'notifiable_type' => 'App\\Models\\User',
+            'notifiable_id' => 1,
+            'data' => '{}',
+        ]);
+
+        $migration = $this->migration('2026_09_23_235854_create_notifications_table.php');
+        $migration->up();
+        $migration->up();
+
+        $this->assertDatabaseHas('notifications', ['id' => $notificationId]);
+
+        $morphIndexes = collect(Schema::getIndexes('notifications'))
+            ->where('columns', ['notifiable_type', 'notifiable_id']);
+
+        $this->assertCount(1, $morphIndexes);
     }
 
     public function test_innodb_conversion_migration_is_a_no_op_outside_mysql(): void
