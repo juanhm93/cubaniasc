@@ -155,6 +155,45 @@ class ContentPageTest extends TestCase
                 ->where('danceTypes.0.figures_without_description_count', 1));
     }
 
+    public function test_figure_with_only_its_own_mp4_does_not_count_as_missing_video(): void
+    {
+        $this->actingAsAdmin();
+        $danceType = DanceType::factory()->create();
+        $level = Level::factory()->for($danceType)->create();
+        LevelContent::factory()->for($level)->withVideoFile()->create(['video_url' => null]);
+        LevelContent::factory()->for($level)->create(['video_url' => '']);
+
+        $this->get(route('content.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('danceTypes.0.figures_count', 2)
+                ->where('danceTypes.0.figures_without_video_count', 1));
+    }
+
+    public function test_level_page_shares_the_figure_video_file_without_the_object_key(): void
+    {
+        $this->actingAsAdmin();
+        $danceType = DanceType::factory()->create();
+        $level = Level::factory()->for($danceType)->create();
+        $figure = LevelContent::factory()->for($level)->withVideoFile()->create([
+            'video_url' => 'https://www.youtube.com/watch?v=s4DT0BFxDEk',
+            'video_file_size_bytes' => 48211234,
+            'video_file_duration_seconds' => 74,
+            'video_file_version' => 3,
+        ]);
+
+        $this->get(route('content.levels.show', ['danceType' => $danceType->id, 'level' => $level->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('level.level_contents.0.id', $figure->id)
+                ->where('level.level_contents.0.video_url', 'https://www.youtube.com/watch?v=s4DT0BFxDEk')
+                ->where('level.level_contents.0.video_file.available', true)
+                ->where('level.level_contents.0.video_file.size_bytes', 48211234)
+                ->where('level.level_contents.0.video_file.duration_seconds', 74)
+                ->where('level.level_contents.0.video_file.version', 3)
+                ->missing('level.level_contents.0.video_file_path'));
+    }
+
     public function test_level_from_another_dance_type_is_not_found(): void
     {
         $this->actingAsAdmin();

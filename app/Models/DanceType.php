@@ -40,9 +40,11 @@ class DanceType extends Model
             'levels',
             'levelContents as figures_count',
             'levels as empty_levels_count' => fn (Builder $query) => $query->doesntHave('levelContents'),
-            'levelContents as figures_without_video_count' => fn (Builder $query) => $query->where(
-                fn (Builder $query) => $query->whereNull('level_contents.video_url')->orWhere('level_contents.video_url', ''),
-            ),
+            'levelContents as figures_without_video_count' => fn (Builder $query) => $query
+                ->where(
+                    fn (Builder $query) => $query->whereNull('level_contents.video_url')->orWhere('level_contents.video_url', ''),
+                )
+                ->whereNull('level_contents.video_file_path'),
             'levelContents as figures_without_description_count' => fn (Builder $query) => $query->where(
                 fn (Builder $query) => $query->whereNull('level_contents.description')->orWhere('level_contents.description', ''),
             ),
