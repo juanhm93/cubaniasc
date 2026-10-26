@@ -29,6 +29,20 @@ info:
 
     Los pasos con tiempo (figuras y quiz) responden 410 cuando la sesión venció.
 
+    **Videos de las figuras y modo sin conexión (`/level-contents`):** cada figura puede tener dos
+    fuentes que conviven: el enlace de YouTube (`video_url`, `youtube_video_id`) y un MP4 propio
+    guardado en un bucket privado (bloque `video`). YouTube no desaparece; el MP4 es lo que se
+    puede guardar en el teléfono.
+    1. `GET /level-contents`: figuras del alumno con el estado de su MP4 (`video.available`,
+       `video.size_bytes`, `video.version`). Nunca trae la URL del archivo.
+    2. `POST /level-contents/{content}/download-url`: URL firmada y temporal del MP4, para
+       descargarlo (`purpose: download`) o reproducirlo sin guardarlo (`purpose: stream`).
+    3. Comparar `video.version` con la versión guardada en el teléfono para saber si hay una
+       actualización o si el video se quitó (`available: false`).
+
+    La URL firmada es de otro dominio (Cloudflare R2): se pide sin `Authorization` ni otros headers
+    de esta API. Guía completa para la app: `docs/app/videos-de-figuras.md`.
+
     **Convenciones:**
     - Enviar siempre `Accept: application/json`. Los errores bajo `/api` salen en JSON igualmente.
     - Las respuestas exitosas envuelven el contenido en `data`.
@@ -51,6 +65,13 @@ tags:
     description: Datos del alumno autenticado.
   - name: Repaso
     description: Repaso diario del alumno (figuras, quiz y canciones de su nivel).
+  - name: Figuras
+    description: Catálogo de figuras del alumno y URLs firmadas de sus videos MP4 (descarga y streaming).
+  - name: Repaso web
+    description: |
+      Rutas del panel de repaso web (`/repaso`), fuera de `/api/v1`. Usan el token del panel
+      (`POST /api/review/identify`), no el de la app. Se documentan aquí para que el contrato del
+      video sea uno solo; la app usa `/level-contents/{content}/download-url`.
 
 paths:
   /auth/request-code:
@@ -478,6 +499,161 @@ paths:
               schema: { $ref: '#/components/schemas/Message' }
               example: { message: Elige y repasa tus figuras antes de terminar el repaso. }
 
+  /level-contents:
+    get:
+      tags: [Figuras]
+      summary: Figuras a las que el alumno tiene acceso
+      operationId: listLevelContents
+      description: |
+        Las mismas figuras que puede repasar: todas las del nivel de su curso activo y todas las de
+        los niveles anteriores del mismo tipo de baile.
+
+        Orden: primero el nivel actual y luego los anteriores, del más cercano al más lejano (igual
+        que `meta.levels`); dentro de cada nivel, por `sort_order` y luego por `id`. Sin paginación.
+
+        Si el alumno ya no tiene una inscripción activa, `data` y `meta.levels` vienen vacíos y
+        `meta.current_level_id` es `null`.
+
+        No incluye URLs del MP4: se piden con `POST /level-contents/{content}/download-url`.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Figuras del alumno.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Figure' }
+                  meta:
+                    type: object
+                    required: [current_level_id, levels]
+                    properties:
+                      current_level_id:
+                        type: [integer, 'null']
+                        description: Nivel del curso activo. `null` sin inscripción activa.
+                      levels:
+                        type: array
+                        description: Niveles incluidos, en el mismo orden que `data`. Sirve para agrupar y para «descargar nivel completo».
+                        items: { $ref: '#/components/schemas/FigureLevel' }
+              example:
+                data:
+                  - id: 12
+                    level_id: 4
+                    level_name: Básico 2
+                    name: Dile que no
+                    description: Salida lateral desde guapea.
+                    sort_order: 3
+                    video_url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+                    youtube_video_id: dQw4w9WgXcQ
+                    video: { available: true, size_bytes: 48211234, duration_seconds: 74, version: 3 }
+                  - id: 7
+                    level_id: 3
+                    level_name: Básico 1
+                    name: Guapea
+                    description: null
+                    sort_order: 1
+                    video_url: null
+                    youtube_video_id: null
+                    video: { available: false, size_bytes: null, duration_seconds: null, version: 0 }
+                meta:
+                  current_level_id: 4
+                  levels:
+                    - { id: 4, name: Básico 2, slug: basico-2, sort_order: 2, is_current: true }
+                    - { id: 3, name: Básico 1, slug: basico-1, sort_order: 1, is_current: false }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /level-contents/{content}/download-url:
+    parameters:
+      - $ref: '#/components/parameters/LevelContentId'
+    post:
+      tags: [Figuras]
+      summary: URL firmada del MP4 de una figura
+      operationId: createLevelContentDownloadUrl
+      description: |
+        Devuelve una URL temporal del MP4 en el bucket privado (Cloudflare R2).
+
+        - Usarla **sin** `Authorization` ni los demás headers de esta API: es otro dominio.
+        - `purpose: download` (por defecto): vence a los 30 minutos y R2 responde con
+          `Content-Disposition: attachment`.
+        - `purpose: stream`: vence a los 60 minutos y responde `inline`, para reproducir sin guardar.
+        - R2 comprueba la firma al empezar cada petición. Si una descarga se reanuda (petición con
+          `Range`) después de `expires_at`, R2 responde 403: pedir una URL nueva y reanudar.
+        - Pedirla justo antes de usarla y no guardarla.
+
+        Primero se comprueba el acceso (403) y después que haya video (404).
+        Límite: 60 por minuto por alumno.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                purpose:
+                  type: string
+                  enum: [download, stream]
+                  default: download
+            examples:
+              descargar:
+                value: { purpose: download }
+              reproducir:
+                value: { purpose: stream }
+      responses:
+        '200':
+          description: URL firmada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/FigureVideoUrl' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/FigureForbidden' }
+        '404': { $ref: '#/components/responses/FigureVideoNotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/VideoStorageUnavailable' }
+
+  /figures/{content}/video-url:
+    servers:
+      - url: https://cubaniasc.com/api/review
+        description: Producción (panel de repaso web)
+      - url: https://cubania.purphura.com/api/review
+        description: Staging (panel de repaso web)
+    parameters:
+      - $ref: '#/components/parameters/LevelContentId'
+    post:
+      tags: [Repaso web]
+      summary: URL firmada para reproducir el MP4 en el panel de repaso web
+      operationId: createReviewFigureVideoUrl
+      description: |
+        Igual que `POST /level-contents/{content}/download-url` con `purpose: stream` (60 minutos,
+        `inline`) y la misma regla de acceso, pero con el token del panel de repaso web.
+        Límite: 60 por minuto por alumno.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: URL firmada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/FigureVideoUrl' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/FigureForbidden' }
+        '404': { $ref: '#/components/responses/FigureVideoNotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/VideoStorageUnavailable' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -491,6 +667,12 @@ components:
       in: path
       required: true
       description: Id de la sesión de repaso (debe ser del alumno autenticado).
+      schema: { type: integer }
+    LevelContentId:
+      name: content
+      in: path
+      required: true
+      description: Id de la figura (`Figure.id`).
       schema: { type: integer }
 
   schemas:
@@ -604,18 +786,81 @@ components:
 
     Figure:
       type: object
-      required: [id, level_id, level_name, name, description, video_url, youtube_video_id]
+      required: [id, level_id, level_name, name, description, sort_order, video_url, youtube_video_id, video]
       properties:
         id: { type: integer }
-        level_id: { type: integer, description: Si es distinto del nivel de la sesión, la figura es de un nivel anterior. }
+        level_id:
+          type: integer
+          description: Si es distinto del nivel actual (o del de la sesión), la figura es de un nivel anterior.
         level_name: { type: [string, 'null'], example: Básico 1 }
         name: { type: string, example: Dile que no }
         description: { type: [string, 'null'] }
-        video_url: { type: [string, 'null'], format: uri }
+        sort_order: { type: integer, description: Orden dentro de su nivel. }
+        video_url:
+          type: [string, 'null']
+          format: uri
+          description: Enlace de YouTube. Se mantiene aunque la figura tenga MP4.
         youtube_video_id:
           type: [string, 'null']
           description: Id de YouTube extraído de `video_url`, listo para el reproductor.
           example: dQw4w9WgXcQ
+        video: { $ref: '#/components/schemas/FigureVideo' }
+
+    FigureVideo:
+      type: object
+      description: MP4 propio de la figura, independiente de YouTube. Nunca trae la URL del archivo.
+      required: [available, size_bytes, duration_seconds, version]
+      properties:
+        available: { type: boolean, description: Hay un MP4 que se puede descargar o reproducir. }
+        size_bytes:
+          type: [integer, 'null']
+          description: Tamaño exacto del archivo. `null` sin video.
+          example: 48211234
+        duration_seconds:
+          type: [integer, 'null']
+          description: Duración aproximada. Puede ser `null` aunque haya video.
+          example: 74
+        version:
+          type: integer
+          minimum: 0
+          description: |
+            Sube cada vez que el profesor sube, reemplaza o quita el MP4, y nunca baja. Si es distinta
+            de la versión guardada en el teléfono, hay una actualización; con `available: false`, el
+            video se quitó y la copia local se puede borrar.
+          example: 3
+
+    FigureLevel:
+      type: object
+      required: [id, name, slug, sort_order, is_current]
+      properties:
+        id: { type: integer }
+        name: { type: string, example: Básico 2 }
+        slug: { type: string, example: basico-2 }
+        sort_order: { type: integer, description: Posición del nivel dentro de su tipo de baile. }
+        is_current: { type: boolean, description: Es el nivel del curso activo del alumno. }
+
+    FigureVideoUrl:
+      type: object
+      required: [url, expires_at, size_bytes, version, filename]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL firmada de R2. Pedirla sin headers de esta API.
+          example: https://ACCOUNT_ID.r2.cloudflarestorage.com/cubania-videos/level-contents/12/0b9f6c1e-7a52-4f0a-9d7e-3c2b1a0f9e8d.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=1800&X-Amz-Signature=…
+        expires_at: { type: string, format: date-time }
+        size_bytes:
+          type: integer
+          description: Tamaño esperado del archivo. Sirve para el progreso y para validar la descarga.
+          example: 48211234
+        version:
+          type: integer
+          description: Versión del MP4 que se va a descargar. Guardarla en el índice local.
+          example: 3
+        filename:
+          type: string
+          description: Nombre sugerido para el archivo.
+          example: dile-que-no-12-v3.mp4
 
     FigureList:
       type: object
@@ -649,7 +894,9 @@ components:
         is_correct: { type: boolean }
         correct_option_id: { type: [integer, 'null'] }
         answered_at: { type: string, format: date-time }
-        answered_count: { type: integer, description: Preguntas respondidas en la sesión, contando esta. }
+        answered_count:
+          type: integer
+          description: Preguntas respondidas en la sesión, contando esta.
         quiz_max: { type: integer, example: 5 }
 
     Song:
@@ -659,7 +906,10 @@ components:
         id: { type: integer }
         title: { type: string }
         artist: { type: string }
-        audio_or_link_url: { type: string, format: uri, description: Enlace para abrir fuera de la app (Spotify, YouTube…). }
+        audio_or_link_url:
+          type: string
+          format: uri
+          description: Enlace para abrir fuera de la app (Spotify, YouTube…).
 
     ReviewStreak:
       type: object
@@ -751,3 +1001,27 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Message' }
           example: { message: Se acabó el tiempo de este repaso. }
+    FigureForbidden:
+      description: |
+        El token no es de la app, o la figura no está en los niveles del alumno (también cuando ya
+        no tiene una inscripción activa).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          examples:
+            sinAcceso:
+              value: { message: No tienes acceso a esta figura. }
+            tokenAjeno:
+              value: { message: Este token no tiene acceso a la app. }
+    FigureVideoNotFound:
+      description: La figura no existe (o se borró), o no tiene MP4.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Esta figura no tiene video. }
+    VideoStorageUnavailable:
+      description: El almacenamiento de videos no está configurado o no responde. Reintentar más tarde.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: El almacenamiento de videos no está disponible. }

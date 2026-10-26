@@ -96,6 +96,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Figure videos
+    |--------------------------------------------------------------------------
+    |
+    | Each figure may have its own MP4 next to the YouTube link. Files live in
+    | a private bucket and are only reached through short-lived signed URLs.
+    | Videos arrive already compressed (H.264, 720p); the server never
+    | transcodes. The upload form only shows once the disk has a bucket.
+    |
+    */
+
+    'figure_videos' => [
+        'disk' => 'r2',
+        'max_upload_bytes' => (int) env('CUBANIA_FIGURE_VIDEO_MAX_MB', 200) * 1024 * 1024,
+        'upload_url_minutes' => 30,
+        'download_url_minutes' => 30,
+        'stream_url_minutes' => 60,
+        'staff_download_url_minutes' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Academy timezone
     |--------------------------------------------------------------------------
     |
