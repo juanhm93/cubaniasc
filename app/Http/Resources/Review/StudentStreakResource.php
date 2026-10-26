@@ -24,7 +24,7 @@ class StudentStreakResource extends JsonResource
             'current_streak' => $streakService->currentStreak($this->resource),
             'last_review_at' => $this->last_review_at?->toIso8601String(),
             'recent_days' => $streakService->recentDays($this->student),
-            'next_day_starts_at' => ReviewSessionService::localDayBounds()[1]->addSecond()->startOfSecond()->toIso8601String(),
+            'next_day_starts_at' => ReviewSessionService::nextDayStartsAt()->toIso8601String(),
         ];
     }
 }

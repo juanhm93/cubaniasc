@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Review;
 
+use App\Enums\ReviewTodayStatus;
 use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Models\ReviewSession;
 use App\Models\Student;
+use App\Repositories\Review\ReviewSessionRepository;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -16,6 +18,7 @@ final class ReviewSessionService
 
     public function __construct(
         private readonly StudentLevelResolver $levelResolver,
+        private readonly ReviewSessionRepository $sessions,
     ) {}
 
     public function create(Student $student): ReviewSession
@@ -23,23 +26,17 @@ final class ReviewSessionService
         $level = $this->levelResolver->resolveLevel($student);
         $startedAt = now();
 
-        return ReviewSession::query()->create([
-            'student_id' => $student->id,
-            'level_id' => $level->id,
-            'started_at' => $startedAt,
-            'expires_at' => $startedAt->copy()->addSeconds($level->review_duration_seconds),
-            'completed' => false,
-        ]);
+        return $this->sessions->start(
+            $student,
+            $level,
+            $startedAt,
+            $startedAt->copy()->addSeconds($level->review_duration_seconds),
+        );
     }
 
     public function findActiveSession(Student $student): ?ReviewSession
     {
-        return ReviewSession::query()
-            ->where('student_id', $student->id)
-            ->where('completed', false)
-            ->where('expires_at', '>', now())
-            ->latest('started_at')
-            ->first();
+        return $this->sessions->findActiveForStudent($student, now());
     }
 
     public function createOrResume(Student $student): ReviewSession
@@ -59,14 +56,33 @@ final class ReviewSessionService
         return $this->create($student)->loadMissing('level');
     }
 
+    /**
+     * Today's review for the student: the session in progress, or whether a new one
+     * can still be started today. Closes sessions whose timer already ran out.
+     *
+     * @return array{status: ReviewTodayStatus, session: ReviewSession|null}
+     */
+    public function todayFor(Student $student): array
+    {
+        $active = $this->findActiveSession($student);
+
+        if ($active !== null) {
+            return ['status' => ReviewTodayStatus::InProgress, 'session' => $active];
+        }
+
+        $this->closeExpiredIncompleteSessions($student);
+
+        return [
+            'status' => $this->hasStartedToday($student) ? ReviewTodayStatus::Locked : ReviewTodayStatus::Available,
+            'session' => null,
+        ];
+    }
+
     public function hasStartedToday(Student $student): bool
     {
         [$startOfDay, $endOfDay] = self::localDayBounds();
 
-        return ReviewSession::query()
-            ->where('student_id', $student->id)
-            ->whereBetween('started_at', [$startOfDay, $endOfDay])
-            ->exists();
+        return $this->sessions->existsStartedBetween($student, $startOfDay, $endOfDay);
     }
 
     public static function academyTimezone(): string
@@ -98,13 +114,17 @@ final class ReviewSessionService
         return CarbonImmutable::instance($moment)->setTimezone(self::academyTimezone())->toDateString();
     }
 
+    /**
+     * Moment the next local day starts, when a new review can be started.
+     */
+    public static function nextDayStartsAt(): CarbonImmutable
+    {
+        return self::localDayBounds()[1]->addSecond()->startOfSecond();
+    }
+
     public function closeExpiredIncompleteSessions(Student $student): void
     {
-        ReviewSession::query()
-            ->where('student_id', $student->id)
-            ->where('completed', false)
-            ->where('expires_at', '<=', now())
-            ->update(['completed' => true]);
+        $this->sessions->closeExpiredForStudent($student, now());
     }
 
     public function markClosed(ReviewSession $session): ReviewSession
@@ -113,9 +133,7 @@ final class ReviewSessionService
             return $session;
         }
 
-        $session->update(['completed' => true]);
-
-        return $session->fresh() ?? $session;
+        return $this->sessions->close($session);
     }
 
     public function hasExpired(ReviewSession $session): bool
@@ -142,11 +160,14 @@ final class ReviewSessionService
             return $session;
         }
 
-        $session->update([
-            'completed' => true,
-            'completed_at' => now(),
-        ]);
+        return $this->sessions->markCompleted($session, now());
+    }
 
-        return $session->fresh() ?? $session;
+    /**
+     * Loads the level, the chosen figures and the quiz answer count of the session.
+     */
+    public function withProgress(ReviewSession $session): ReviewSession
+    {
+        return $this->sessions->loadProgress($session);
     }
 }

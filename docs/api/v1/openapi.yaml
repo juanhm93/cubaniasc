@@ -15,6 +15,20 @@ info:
 
     Iniciar sesión en un teléfono nuevo cierra la sesión de la app en el anterior.
 
+    **Repaso diario (`/review/*`):** una sesión por día local de la academia, con tiempo
+    limitado según el nivel. Flujo:
+    1. `GET /review/today`: estado del día (`available`, `in_progress` o `locked`), nivel y racha.
+    2. `POST /review/sessions`: empieza la sesión (o retoma la que está en curso).
+    3. Seguir `session.next_step`:
+       - `select_figures`: `GET .../figure-options` y elegir con `POST .../figures`.
+       - `review_figures`: mostrar cada figura elegida y registrar `POST .../figures/{figure}/view`.
+       - `quiz`: `GET .../quiz/next` y `POST .../quiz/{item}/answer` hasta que `quiz/next` devuelva `data: null`.
+       - `songs`: `GET .../songs` y terminar con `POST .../complete`.
+       - `expired`: se acabó el tiempo. Si había figuras elegidas, aún se pueden ver las canciones y terminar.
+       - `completed`: listo; `/review/today` queda en `locked` hasta el día siguiente.
+
+    Los pasos con tiempo (figuras y quiz) responden 410 cuando la sesión venció.
+
     **Convenciones:**
     - Enviar siempre `Accept: application/json`. Los errores bajo `/api` salen en JSON igualmente.
     - Las respuestas exitosas envuelven el contenido en `data`.
@@ -35,6 +49,8 @@ tags:
     description: Inicio y cierre de sesión del alumno con código por correo.
   - name: Perfil
     description: Datos del alumno autenticado.
+  - name: Repaso
+    description: Repaso diario del alumno (figuras, quiz y canciones de su nivel).
 
 paths:
   /auth/request-code:
@@ -166,12 +182,316 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
 
+  /review/today:
+    get:
+      tags: [Repaso]
+      summary: Estado del repaso de hoy
+      operationId: getReviewToday
+      description: |
+        Pantalla de inicio del repaso. Si la sesión de hoy venció sin terminarse, se cierra y el día queda `locked`.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estado del día.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/ReviewToday' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NoActiveEnrollment' }
+
+  /review/sessions:
+    post:
+      tags: [Repaso]
+      summary: Empezar (o retomar) el repaso de hoy
+      operationId: startReviewSession
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201':
+          description: Sesión creada. El tiempo empieza a correr.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewSessionEnvelope' }
+        '200':
+          description: Ya había una sesión en curso; se devuelve esa.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewSessionEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NoActiveEnrollment' }
+        '409': { $ref: '#/components/responses/ReviewDailyLimit' }
+
+  /review/sessions/{session}:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags: [Repaso]
+      summary: Estado de una sesión
+      operationId: getReviewSession
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Sesión con su progreso.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewSessionEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /review/sessions/{session}/figure-options:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags: [Repaso]
+      summary: Figuras para elegir
+      operationId: getReviewFigureOptions
+      description: |
+        Hasta 4 figuras: primero las vistas recientemente, luego las marcadas en el curso y luego
+        del catálogo; al menos 2 del nivel actual cuando las hay, el resto de niveles anteriores.
+        Se guardan la primera vez, así que recargar devuelve las mismas. Puede venir vacía si el
+        nivel aún no tiene figuras cargadas; en ese caso se pasa directo al quiz.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Opciones de la sesión.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FigureList' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
+
+  /review/sessions/{session}/figures:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    post:
+      tags: [Repaso]
+      summary: Elegir las figuras a repasar
+      operationId: storeReviewFigures
+      description: Exactamente 2 de las opciones ofrecidas (o todas, si se ofrecieron menos). Solo se elige una vez.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [level_content_ids]
+              properties:
+                level_content_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items: { type: integer }
+            example: { level_content_ids: [12, 31] }
+      responses:
+        '200':
+          description: Figuras elegidas.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FigureList' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
+        '422':
+          description: |
+            Formato inválido (`errors.level_content_ids`), o selección rechazada (solo `message`):
+            cantidad distinta de la requerida, figura no ofrecida o figuras ya elegidas.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationError'
+                  - $ref: '#/components/schemas/Message'
+              example: { message: Debes elegir exactamente 2 figuras. }
+
+  /review/sessions/{session}/figures/{figure}/view:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+      - name: figure
+        in: path
+        required: true
+        description: Id de una de las figuras elegidas en la sesión.
+        schema: { type: integer }
+    post:
+      tags: [Repaso]
+      summary: Registrar que se repasó una figura
+      operationId: recordReviewFigureView
+      description: Alimenta el historial que se usa para sugerir figuras en próximos repasos.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Registrado. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: La sesión no existe o la figura no es una de las elegidas.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
+
+  /review/sessions/{session}/quiz/next:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags: [Repaso]
+      summary: Siguiente pregunta del quiz
+      operationId: getNextReviewQuestion
+      description: |
+        Preguntas aleatorias no respondidas, primero las del nivel actual. Máximo `quiz_max` por sesión.
+        `data: null` significa que el quiz terminó (límite alcanzado o no quedan preguntas): pasar a las canciones.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Pregunta, o `null` si el quiz terminó.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/QuizQuestion'
+                      - type: 'null'
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
+
+  /review/sessions/{session}/quiz/{item}/answer:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+      - name: item
+        in: path
+        required: true
+        description: Id de la pregunta (`QuizQuestion.id`).
+        schema: { type: integer }
+    post:
+      tags: [Repaso]
+      summary: Responder una pregunta
+      operationId: answerReviewQuestion
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quiz_option_id]
+              properties:
+                quiz_option_id: { type: integer, description: Opción de esta misma pregunta. }
+      responses:
+        '200':
+          description: Resultado de la respuesta.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/QuizAnswerResult' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: La sesión no existe o la pregunta no es del repaso de este alumno.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+        '409':
+          description: La pregunta ya fue respondida o se alcanzó el límite de preguntas.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+              example: { message: Ya respondiste esta pregunta. }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /review/sessions/{session}/songs:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    get:
+      tags: [Repaso]
+      summary: Canciones recomendadas
+      operationId: getReviewSongs
+      description: |
+        Hasta 3 canciones activas del nivel (se completan con niveles anteriores). Se eligen la primera
+        vez que se piden y luego son siempre las mismas. Funciona aunque la sesión haya vencido.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Canciones de la sesión (puede venir vacía).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Song' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /review/sessions/{session}/complete:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    post:
+      tags: [Repaso]
+      summary: Terminar el repaso
+      operationId: completeReviewSession
+      description: |
+        Suma el día a la racha. Se permite aunque el tiempo haya vencido, siempre que el alumno haya
+        elegido sus figuras (o el nivel no tuviera figuras que ofrecer). Repetirlo no vuelve a sumar.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Sesión terminada y racha actualizada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [session, streak]
+                    properties:
+                      session: { $ref: '#/components/schemas/ReviewSession' }
+                      streak: { $ref: '#/components/schemas/ReviewStreak' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Falta elegir las figuras.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+              example: { message: Elige y repasa tus figuras antes de terminar el repaso. }
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       description: Token Sanctum emitido por `/auth/verify-code`.
+
+  parameters:
+    SessionId:
+      name: session
+      in: path
+      required: true
+      description: Id de la sesión de repaso (debe ser del alumno autenticado).
+      schema: { type: integer }
 
   schemas:
     StudentIdentifier:
@@ -213,6 +533,154 @@ components:
                 name: { type: string, example: Salsa casino }
             - type: 'null'
 
+    ReviewLevel:
+      type: object
+      required: [id, name, slug, review_duration_seconds]
+      properties:
+        id: { type: integer }
+        name: { type: string, example: Básico 1 }
+        slug: { type: string, example: basico-1 }
+        review_duration_seconds: { type: integer, example: 1800 }
+
+    ReviewToday:
+      type: object
+      required: [status, level, session, streak]
+      properties:
+        status:
+          type: string
+          enum: [available, in_progress, locked]
+          description: |
+            `available`: puede empezar el repaso de hoy. `in_progress`: hay una sesión en curso (en `session`).
+            `locked`: ya usó el repaso de hoy; se abre de nuevo en `streak.next_day_starts_at`.
+        level: { $ref: '#/components/schemas/ReviewLevel' }
+        session:
+          description: Solo con `status = in_progress`.
+          oneOf:
+            - $ref: '#/components/schemas/ReviewSession'
+            - type: 'null'
+        streak: { $ref: '#/components/schemas/ReviewStreak' }
+
+    ReviewSession:
+      type: object
+      required:
+        - id
+        - level_id
+        - started_at
+        - expires_at
+        - duration_seconds
+        - remaining_seconds
+        - expired
+        - completed_at
+        - next_step
+        - quiz_max
+        - quiz_answered_count
+        - level
+        - selected_figures
+      properties:
+        id: { type: integer }
+        level_id: { type: integer }
+        started_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time, description: Fin del tiempo. Usarlo para el contador. }
+        duration_seconds: { type: integer, example: 1800 }
+        remaining_seconds: { type: integer, description: Calculado en el servidor al responder. }
+        expired: { type: boolean }
+        completed_at: { type: [string, 'null'], format: date-time }
+        next_step:
+          type: string
+          enum: [select_figures, review_figures, quiz, songs, expired, completed]
+          description: Paso en el que el alumno debe continuar (ver la descripción general).
+        quiz_max: { type: integer, example: 5 }
+        quiz_answered_count: { type: integer }
+        level: { $ref: '#/components/schemas/ReviewLevel' }
+        selected_figures:
+          type: array
+          items: { $ref: '#/components/schemas/Figure' }
+
+    ReviewSessionEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ReviewSession' }
+
+    Figure:
+      type: object
+      required: [id, level_id, level_name, name, description, video_url, youtube_video_id]
+      properties:
+        id: { type: integer }
+        level_id: { type: integer, description: Si es distinto del nivel de la sesión, la figura es de un nivel anterior. }
+        level_name: { type: [string, 'null'], example: Básico 1 }
+        name: { type: string, example: Dile que no }
+        description: { type: [string, 'null'] }
+        video_url: { type: [string, 'null'], format: uri }
+        youtube_video_id:
+          type: [string, 'null']
+          description: Id de YouTube extraído de `video_url`, listo para el reproductor.
+          example: dQw4w9WgXcQ
+
+    FigureList:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Figure' }
+
+    QuizQuestion:
+      type: object
+      required: [id, type, prompt, options]
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [figure, fun_fact] }
+        prompt: { type: string, example: Enchufla }
+        options:
+          type: array
+          description: No indica cuál es la correcta.
+          items:
+            type: object
+            required: [id, description]
+            properties:
+              id: { type: integer }
+              description: { type: string }
+
+    QuizAnswerResult:
+      type: object
+      required: [is_correct, correct_option_id, answered_at, answered_count, quiz_max]
+      properties:
+        is_correct: { type: boolean }
+        correct_option_id: { type: [integer, 'null'] }
+        answered_at: { type: string, format: date-time }
+        answered_count: { type: integer, description: Preguntas respondidas en la sesión, contando esta. }
+        quiz_max: { type: integer, example: 5 }
+
+    Song:
+      type: object
+      required: [id, title, artist, audio_or_link_url]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+        audio_or_link_url: { type: string, format: uri, description: Enlace para abrir fuera de la app (Spotify, YouTube…). }
+
+    ReviewStreak:
+      type: object
+      required: [current_streak, last_review_at, recent_days, next_day_starts_at]
+      properties:
+        current_streak: { type: integer, description: Días seguidos con repaso terminado. 0 si se rompió la racha. }
+        last_review_at: { type: [string, 'null'], format: date-time }
+        recent_days:
+          type: array
+          description: Últimos 7 días locales, del más antiguo a hoy.
+          items:
+            type: object
+            required: [date, completed]
+            properties:
+              date: { type: string, format: date }
+              completed: { type: boolean }
+        next_day_starts_at:
+          type: string
+          format: date-time
+          description: Cuándo empieza el próximo día local (se puede volver a repasar).
+
     Message:
       type: object
       required: [message]
@@ -243,7 +711,9 @@ components:
           schema: { $ref: '#/components/schemas/Message' }
           example: { message: Unauthenticated. }
     Forbidden:
-      description: El token no es de la app (por ejemplo, un token del panel de repaso).
+      description: |
+        El token no es de la app (por ejemplo, un token del panel de repaso web), o la sesión de
+        repaso pertenece a otro alumno.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Message' }
@@ -254,3 +724,30 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Message' }
           example: { message: Too Many Attempts. }
+    NotFound:
+      description: El recurso no existe.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+    NoActiveEnrollment:
+      description: El alumno ya no tiene una inscripción activa.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: No tienes una inscripción activa en un curso de Cubanía. }
+    ReviewDailyLimit:
+      description: Ya usó el repaso de hoy.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message, locked]
+            properties:
+              message: { type: string, example: Ya usaste tu repaso de hoy. Vuelve mañana. }
+              locked: { type: boolean, enum: [true] }
+    ReviewSessionExpired:
+      description: Se acabó el tiempo de la sesión.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Se acabó el tiempo de este repaso. }
