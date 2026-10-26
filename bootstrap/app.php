@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\Content\FigureVideoStorageUnavailableException;
 use App\Exceptions\Review\ActiveEnrollmentNotFoundException;
 use App\Exceptions\Review\InvalidFigureSelectionException;
 use App\Exceptions\Review\QuizAnswerRejectedException;
@@ -91,6 +92,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ReviewSessionNotCompletableException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => $exception->getMessage()], 422);
+            }
+        });
+
+        $exceptions->render(function (FigureVideoStorageUnavailableException $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => $exception->getMessage()], 503);
             }
         });
     })->create();

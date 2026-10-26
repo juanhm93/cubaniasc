@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Api\DanceTypeController as ApiDanceTypeController;
 use App\Http\Controllers\Api\LevelContentController;
+use App\Http\Controllers\Api\LevelContentVideoController;
 use App\Http\Controllers\Api\LevelController as ApiLevelController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\ContentController;
@@ -108,6 +109,18 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
                 ->name('level-contents.update');
             Route::delete('level-contents/{levelContent}', [LevelContentController::class, 'destroy'])
                 ->name('level-contents.destroy');
+
+            // The figure's own MP4 in the R2 bucket. Browsers upload and download with signed URLs.
+            Route::post('level-contents/{levelContent}/video/upload-url', [LevelContentVideoController::class, 'uploadUrl'])
+                ->name('level-contents.video.upload-url');
+            Route::post('level-contents/{levelContent}/video', [LevelContentVideoController::class, 'store'])
+                ->name('level-contents.video.store');
+            Route::delete('level-contents/{levelContent}/video', [LevelContentVideoController::class, 'destroy'])
+                ->name('level-contents.video.destroy');
+            Route::get('level-contents/{levelContent}/video/stream-url', [LevelContentVideoController::class, 'streamUrl'])
+                ->name('level-contents.video.stream-url');
+            Route::get('level-contents/{levelContent}/video/download', [LevelContentVideoController::class, 'download'])
+                ->name('level-contents.video.download');
         });
     });
 

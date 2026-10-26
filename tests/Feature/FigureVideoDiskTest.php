@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\FigureVideoUrlPurpose;
+use App\Models\LevelContent;
+use App\Services\Content\FigureVideoStorage;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -64,6 +67,34 @@ class FigureVideoDiskTest extends TestCase
         foreach ([...array_keys($query), ...array_keys($upload['headers'])] as $name) {
             $this->assertStringNotContainsStringIgnoringCase('checksum', $name);
         }
+    }
+
+    /**
+     * The fake disk ignores the response overrides, so check them on a real S3 signature.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_signed_download_url_overrides_the_response_headers(): void
+    {
+        config(['filesystems.disks.r2.bucket' => 'test-bucket']);
+        Storage::set('r2', $this->r2Disk());
+        $figure = (new LevelContent)->forceFill([
+            'id' => 12,
+            'name' => 'Dile que no',
+            'video_file_path' => 'level-contents/12/0b9f6c1e-7a52-4f0a-9d7e-3c2b1a0f9e8d.mp4',
+            'video_file_version' => 3,
+        ]);
+
+        $signed = app(FigureVideoStorage::class)->signedUrl($figure, FigureVideoUrlPurpose::Download, 30);
+
+        $url = parse_url($signed['url']);
+        parse_str($url['query'], $query);
+
+        $this->assertSame('/test-bucket/level-contents/12/0b9f6c1e-7a52-4f0a-9d7e-3c2b1a0f9e8d.mp4', $url['path']);
+        $this->assertSame('attachment; filename=dile-que-no-12-v3.mp4', $query['response-content-disposition']);
+        $this->assertSame('video/mp4', $query['response-content-type']);
+        $this->assertEqualsWithDelta(1800, (int) $query['X-Amz-Expires'], 5);
+        $this->assertSame('dile-que-no-12-v3.mp4', $signed['filename']);
     }
 
     private function r2Disk(): FilesystemAdapter
