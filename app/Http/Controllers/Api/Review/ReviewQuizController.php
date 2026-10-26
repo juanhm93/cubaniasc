@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Review\StoreQuizAnswerRequest;
 use App\Http\Resources\Review\QuizItemResource;
 use App\Models\QuizItem;
-use App\Models\QuizOption;
 use App\Models\ReviewSession;
 use App\Services\Review\QuizGeneratorService;
 use Illuminate\Http\JsonResponse;
@@ -53,7 +52,8 @@ final class ReviewQuizController extends Controller
             abort(404);
         }
 
-        $quizOption = QuizOption::query()->findOrFail($request->integer('quiz_option_id'));
+        $quizOption = $this->quizGeneratorService->findOption($item, $request->integer('quiz_option_id'))
+            ?? abort(404);
 
         $response = $this->quizGeneratorService->recordAnswer($session, $item, $quizOption);
 

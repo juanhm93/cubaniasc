@@ -10,7 +10,7 @@ use App\Models\QuizItem;
 use App\Models\QuizOption;
 use App\Models\ReviewQuizResponse;
 use App\Models\ReviewSession;
-use Illuminate\Database\Eloquent\Builder;
+use App\Repositories\Review\QuizRepository;
 use InvalidArgumentException;
 
 final class QuizGeneratorService
@@ -18,6 +18,7 @@ final class QuizGeneratorService
     public function __construct(
         private readonly ReviewSessionService $sessionService,
         private readonly StudentLevelResolver $levelResolver,
+        private readonly QuizRepository $quiz,
     ) {}
 
     /**
@@ -34,21 +35,20 @@ final class QuizGeneratorService
             return null;
         }
 
-        $answeredIds = ReviewQuizResponse::query()
-            ->where('review_session_id', $session->id)
-            ->pluck('quiz_item_id');
-
-        return $this->basePoolQuery($session)
-            ->whereNotIn('id', $answeredIds)
-            ->orderByRaw('CASE WHEN level_id = ? THEN 0 ELSE 1 END', [$session->level_id])
-            ->inRandomOrder()
-            ->with('options')
-            ->first();
+        return $this->quiz->nextUnansweredItem($session, $this->reviewLevelIds($session), $session->level_id);
     }
 
     public function belongsToSessionPool(ReviewSession $session, QuizItem $quizItem): bool
     {
-        return $this->basePoolQuery($session)->whereKey($quizItem->id)->exists();
+        return $this->quiz->isInPool($quizItem, $this->reviewLevelIds($session));
+    }
+
+    /**
+     * The option of the item with the given id, or null when it belongs to another item.
+     */
+    public function findOption(QuizItem $quizItem, int $optionId): ?QuizOption
+    {
+        return $this->quiz->findOptionOfItem($quizItem, $optionId);
     }
 
     public function recordAnswer(
@@ -64,12 +64,7 @@ final class QuizGeneratorService
             throw new InvalidArgumentException('The selected option does not belong to this quiz item.');
         }
 
-        $alreadyAnswered = ReviewQuizResponse::query()
-            ->where('review_session_id', $session->id)
-            ->where('quiz_item_id', $quizItem->id)
-            ->exists();
-
-        if ($alreadyAnswered) {
+        if ($this->quiz->hasAnswered($session, $quizItem)) {
             throw QuizAnswerRejectedException::alreadyAnswered();
         }
 
@@ -77,40 +72,26 @@ final class QuizGeneratorService
             throw QuizAnswerRejectedException::limitReached(ReviewSessionService::MAX_QUIZ_QUESTIONS);
         }
 
-        return ReviewQuizResponse::query()->create([
-            'review_session_id' => $session->id,
-            'quiz_item_id' => $quizItem->id,
-            'quiz_option_id' => $quizOption->id,
-            'is_correct' => $quizOption->is_correct,
-            'answered_at' => now(),
-        ]);
+        return $this->quiz->recordAnswer($session, $quizItem, $quizOption, now());
     }
 
     public function correctOptionId(QuizItem $quizItem): ?int
     {
-        return $quizItem->options()->where('is_correct', true)->value('id');
+        return $this->quiz->correctOptionId($quizItem);
     }
 
     public function answeredCount(ReviewSession $session): int
     {
-        return ReviewQuizResponse::query()
-            ->where('review_session_id', $session->id)
-            ->count();
+        return $this->quiz->answeredCount($session);
     }
 
     /**
-     * @return Builder<QuizItem>
+     * @return list<int>
      */
-    private function basePoolQuery(ReviewSession $session): Builder
+    private function reviewLevelIds(ReviewSession $session): array
     {
         $session->loadMissing('level');
-        $reviewLevelIds = $this->levelResolver->reviewLevelsFor($session->level)->pluck('id')->all();
 
-        return QuizItem::query()
-            ->where('is_active', true)
-            ->where(function ($query) use ($reviewLevelIds): void {
-                $query->whereIn('level_id', $reviewLevelIds)
-                    ->orWhereNull('level_id');
-            });
+        return $this->levelResolver->reviewLevelIdsFor($session->level);
     }
 }

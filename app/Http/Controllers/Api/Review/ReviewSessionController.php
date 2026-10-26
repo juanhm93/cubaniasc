@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Review;
 
-use App\Exceptions\Review\ReviewSessionNotCompletableException;
+use App\Actions\Review\CompleteReviewSession;
+use App\Enums\ReviewTodayStatus;
 use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Review\StoreReviewSessionFiguresRequest;
@@ -17,7 +18,6 @@ use App\Models\ReviewSession;
 use App\Services\Review\FigureSelectionService;
 use App\Services\Review\ReviewSessionService;
 use App\Services\Review\SongRecommendationService;
-use App\Services\Review\StreakService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -30,7 +30,6 @@ final class ReviewSessionController extends Controller
         private readonly ReviewSessionService $sessionService,
         private readonly FigureSelectionService $figureSelectionService,
         private readonly SongRecommendationService $songRecommendationService,
-        private readonly StreakService $streakService,
     ) {}
 
     public function store(Request $request): JsonResponse
@@ -45,19 +44,16 @@ final class ReviewSessionController extends Controller
 
     public function current(Request $request): JsonResponse
     {
-        $student = $this->authenticatedStudent($request);
-        $session = $this->sessionService->findActiveSession($student);
+        $today = $this->sessionService->todayFor($this->authenticatedStudent($request));
 
-        if ($session === null) {
-            $this->sessionService->closeExpiredIncompleteSessions($student);
+        if ($today['status'] === ReviewTodayStatus::Locked) {
+            return response()->json([
+                'message' => 'Ya usaste tu repaso de hoy. Vuelve mañana.',
+                'locked' => true,
+            ], 409);
+        }
 
-            if ($this->sessionService->hasStartedToday($student)) {
-                return response()->json([
-                    'message' => 'Ya usaste tu repaso de hoy. Vuelve mañana.',
-                    'locked' => true,
-                ], 409);
-            }
-
+        if ($today['session'] === null) {
             return response()->json([
                 'message' => 'Todavía no empezaste el repaso de hoy.',
                 'data' => null,
@@ -65,7 +61,7 @@ final class ReviewSessionController extends Controller
         }
 
         return response()->json([
-            'data' => ReviewSessionResource::make($this->withProgress($session)),
+            'data' => ReviewSessionResource::make($this->withProgress($today['session'])),
         ]);
     }
 
@@ -95,15 +91,15 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($student, $session);
         $this->ensureSessionIsActive($session);
 
-        $this->figureSelectionService->optionsForSession($session, $student);
-        $this->figureSelectionService->storeSelectedFigures(
+        $selected = $this->figureSelectionService->selectForSession(
             $session,
+            $student,
             $request->validated('level_content_ids'),
         );
 
         return response()->json([
             'message' => 'Figuras guardadas.',
-            'data' => LevelContentResource::collection($this->figureSelectionService->selectedFigures($session)),
+            'data' => LevelContentResource::collection($selected),
         ]);
     }
 
@@ -116,7 +112,7 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($student, $session);
         $this->ensureSessionIsActive($session);
 
-        if ($session->selectedFigures()->whereKey($content->id)->doesntExist()) {
+        if (! $this->figureSelectionService->isSelected($session, $content)) {
             abort(404);
         }
 
@@ -131,40 +127,23 @@ final class ReviewSessionController extends Controller
     {
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
 
-        if ($session->songs()->doesntExist()) {
-            $this->songRecommendationService->assignToSession($session);
-        }
-
-        $session->load('songs');
-
-        return RecommendedSongResource::collection($session->songs);
+        return RecommendedSongResource::collection($this->songRecommendationService->forSession($session));
     }
 
     /**
-     * Finishing is allowed after the timer runs out (the 30 minutes are a window, not a
-     * hard stop), but only once the student chose the figures to review (unless the
-     * catalog had none to offer).
+     * Allowed after the timer runs out; see {@see CompleteReviewSession}.
      */
-    public function complete(Request $request, ReviewSession $session): JsonResponse
+    public function complete(Request $request, ReviewSession $session, CompleteReviewSession $completeReviewSession): JsonResponse
     {
         $student = $this->authenticatedStudent($request);
         $this->authorizeReviewSession($student, $session);
 
-        if (! $this->figureSelectionService->canComplete($session)) {
-            throw ReviewSessionNotCompletableException::missingFigures();
-        }
-
-        $wasAlreadyCompleted = $session->completed_at !== null;
-        $session = $this->sessionService->markCompleted($session);
-
-        $streak = $wasAlreadyCompleted
-            ? $this->streakService->getOrCreate($student)
-            : $this->streakService->recordCompletion($student);
+        $result = $completeReviewSession->execute($session, $student);
 
         return response()->json([
             'data' => [
-                'session' => ReviewSessionResource::make($this->withProgress($session)),
-                'streak' => StudentStreakResource::make($streak),
+                'session' => ReviewSessionResource::make($this->withProgress($result['session'])),
+                'streak' => StudentStreakResource::make($result['streak']),
             ],
         ]);
     }
