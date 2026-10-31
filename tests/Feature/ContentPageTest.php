@@ -188,6 +188,7 @@ class ContentPageTest extends TestCase
                 ->where('level.level_contents.0.id', $figure->id)
                 ->where('level.level_contents.0.video_url', 'https://www.youtube.com/watch?v=s4DT0BFxDEk')
                 ->where('level.level_contents.0.video_file.available', true)
+                ->where('level.level_contents.0.video_file.linked', false)
                 ->where('level.level_contents.0.video_file.size_bytes', 48211234)
                 ->where('level.level_contents.0.video_file.duration_seconds', 74)
                 ->where('level.level_contents.0.video_file.version', 3)

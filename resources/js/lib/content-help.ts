@@ -1,13 +1,17 @@
 import type { ContentLevel, DanceTypeCard, FigureItem } from '@/types/content';
 
-type FigureFields = Pick<FigureItem, 'description' | 'video_url'>;
+type FigureFields = Pick<FigureItem, 'description' | 'video_url'> &
+    Partial<Pick<FigureItem, 'video_file'>>;
 
 function isBlank(value: string | null | undefined): boolean {
     return (value?.trim() ?? '') === '';
 }
 
+/**
+ * A figure has a video when it has a YouTube link or its own MP4.
+ */
 export function figureMissingVideo(figure: FigureFields): boolean {
-    return isBlank(figure.video_url);
+    return isBlank(figure.video_url) && !figure.video_file?.available;
 }
 
 export function figureMissingDescription(figure: FigureFields): boolean {

@@ -337,6 +337,90 @@
       "video": "Video",
       "description": "Descripción",
       "noDescription": "Esta figura todavía no tiene una descripción."
+    },
+    "figureVideo": {
+      "title": "Video MP4 de Cubanía",
+      "formatHint": "Se guarda en Cubanía y los alumnos pueden descargarlo en la app. Formato recomendado: MP4 H.264 en 720p, hasta {{max}}. El enlace de YouTube se mantiene.",
+      "none": "Esta figura todavía no tiene video MP4.",
+      "summary": "MP4 de {{size}}",
+      "summaryWithDuration": "MP4 de {{size}} · {{duration}}",
+      "choose": "Subir MP4",
+      "replace": "Reemplazar MP4",
+      "remove": "Quitar MP4",
+      "download": "Descargar MP4",
+      "cancel": "Cancelar subida",
+      "retry": "Reintentar",
+      "uploading": "Subiendo… {{percent}} %",
+      "confirming": "Verificando el video…",
+      "uploaded": "Video MP4 subido",
+      "removed": "Video MP4 quitado",
+      "progressLabel": "Progreso de la subida",
+      "removeTitle": "Quitar video MP4",
+      "removeDescription": "Se borra el archivo guardado en Cubanía. El enlace de YouTube no se toca.",
+      "chooseFromLibrary": "Elegir del bucket",
+      "linkedHint": "Vinculado a un archivo de tus carpetas del bucket. Si lo mueves o renombras allí, la figura dejará de encontrarlo.",
+      "unlink": "Desvincular MP4",
+      "unlinkTitle": "Desvincular video MP4",
+      "unlinkDescription": "La figura deja de usar este video. El archivo sigue en su carpeta del bucket y el enlace de YouTube no se toca.",
+      "unlinkConfirm": "Desvincular",
+      "unlinking": "Desvinculando…",
+      "unlinked": "Video MP4 desvinculado",
+      "library": {
+        "title": "Elegir video para {{name}}",
+        "description": "Elige un MP4 de tus carpetas del bucket. El archivo no se mueve ni se copia.",
+        "root": "Bucket",
+        "loading": "Cargando archivos…",
+        "loadFailed": "No se pudieron cargar los archivos del bucket.",
+        "empty": "Esta carpeta no tiene videos MP4.",
+        "linkedTo": "Ya vinculado a: {{names}}",
+        "current": "Video actual",
+        "link": "Vincular este video",
+        "linking": "Vinculando…",
+        "linked": "Video vinculado",
+        "linkFailed": "No se pudo vincular el video.",
+        "close": "Cerrar"
+      },
+      "levelLinks": {
+        "open": "Vincular videos del bucket",
+        "title": "Vincular videos de {{level}}",
+        "description": "Revisa la figura de cada archivo antes de vincular. Las coincidencias aproximadas pueden no ser correctas.",
+        "folder": "Carpeta: {{folder}}",
+        "empty": "No hay videos MP4 en la carpeta de este nivel.",
+        "figureFor": "Figura para {{name}}",
+        "noFigure": "Sin figura",
+        "exact": "Coincide",
+        "similar": "Revisar",
+        "linkAll": "Vincular ({{count}})",
+        "done": "Videos vinculados",
+        "brokenTitle": "Videos que hay que revisar",
+        "brokenMissing": "Ya no está en el bucket: {{key}}",
+        "brokenSizeChanged": "El archivo cambió: {{key}}",
+        "relink": "Volver a vincular"
+      },
+      "saveFirst": "Para subir un video MP4, guarda la figura y ábrela con Editar.",
+      "badge": "MP4",
+      "badgeTitle": "Tiene video MP4 de Cubanía",
+      "errors": {
+        "notMp4": "El archivo debe ser un video MP4.",
+        "tooLarge": "El video pesa {{size}} y el máximo es {{max}}.",
+        "uploadFailed": "No se pudo subir el video. Revisa tu conexión e inténtalo de nuevo.",
+        "removeFailed": "No se pudo quitar el video.",
+        "unavailable": "El almacenamiento de videos no está disponible. Inténtalo más tarde."
+      },
+      "warnings": {
+        "highResolution": "El video es de {{width}}×{{height}}. Se subirá igual, pero comprimido a 720p pesaría menos y cargaría mejor en clase."
+      },
+      "source": {
+        "label": "Fuente del video",
+        "youtube": "YouTube",
+        "file": "Video Cubanía"
+      },
+      "player": {
+        "loading": "Cargando video…",
+        "error": "No se pudo cargar el video.",
+        "noVideo": "Esta figura todavía no tiene un video asignado.",
+        "youtubeTitle": "Vista previa del video"
+      }
     }
   },
   "admin": {

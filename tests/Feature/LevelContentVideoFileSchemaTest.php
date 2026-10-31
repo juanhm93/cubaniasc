@@ -40,6 +40,7 @@ class LevelContentVideoFileSchemaTest extends TestCase
         $this->assertFalse($figure->fresh()->hasVideoFile());
         $this->assertSame([
             'available' => false,
+            'linked' => false,
             'size_bytes' => null,
             'duration_seconds' => null,
             'version' => 0,
@@ -76,6 +77,7 @@ class LevelContentVideoFileSchemaTest extends TestCase
 
         $this->assertSame([
             'available' => false,
+            'linked' => false,
             'size_bytes' => null,
             'duration_seconds' => null,
             'version' => 4,

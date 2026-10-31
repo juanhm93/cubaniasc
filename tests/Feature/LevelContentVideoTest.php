@@ -328,6 +328,7 @@ class LevelContentVideoTest extends TestCase
             ->assertJsonPath('video_url', 'https://www.youtube.com/watch?v=s4DT0BFxDEk')
             ->assertJsonPath('video_file', [
                 'available' => false,
+                'linked' => false,
                 'size_bytes' => null,
                 'duration_seconds' => null,
                 'version' => 2,

@@ -76,7 +76,7 @@ function FigurePreviewBody({ figure }: { figure: FigureItem }) {
             </ToggleGroup>
 
             {tab === 'video' ? (
-                <LevelVideoPreview url={figure.video_url} />
+                <LevelVideoPreview figure={figure} />
             ) : figureMissingDescription(figure) ? (
                 <div
                     className="flex aspect-video items-center justify-center rounded-md border bg-muted px-4 text-center text-sm text-muted-foreground"

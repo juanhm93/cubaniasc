@@ -15,9 +15,7 @@ use Illuminate\Validation\ValidationException;
  *
  * The presigned PUT cannot limit size or type, so both are checked on the stored
  * object (declared content type and the file's own MP4 header); a rejected object
- * is deleted. The version goes up so clients know their
- * copy is stale, and the replaced object is deleted once the row points to the new
- * one. Confirming the same key twice changes nothing.
+ * is deleted. {@see self::assign()} then points the figure to the object.
  */
 final class AttachFigureVideo
 {
@@ -49,23 +47,35 @@ final class AttachFigureVideo
             ]);
         }
 
-        $previousKey = DB::transaction(function () use ($content, $key, $object, $durationSeconds): ?string {
+        return $this->assign($content, $key, $object['size_bytes'], $durationSeconds);
+    }
+
+    /**
+     * Makes a checked object the figure's video. The version goes up so clients know
+     * their copy is stale, and the replaced object is deleted once the row points to
+     * the new one (the storage only deletes the app's own uploads). The same key with
+     * the same size changes nothing; a different size means the file was overwritten
+     * in the bucket, so the row is brought up to date.
+     */
+    public function assign(LevelContent $content, string $key, int $sizeBytes, ?int $durationSeconds): LevelContent
+    {
+        $previousKey = DB::transaction(function () use ($content, $key, $sizeBytes, $durationSeconds): ?string {
             $locked = LevelContent::query()->whereKey($content->id)->lockForUpdate()->firstOrFail();
             $previousKey = $locked->video_file_path;
 
-            if ($previousKey === $key) {
+            if ($previousKey === $key && $locked->video_file_size_bytes === $sizeBytes) {
                 return null;
             }
 
             $locked->forceFill([
                 'video_file_path' => $key,
-                'video_file_size_bytes' => $object['size_bytes'],
+                'video_file_size_bytes' => $sizeBytes,
                 'video_file_duration_seconds' => $durationSeconds,
                 'video_file_version' => $locked->video_file_version + 1,
                 'video_file_uploaded_at' => now(),
             ])->save();
 
-            return $previousKey;
+            return $previousKey === $key ? null : $previousKey;
         });
 
         $this->storage->delete($previousKey);

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\DanceTypeController as ApiDanceTypeController;
 use App\Http\Controllers\Api\LevelContentController;
 use App\Http\Controllers\Api\LevelContentVideoController;
 use App\Http\Controllers\Api\LevelController as ApiLevelController;
+use App\Http\Controllers\Api\LevelVideoLibraryController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
@@ -115,6 +116,14 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
                 ->name('level-contents.video.upload-url');
             Route::post('level-contents/{levelContent}/video', [LevelContentVideoController::class, 'store'])
                 ->name('level-contents.video.store');
+            Route::get('level-contents/{levelContent}/video/library', [LevelContentVideoController::class, 'library'])
+                ->name('level-contents.video.library');
+            Route::get('level-contents/{levelContent}/video/library/preview-url', [LevelContentVideoController::class, 'previewUrl'])
+                ->name('level-contents.video.preview-url');
+            Route::post('level-contents/{levelContent}/video/link', [LevelContentVideoController::class, 'link'])
+                ->name('level-contents.video.link');
+            Route::get('levels/{level}/video-library', [LevelVideoLibraryController::class, 'show'])
+                ->name('levels.video-library');
             Route::delete('level-contents/{levelContent}/video', [LevelContentVideoController::class, 'destroy'])
                 ->name('level-contents.video.destroy');
             Route::get('level-contents/{levelContent}/video/stream-url', [LevelContentVideoController::class, 'streamUrl'])

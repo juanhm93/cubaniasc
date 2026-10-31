@@ -113,6 +113,7 @@ return [
         'download_url_minutes' => 30,
         'stream_url_minutes' => 60,
         'staff_download_url_minutes' => 5,
+        'preview_url_minutes' => 5,
     ],
 
     /*

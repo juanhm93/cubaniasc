@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Content\FigureVideoStorage;
 use Database\Factories\LevelContentFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -44,9 +45,11 @@ class LevelContent extends Model
     }
 
     /**
-     * The figure's own MP4 as clients see it: no object key and no URL.
+     * The figure's own MP4 as clients see it: no object key and no URL. `linked` says
+     * the file lives in the academy's folders instead of the panel's uploads, so
+     * removing it only unlinks it.
      *
-     * @return Attribute<array{available: bool, size_bytes: int|null, duration_seconds: int|null, version: int, uploaded_at: string|null}, never>
+     * @return Attribute<array{available: bool, linked: bool, size_bytes: int|null, duration_seconds: int|null, version: int, uploaded_at: string|null}, never>
      */
     protected function videoFile(): Attribute
     {
@@ -55,6 +58,7 @@ class LevelContent extends Model
 
             return [
                 'available' => $available,
+                'linked' => $available && ! str_starts_with($this->attributes['video_file_path'], FigureVideoStorage::MANAGED_PREFIX),
                 'size_bytes' => $available ? $this->video_file_size_bytes : null,
                 'duration_seconds' => $available ? $this->video_file_duration_seconds : null,
                 'version' => (int) ($this->video_file_version ?? 0),
