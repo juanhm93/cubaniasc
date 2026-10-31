@@ -85,6 +85,8 @@ class ResetTodayReviewsCommandTest extends TestCase
 
     public function test_unlocks_todays_review(): void
     {
+        $this->travelToLocal('2026-10-30 10:00');
+
         $student = Student::factory()->create();
         $service = app(ReviewSessionService::class);
         ReviewSession::factory()->completed()->create([
