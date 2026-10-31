@@ -925,7 +925,11 @@
       "unmute": "Activar sonido",
       "fullscreen": "Pantalla completa",
       "exitFullscreen": "Salir de pantalla completa",
-      "loading": "Cargando video…"
+      "loading": "Cargando video…",
+      "channel": "Canal de video",
+      "channelOne": "Canal 1",
+      "channelTwo": "Canal 2",
+      "channelError": "No se pudo cargar el video. Toca para reintentar"
     },
     "quiz": {
       "counter": "Pregunta {{current}} de {{total}}",

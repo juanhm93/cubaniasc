@@ -1,8 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import admin from '@/routes/admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/use-translation';
+import admin from '@/routes/admin';
 
 type SessionRow = {
     id: number;

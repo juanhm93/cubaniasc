@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Review;
 
 use App\Actions\Review\CompleteReviewSession;
+use App\Enums\FigureVideoUrlPurpose;
 use App\Enums\ReviewTodayStatus;
 use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
@@ -15,6 +16,7 @@ use App\Http\Resources\Review\ReviewSessionResource;
 use App\Http\Resources\Review\StudentStreakResource;
 use App\Models\LevelContent;
 use App\Models\ReviewSession;
+use App\Services\Content\FigureVideoStorage;
 use App\Services\Review\FigureSelectionService;
 use App\Services\Review\ReviewSessionService;
 use App\Services\Review\SongRecommendationService;
@@ -120,6 +122,43 @@ final class ReviewSessionController extends Controller
 
         return response()->json([
             'message' => 'Figura registrada.',
+        ]);
+    }
+
+    /**
+     * Signed URL to play the figure's MP4 ("Canal 2"). The review never offers a
+     * download: the purpose is fixed and the URL lives no longer than the session.
+     */
+    public function figureVideoUrl(
+        Request $request,
+        ReviewSession $session,
+        LevelContent $content,
+        FigureVideoStorage $storage,
+    ): JsonResponse {
+        $student = $this->authenticatedStudent($request);
+        $this->authorizeReviewSession($student, $session);
+        $this->ensureSessionIsActive($session);
+
+        if (! $this->figureSelectionService->isSelected($session, $content) || ! $content->hasVideoFile()) {
+            abort(404);
+        }
+
+        $remainingMinutes = (int) ceil($this->sessionService->remainingSeconds($session) / 60);
+
+        $signed = $storage->signedUrl(
+            $content,
+            FigureVideoUrlPurpose::Stream,
+            max(1, min($remainingMinutes, (int) config('cubania.figure_videos.stream_url_minutes'))),
+        );
+
+        return response()->json([
+            'data' => [
+                'url' => $signed['url'],
+                'expires_at' => $signed['expires_at']->toIso8601String(),
+                'size_bytes' => $content->video_file_size_bytes,
+                'version' => $content->video_file_version,
+                'filename' => $signed['filename'],
+            ],
         ]);
     }
 

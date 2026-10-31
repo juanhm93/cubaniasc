@@ -7,6 +7,7 @@ namespace App\Http\Resources\Review;
 use App\Models\LevelContent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Arr;
 
 /** @mixin LevelContent */
 class LevelContentResource extends JsonResource
@@ -23,6 +24,7 @@ class LevelContentResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'video_url' => $this->video_url,
+            'video' => Arr::only($this->video_file, ['available', 'size_bytes', 'duration_seconds', 'version']),
             'sort_order' => $this->sort_order,
         ];
     }

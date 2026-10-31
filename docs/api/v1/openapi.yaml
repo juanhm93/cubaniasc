@@ -621,21 +621,30 @@ paths:
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/VideoStorageUnavailable' }
 
-  /figures/{content}/video-url:
+  /sessions/{session}/figures/{content}/video-url:
     servers:
       - url: https://cubaniasc.com/api/review
         description: Producción (panel de repaso web)
       - url: https://cubania.purphura.com/api/review
         description: Staging (panel de repaso web)
     parameters:
+      - $ref: '#/components/parameters/SessionId'
       - $ref: '#/components/parameters/LevelContentId'
     post:
       tags: [Repaso web]
       summary: URL firmada para reproducir el MP4 en el panel de repaso web
       operationId: createReviewFigureVideoUrl
       description: |
-        Igual que `POST /level-contents/{content}/download-url` con `purpose: stream` (60 minutos,
-        `inline`) y la misma regla de acceso, pero con el token del panel de repaso web.
+        El "Canal 2" del reproductor del repaso. Usa el token del panel de repaso web.
+
+        - Solo para figuras elegidas en una sesión propia y activa. Es más estricto que
+          `POST /level-contents/{content}/download-url`: aquí no se pueden pedir otras figuras del
+          nivel ni usarla fuera del repaso.
+        - Siempre responde `inline`: el repaso web no ofrece descargas, así que no recibe `purpose`.
+        - La URL vence con la sesión: los minutos que le queden, redondeados hacia arriba, con un
+          máximo de 60.
+        - El 404 también cubre una figura que no fue elegida en la sesión.
+
         Límite: 60 por minuto por alumno.
       security: [{ bearerAuth: [] }]
       responses:
@@ -649,8 +658,9 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/FigureVideoUrl' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
-        '403': { $ref: '#/components/responses/FigureForbidden' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/FigureVideoNotFound' }
+        '410': { $ref: '#/components/responses/ReviewSessionExpired' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/VideoStorageUnavailable' }
 

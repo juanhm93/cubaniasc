@@ -1,8 +1,9 @@
-import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
+import type { FormEventHandler} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import admin from '@/routes/admin';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -18,12 +19,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAbilities } from '@/hooks/use-abilities';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
+import admin from '@/routes/admin';
 
 type CalendarOption = {
     value: string;
@@ -167,9 +168,11 @@ export default function AdminPayments({
             paid_at: toDatetimeLocalValue(new Date()),
             return_month: selectedMonth,
         });
+
         if (receiptRef.current) {
             receiptRef.current.value = '';
         }
+
         setPaymentModalOpen(true);
     }
 
@@ -177,6 +180,7 @@ export default function AdminPayments({
         setPaymentModalOpen(false);
         form.reset();
         form.clearErrors();
+
         if (receiptRef.current) {
             receiptRef.current.value = '';
         }
@@ -611,9 +615,11 @@ export default function AdminPayments({
                                         const v = e.target
                                             .value as PaymentMethod;
                                         form.setData('method', v);
+
                                         if (v === 'efectivo') {
                                             form.setData('reference', '');
                                             form.setData('receipt', null);
+
                                             if (receiptRef.current) {
                                                 receiptRef.current.value = '';
                                             }
