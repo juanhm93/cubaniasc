@@ -2,8 +2,8 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import admin from '@/routes/admin';
 import { useTranslation } from '@/i18n/use-translation';
+import admin from '@/routes/admin';
 
 type Role = {
     id: number;

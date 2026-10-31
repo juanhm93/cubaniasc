@@ -1,11 +1,13 @@
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Plus } from 'lucide-react';
+import { FolderOpen, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
 import { ContentHelpNotice } from '@/components/content/content-help';
 import FigurePreviewDialog from '@/components/content/figure-preview-dialog';
+import FigureVideoUploader from '@/components/content/figure-video-uploader';
+import LevelVideoLinksDialog from '@/components/content/level-video-links-dialog';
 import SortableList from '@/components/content/sortable-list';
 import InputError from '@/components/input-error';
 import LevelContentItem from '@/components/items/level-content-item';
@@ -37,7 +39,12 @@ import {
     updateLevelContent,
 } from '@/services/levelService';
 import { normalizeFigure, normalizeLevel } from '@/types/content';
-import type { ContentLevel, DanceTypeCard, FigureItem } from '@/types/content';
+import type {
+    ContentLevel,
+    DanceTypeCard,
+    FigureItem,
+    FigureVideoSettings,
+} from '@/types/content';
 
 const textareaClassName = cn(
     'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground md:text-sm',
@@ -51,11 +58,13 @@ export default function ContentLevel({
     level: initialLevel,
     canDelete = false,
     contentHelpMode = false,
+    figureVideo = { enabled: false, maxSizeBytes: 0 },
 }: {
     danceType: DanceTypeCard;
     level: ContentLevel;
     canDelete?: boolean;
     contentHelpMode?: boolean;
+    figureVideo?: FigureVideoSettings;
 }) {
     const { t } = useTranslation();
     const showDelete = canDelete;
@@ -81,6 +90,8 @@ export default function ContentLevel({
         Record<string, string>
     >({});
     const [editSubmitting, setEditSubmitting] = useState(false);
+    const [videoBusy, setVideoBusy] = useState(false);
+    const [videoLinksOpen, setVideoLinksOpen] = useState(false);
 
     function beginEditContent(content: FigureItem): void {
         setEditName(content.name);
@@ -88,6 +99,25 @@ export default function ContentLevel({
         setEditVideoUrl(content.video_url ?? '');
         setEditFormErrors({});
         setEditingContent(content);
+    }
+
+    /**
+     * Keeps the list, the open preview and the edit dialog in sync after the
+     * figure's MP4 changes.
+     */
+    function applyFigureUpdate(updated: FigureItem): void {
+        setLevel((prev) => ({
+            ...prev,
+            level_contents: prev.level_contents.map((content) =>
+                content.id === updated.id ? updated : content,
+            ),
+        }));
+        setVideoContent((current) =>
+            current?.id === updated.id ? updated : current,
+        );
+        setEditingContent((current) =>
+            current?.id === updated.id ? updated : current,
+        );
     }
 
     async function handleRemove(): Promise<void> {
@@ -253,17 +283,30 @@ export default function ContentLevel({
             <Head title={level.name} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="relative flex min-h-[100vh] flex-1 flex-col gap-4 overflow-hidden rounded-xl border border-sidebar-border/70 p-4 md:min-h-min dark:border-sidebar-border">
-                    <div className="rounded-[4px] border border-sidebar-border/70 bg-card px-4 py-4 shadow-sm dark:border-sidebar-border">
-                        <p className="text-sm text-muted-foreground">
-                            {danceType.name}
-                        </p>
-                        <h1 className="mt-1 text-2xl font-bold">
-                            {level.name}
-                        </h1>
-                        {level.description ? (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {level.description}
+                    <div className="flex flex-wrap items-start justify-between gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-4 py-4 shadow-sm dark:border-sidebar-border">
+                        <div className="min-w-0">
+                            <p className="text-sm text-muted-foreground">
+                                {danceType.name}
                             </p>
+                            <h1 className="mt-1 text-2xl font-bold">
+                                {level.name}
+                            </h1>
+                            {level.description ? (
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {level.description}
+                                </p>
+                            ) : null}
+                        </div>
+                        {figureVideo.enabled && contents.length > 0 ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setVideoLinksOpen(true)}
+                            >
+                                <FolderOpen className="size-4" aria-hidden />
+                                {t('content.figureVideo.levelLinks.open')}
+                            </Button>
                         ) : null}
                     </div>
 
@@ -399,6 +442,13 @@ export default function ContentLevel({
                                             <InputError
                                                 message={formErrors.video_url}
                                             />
+                                            {figureVideo.enabled ? (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {t(
+                                                        'content.figureVideo.saveFirst',
+                                                    )}
+                                                </p>
+                                            ) : null}
                                         </div>
                                     </div>
                                     <DialogFooter>
@@ -426,12 +476,12 @@ export default function ContentLevel({
                         <Dialog
                             open={editingContent !== null}
                             onOpenChange={(open) => {
-                                if (!open) {
+                                if (!open && !videoBusy) {
                                     setEditingContent(null);
                                 }
                             }}
                         >
-                            <DialogContent>
+                            <DialogContent className="max-h-[90vh] overflow-y-auto">
                                 <form onSubmit={handleUpdateLevelContent}>
                                     <DialogHeader>
                                         <DialogTitle>Editar figura</DialogTitle>
@@ -528,12 +578,22 @@ export default function ContentLevel({
                                                 }
                                             />
                                         </div>
+                                        {editingContent ? (
+                                            <FigureVideoUploader
+                                                figure={editingContent}
+                                                settings={figureVideo}
+                                                onChange={applyFigureUpdate}
+                                                onBusyChange={setVideoBusy}
+                                            />
+                                        ) : null}
                                     </div>
                                     <DialogFooter>
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            disabled={editSubmitting}
+                                            disabled={
+                                                editSubmitting || videoBusy
+                                            }
                                             onClick={() =>
                                                 setEditingContent(null)
                                             }
@@ -542,7 +602,9 @@ export default function ContentLevel({
                                         </Button>
                                         <Button
                                             type="submit"
-                                            disabled={editSubmitting}
+                                            disabled={
+                                                editSubmitting || videoBusy
+                                            }
                                         >
                                             {editSubmitting
                                                 ? 'Guardando…'
@@ -600,6 +662,13 @@ export default function ContentLevel({
             <FigurePreviewDialog
                 figure={videoContent}
                 onClose={() => setVideoContent(null)}
+            />
+
+            <LevelVideoLinksDialog
+                level={level}
+                open={videoLinksOpen}
+                onOpenChange={setVideoLinksOpen}
+                onFigureUpdate={applyFigureUpdate}
             />
         </>
     );

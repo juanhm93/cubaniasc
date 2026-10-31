@@ -1,12 +1,12 @@
-import { FormEventHandler } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import admin from '@/routes/admin';
-import enrollRoutes from '@/routes/admin/pre-registrations/enroll';
+import type { FormEventHandler } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/i18n/use-translation';
+import admin from '@/routes/admin';
+import enrollRoutes from '@/routes/admin/pre-registrations/enroll';
 
 type CourseOption = {
     id: number;

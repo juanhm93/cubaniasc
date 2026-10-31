@@ -114,6 +114,19 @@ final class ReviewFigureRepository
     }
 
     /**
+     * Deletes the views recorded in the range, for one student or for everyone.
+     *
+     * @return int Number of views deleted.
+     */
+    public function deleteViewsBetween(CarbonInterface $from, CarbonInterface $to, ?int $studentId = null): int
+    {
+        return StudentFigureView::query()
+            ->when($studentId !== null, fn (Builder $query): Builder => $query->where('student_id', $studentId))
+            ->whereBetween('viewed_at', [$from, $to])
+            ->delete();
+    }
+
+    /**
      * Figures offered in the session, in the order they were offered.
      *
      * @return EloquentCollection<int, LevelContent>

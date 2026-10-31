@@ -1,9 +1,28 @@
+/**
+ * The figure's own MP4 (stored in Cubanía), next to the YouTube link in `video_url`.
+ * `linked` means it lives in the academy's folders, so removing it only unlinks it.
+ */
+export type FigureVideoFile = {
+    available: boolean;
+    linked: boolean;
+    size_bytes: number | null;
+    duration_seconds: number | null;
+    version: number;
+    uploaded_at: string | null;
+};
+
+export type FigureVideoSettings = {
+    enabled: boolean;
+    maxSizeBytes: number;
+};
+
 export type FigureItem = {
     id: number;
     name: string;
     description: string | null;
     sort_order: number;
     video_url: string | null;
+    video_file: FigureVideoFile;
 };
 
 export type ContentLevel = {
@@ -40,6 +59,20 @@ export function normalizeFigure(raw: unknown): FigureItem {
         description: figure.description ?? null,
         sort_order: figure.sort_order ?? 0,
         video_url: figure.video_url ?? null,
+        video_file: normalizeVideoFile(figure.video_file),
+    };
+}
+
+export function normalizeVideoFile(raw: unknown): FigureVideoFile {
+    const file = (raw ?? {}) as Partial<FigureVideoFile>;
+
+    return {
+        available: file.available ?? false,
+        linked: file.linked ?? false,
+        size_bytes: file.size_bytes ?? null,
+        duration_seconds: file.duration_seconds ?? null,
+        version: file.version ?? 0,
+        uploaded_at: file.uploaded_at ?? null,
     };
 }
 

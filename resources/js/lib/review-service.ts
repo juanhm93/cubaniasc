@@ -211,6 +211,21 @@ export async function recordFigureView(
     );
 }
 
+export async function fetchFigureVideoUrl(
+    sessionId: number,
+    contentId: number,
+): Promise<string> {
+    const result = await request<DataResponse<{ url: string }>>(
+        review.sessions.figures.videoUrl.url({
+            session: sessionId,
+            content: contentId,
+        }),
+        { method: 'POST' },
+    );
+
+    return result.data.url;
+}
+
 export async function fetchSessionSongs(
     sessionId: number,
 ): Promise<ReviewSong[]> {

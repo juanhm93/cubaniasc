@@ -1,9 +1,8 @@
-import { Pencil, Play, Trash2 } from 'lucide-react';
+import { Film, Pencil, Play, Trash2 } from 'lucide-react';
 import { ContentHelpBadge } from '@/components/content/content-help';
-import {
-    SortableHandle,
-    type SortableHandleProps,
-} from '@/components/content/sortable-list';
+import { SortableHandle } from '@/components/content/sortable-list';
+import type { SortableHandleProps } from '@/components/content/sortable-list';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/use-translation';
 import {
@@ -11,6 +10,7 @@ import {
     figureMissingVideo,
 } from '@/lib/content-help';
 import { cn } from '@/lib/utils';
+import type { FigureItem } from '@/types/content';
 
 const rowClassName =
     'flex flex-col gap-3 rounded-[4px] border border-sidebar-border/70 bg-card px-3 py-3 shadow-sm sm:flex-row sm:items-center dark:border-sidebar-border';
@@ -18,13 +18,7 @@ const rowClassName =
 const actionClassName =
     'h-11 flex-1 gap-2 text-muted-foreground sm:size-9 sm:flex-none sm:gap-0 sm:px-0 sm:has-[>svg]:px-0';
 
-type LevelContentItemProps = {
-    id: number;
-    name: string;
-    description: string | null;
-    sort_order: number;
-    video_url: string | null;
-};
+type LevelContentItemProps = FigureItem;
 
 export default function LevelContentItem({
     levelContent,
@@ -61,9 +55,21 @@ export default function LevelContentItem({
                     {...handleProps}
                 />
                 <div className="min-w-0 flex-1">
-                    <h2 className="leading-snug font-semibold break-words">
-                        {levelContent.name}
-                    </h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="leading-snug font-semibold break-words">
+                            {levelContent.name}
+                        </h2>
+                        {levelContent.video_file.available ? (
+                            <Badge
+                                variant="secondary"
+                                className="gap-1"
+                                title={t('content.figureVideo.badgeTitle')}
+                            >
+                                <Film className="size-3" aria-hidden />
+                                {t('content.figureVideo.badge')}
+                            </Badge>
+                        ) : null}
+                    </div>
                     {levelContent.description ? (
                         <p className="line-clamp-2 text-sm text-muted-foreground">
                             {levelContent.description}

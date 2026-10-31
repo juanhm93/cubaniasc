@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { AppBrandLogo } from '@/components/app-brand-logo';
 import { useTranslation } from '@/i18n/use-translation';
-import type { AuthLayoutProps } from '@/types';
 import { home } from '@/routes';
+import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSimpleLayout({
     children,

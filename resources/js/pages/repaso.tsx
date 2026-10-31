@@ -147,8 +147,11 @@ export default function RepasoPage() {
                                 />
                             ) : null}
 
-                            {panel.step === 'figures-review' && reviewFigure ? (
+                            {panel.step === 'figures-review' &&
+                            panel.session &&
+                            reviewFigure ? (
                                 <ReviewFigureReview
+                                    sessionId={panel.session.id}
                                     figure={reviewFigure}
                                     index={panel.reviewFigureIndex}
                                     total={panel.selectedFigures.length}

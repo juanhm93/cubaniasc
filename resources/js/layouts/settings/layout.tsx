@@ -1,12 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
+import { edit as companySettingsEdit } from '@/actions/App/Http/Controllers/Settings/CompanySettingsController';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn, toUrl } from '@/lib/utils';
-import { edit as companySettingsEdit } from '@/actions/App/Http/Controllers/Settings/CompanySettingsController';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';

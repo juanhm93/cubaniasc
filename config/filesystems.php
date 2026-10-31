@@ -60,6 +60,27 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Cloudflare R2 (private bucket) for the figure videos. Browsers upload and
+         * download through signed URLs only; files never pass through PHP. Recent
+         * SDKs add CRC checksums to every request by default and R2 does not
+         * support all of them, so they are only sent when an operation needs one.
+         */
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID'),
+            'secret' => env('R2_SECRET_ACCESS_KEY'),
+            'region' => env('R2_REGION', 'auto'),
+            'bucket' => env('R2_BUCKET'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*

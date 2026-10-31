@@ -15,15 +15,15 @@ export const PLAYBACK_RATES = [1, 1.25, 1.5] as const;
 
 export type PlaybackRate = (typeof PLAYBACK_RATES)[number];
 
-export type YouTubePlayerStatus =
+export type VideoPlayerStatus =
     | 'idle'
     | 'buffering'
     | 'playing'
     | 'paused'
     | 'ended';
 
-export type YouTubePlayer = {
-    status: YouTubePlayerStatus;
+export type VideoPlayer = {
+    status: VideoPlayerStatus;
     ready: boolean;
     starting: boolean;
     currentTime: number;
@@ -59,8 +59,8 @@ const LISTEN_MAX_ATTEMPTS = 25;
 export function useYouTubePlayer(
     iframeRef: RefObject<HTMLIFrameElement | null>,
     videoId: string,
-): YouTubePlayer {
-    const [status, setStatus] = useState<YouTubePlayerStatus>('idle');
+): VideoPlayer {
+    const [status, setStatus] = useState<VideoPlayerStatus>('idle');
     const [ready, setReady] = useState(false);
     const [starting, setStarting] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -69,7 +69,7 @@ export function useYouTubePlayer(
     const [muted, setMuted] = useState(false);
     const [mutedByFallback, setMutedByFallback] = useState(false);
 
-    const statusRef = useRef<YouTubePlayerStatus>('idle');
+    const statusRef = useRef<VideoPlayerStatus>('idle');
     const readyRef = useRef(false);
     const durationRef = useRef(0);
     const rateRef = useRef<PlaybackRate>(1);
@@ -81,7 +81,7 @@ export function useYouTubePlayer(
     const mutedFallbackTriedRef = useRef(false);
     const fallbackTimeoutRef = useRef<number | undefined>(undefined);
 
-    const updateStatus = useCallback((next: YouTubePlayerStatus): void => {
+    const updateStatus = useCallback((next: VideoPlayerStatus): void => {
         statusRef.current = next;
         setStatus(next);
     }, []);

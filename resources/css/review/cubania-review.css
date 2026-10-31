@@ -805,6 +805,24 @@
     pointer-events: none;
 }
 
+/*
+ * The bucket video has no native controls and takes no pointer events, so the
+ * browser never offers its own menu (save, picture-in-picture) on top of it.
+ */
+.cubania-landing .cubania-review__player-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* Hidden, not removed: YouTube keeps its position while on the other channel. */
+.cubania-landing .cubania-review__player-source--inactive {
+    visibility: hidden;
+}
+
 .cubania-landing .cubania-review__player-shield,
 .cubania-landing .cubania-review__player-overlay,
 .cubania-landing .cubania-review__player-cover {
@@ -835,6 +853,11 @@
     background-color: var(--cubania-negro);
     background-position: center;
     background-size: cover;
+}
+
+/* No YouTube thumbnail: let the first frame of the bucket video show through. */
+.cubania-landing .cubania-review__player-cover--frame {
+    background-color: transparent;
 }
 
 .cubania-landing .cubania-review__player-cover::before {

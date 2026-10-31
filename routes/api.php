@@ -76,6 +76,9 @@ Route::prefix('review')->name('review.')->group(function (): void {
             ->name('sessions.figures.store');
         Route::post('sessions/{session}/figures/{content}/view', [ReviewSessionController::class, 'recordFigureView'])
             ->name('sessions.figures.view');
+        Route::post('sessions/{session}/figures/{content}/video-url', [ReviewSessionController::class, 'figureVideoUrl'])
+            ->middleware('throttle:60,1')
+            ->name('sessions.figures.video-url');
         Route::get('sessions/{session}/songs', [ReviewSessionController::class, 'songs'])
             ->name('sessions.songs');
         Route::get('sessions/{session}/quiz/next', [ReviewQuizController::class, 'next'])

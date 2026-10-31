@@ -1,7 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
-import { Trans } from 'react-i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Trans } from 'react-i18next';
 import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
 import {
