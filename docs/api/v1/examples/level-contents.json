@@ -1,0 +1,55 @@
+{
+    "data": [
+        {
+            "id": 12,
+            "level_id": 4,
+            "level_name": "Básico 2",
+            "name": "Dile que no",
+            "description": "Salida lateral desde guapea.",
+            "sort_order": 3,
+            "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "youtube_video_id": "dQw4w9WgXcQ",
+            "video": {
+                "available": true,
+                "size_bytes": 48211234,
+                "duration_seconds": 74,
+                "version": 3
+            }
+        },
+        {
+            "id": 7,
+            "level_id": 3,
+            "level_name": "Básico 1",
+            "name": "Guapea",
+            "description": null,
+            "sort_order": 1,
+            "video_url": null,
+            "youtube_video_id": null,
+            "video": {
+                "available": false,
+                "size_bytes": null,
+                "duration_seconds": null,
+                "version": 0
+            }
+        }
+    ],
+    "meta": {
+        "current_level_id": 4,
+        "levels": [
+            {
+                "id": 4,
+                "name": "Básico 2",
+                "slug": "basico-2",
+                "sort_order": 2,
+                "is_current": true
+            },
+            {
+                "id": 3,
+                "name": "Básico 1",
+                "slug": "basico-1",
+                "sort_order": 1,
+                "is_current": false
+            }
+        ]
+    }
+}

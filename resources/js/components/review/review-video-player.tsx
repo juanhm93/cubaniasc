@@ -11,13 +11,16 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
+import { useFileVideoPlayer } from '@/hooks/use-file-video-player';
+import type { VideoSource } from '@/hooks/use-preferred-video-source';
 import { formatTimer } from '@/hooks/use-review-panel';
 import { PLAYBACK_RATES, useYouTubePlayer } from '@/hooks/use-youtube-player';
 import { useTranslation } from '@/i18n/use-translation';
 
 type ReviewVideoPlayerProps = {
-    videoId: string;
     title: string;
+    videoId: string | null;
+    loadFileUrl: (() => Promise<string>) | null;
 };
 
 type FullscreenDocument = Document & {
@@ -72,15 +75,37 @@ function formatRate(rate: number): string {
     return `${rate}×`;
 }
 
-export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
+/**
+ * The review's only video player. A figure can have two channels: YouTube
+ * (channel 1, always first so it spends that resource) and its own MP4 from the
+ * bucket (channel 2). Both live in the same stage under the same controls, and
+ * the MP4 has no native controls: this component never offers a download.
+ */
+export function ReviewVideoPlayer({
+    title,
+    videoId,
+    loadFileUrl,
+}: ReviewVideoPlayerProps) {
     const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [src] = useState(() => embedUrl(videoId));
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [src] = useState(() => (videoId ? embedUrl(videoId) : undefined));
     const [fullscreenSupported] = useState(canUseFullscreen);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const player = useYouTubePlayer(iframeRef, videoId);
+    const [source, setSource] = useState<VideoSource>(
+        videoId ? 'youtube' : 'file',
+    );
+    const youtube = useYouTubePlayer(iframeRef, videoId ?? '');
+    const file = useFileVideoPlayer(videoRef, loadFileUrl, source === 'file');
+    const player = source === 'file' ? file : youtube;
 
+    const channels: Array<{ source: VideoSource; label: string }> = [
+        { source: 'youtube', label: t('review.player.channelOne') },
+        { source: 'file', label: t('review.player.channelTwo') },
+    ];
+    const hasBothChannels = videoId !== null && loadFileUrl !== null;
+    const channelFailed = source === 'file' && file.failed;
     const isActive =
         player.status === 'playing' || player.status === 'buffering';
     const showCover = player.status === 'idle' || player.status === 'ended';
@@ -91,6 +116,12 @@ export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
         player.duration > 0
             ? Math.min((player.currentTime / player.duration) * 100, 100)
             : 0;
+
+    const coverLabel = channelFailed
+        ? t('review.player.channelError')
+        : player.status === 'ended'
+          ? t('review.player.replay')
+          : t('review.player.play');
 
     useEffect(() => {
         const onFullscreenChange = (): void => {
@@ -111,6 +142,34 @@ export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
             );
         };
     }, []);
+
+    /**
+     * Hands playback to the other channel at the same point, so changing
+     * channel feels like the same player. A YouTube video that never started
+     * ignores the seek and begins from zero.
+     */
+    const selectSource = (next: VideoSource): void => {
+        if (next === source) {
+            return;
+        }
+
+        const target = next === 'file' ? file : youtube;
+
+        player.pause();
+        target.setPlaybackRate(player.playbackRate);
+
+        if (target.muted !== player.muted) {
+            target.toggleMute();
+        }
+
+        target.seekTo(player.currentTime);
+
+        if (isActive) {
+            target.play();
+        }
+
+        setSource(next);
+    };
 
     const toggleFullscreen = (): void => {
         const container = containerRef.current as FullscreenElement | null;
@@ -179,18 +238,48 @@ export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
             aria-label={title}
             tabIndex={0}
             onKeyDown={onKeyDown}
+            onContextMenu={(event) => event.preventDefault()}
             data-status={player.status}
         >
             <div className="cubania-review__player-stage">
-                <iframe
-                    ref={iframeRef}
-                    className="cubania-review__player-frame"
-                    src={src}
-                    title={title}
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    tabIndex={-1}
-                />
+                {videoId ? (
+                    <iframe
+                        ref={iframeRef}
+                        className={[
+                            'cubania-review__player-frame',
+                            source === 'youtube'
+                                ? ''
+                                : 'cubania-review__player-source--inactive',
+                        ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        src={src}
+                        title={title}
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        tabIndex={-1}
+                    />
+                ) : null}
+
+                {loadFileUrl ? (
+                    <video
+                        ref={videoRef}
+                        className={[
+                            'cubania-review__player-video',
+                            source === 'file'
+                                ? ''
+                                : 'cubania-review__player-source--inactive',
+                        ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        playsInline
+                        preload="metadata"
+                        controlsList="nodownload"
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        tabIndex={-1}
+                    />
+                ) : null}
 
                 {isActive ? (
                     <button
@@ -225,31 +314,39 @@ export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
                 {showCover ? (
                     <button
                         type="button"
-                        className="cubania-review__player-cover"
-                        style={{
-                            backgroundImage: `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`,
-                        }}
-                        onClick={player.play}
-                        aria-label={
-                            player.status === 'ended'
-                                ? t('review.player.replay')
-                                : t('review.player.play')
+                        className={[
+                            'cubania-review__player-cover',
+                            videoId
+                                ? ''
+                                : 'cubania-review__player-cover--frame',
+                        ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        style={
+                            videoId
+                                ? {
+                                      backgroundImage: `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`,
+                                  }
+                                : undefined
                         }
+                        onClick={player.play}
+                        aria-label={coverLabel}
                         disabled={player.starting}
                         data-cubania-cursor="interactive"
                     >
                         <span className="cubania-review__player-big-button">
                             {player.starting ? (
                                 <LoaderCircle className="cubania-review__player-spin" />
-                            ) : player.status === 'ended' ? (
+                            ) : player.status === 'ended' || channelFailed ? (
                                 <RotateCcw />
                             ) : (
                                 <Play />
                             )}
                         </span>
-                        {player.status === 'ended' && !player.starting ? (
+                        {(player.status === 'ended' || channelFailed) &&
+                        !player.starting ? (
                             <span className="cubania-review__player-cover-label">
-                                {t('review.player.replay')}
+                                {coverLabel}
                             </span>
                         ) : null}
                     </button>
@@ -350,6 +447,34 @@ export function ReviewVideoPlayer({ videoId, title }: ReviewVideoPlayerProps) {
                             </span>
                         </button>
                     </div>
+
+                    {hasBothChannels ? (
+                        <div
+                            className="cubania-review__player-speed"
+                            role="group"
+                            aria-label={t('review.player.channel')}
+                        >
+                            {channels.map((channel) => (
+                                <button
+                                    key={channel.source}
+                                    type="button"
+                                    className={[
+                                        'cubania-review__player-speed-option',
+                                        source === channel.source
+                                            ? 'cubania-review__player-speed-option--active'
+                                            : '',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    onClick={() => selectSource(channel.source)}
+                                    aria-pressed={source === channel.source}
+                                    data-cubania-cursor="interactive"
+                                >
+                                    {channel.label}
+                                </button>
+                            ))}
+                        </div>
+                    ) : null}
 
                     <div className="cubania-review__player-extras">
                         <div

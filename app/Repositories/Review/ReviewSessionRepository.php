@@ -9,6 +9,7 @@ use App\Models\ReviewSession;
 use App\Models\Student;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -53,6 +54,20 @@ final class ReviewSessionRepository
             ->where('student_id', $student->id)
             ->whereBetween('started_at', [$from, $to])
             ->exists();
+    }
+
+    /**
+     * Deletes the sessions started in the range, for one student or for everyone. Their
+     * figures, songs and quiz answers go with them by cascade.
+     *
+     * @return int Number of sessions deleted.
+     */
+    public function deleteStartedBetween(CarbonInterface $from, CarbonInterface $to, ?int $studentId = null): int
+    {
+        return ReviewSession::query()
+            ->when($studentId !== null, fn (Builder $query): Builder => $query->where('student_id', $studentId))
+            ->whereBetween('started_at', [$from, $to])
+            ->delete();
     }
 
     /**

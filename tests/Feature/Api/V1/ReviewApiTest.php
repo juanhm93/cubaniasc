@@ -17,6 +17,7 @@ use App\Models\Student;
 use App\Models\StudentFigureView;
 use App\Models\StudentStreak;
 use App\Services\Review\ReviewSessionService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -57,6 +58,8 @@ class ReviewApiTest extends TestCase
 
     public function test_today_is_locked_once_todays_review_was_used(): void
     {
+        $this->travelToLocal('2026-10-30 10:00');
+
         [$student, $level] = $this->createEnrolledStudent();
         ReviewSession::factory()->completed()->create([
             'student_id' => $student->id,
@@ -75,6 +78,8 @@ class ReviewApiTest extends TestCase
 
     public function test_today_closes_an_expired_session_and_locks_the_day(): void
     {
+        $this->travelToLocal('2026-10-30 10:00');
+
         [$student, $level] = $this->createEnrolledStudent();
         $expired = ReviewSession::factory()->expired()->create([
             'student_id' => $student->id,
@@ -138,6 +143,8 @@ class ReviewApiTest extends TestCase
 
     public function test_starting_after_using_todays_review_is_rejected(): void
     {
+        $this->travelToLocal('2026-10-30 10:00');
+
         [$student, $level] = $this->createEnrolledStudent();
         ReviewSession::factory()->completed()->create([
             'student_id' => $student->id,
@@ -429,6 +436,11 @@ class ReviewApiTest extends TestCase
         $client->getJson(route('v1.review.sessions.quiz.next', $session))->assertForbidden();
         $client->getJson(route('v1.review.sessions.songs', $session))->assertForbidden();
         $client->postJson(route('v1.review.sessions.complete', $session))->assertForbidden();
+    }
+
+    private function travelToLocal(string $localTime): void
+    {
+        $this->travelTo(CarbonImmutable::parse($localTime, 'America/Caracas')->utc());
     }
 
     private function actingAsAppStudent(Student $student): static

@@ -2,9 +2,10 @@ import { router } from '@inertiajs/react';
 import { ArrowRight, Trash2 } from 'lucide-react';
 import { ContentHelpBadge } from '@/components/content/content-help';
 import {
-    SortableHandle,
-    type SortableHandleProps,
+    SortableHandle
+    
 } from '@/components/content/sortable-list';
+import type {SortableHandleProps} from '@/components/content/sortable-list';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';

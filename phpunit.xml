@@ -18,6 +18,7 @@
         </include>
     </source>
     <php>
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
@@ -34,5 +35,10 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="AUTH_REGISTRATION_ENABLED" value="true"/>
         <env name="AUTH_LOGIN_VISIBLE" value="true"/>
+        <env name="R2_ACCESS_KEY_ID" value=""/>
+        <env name="R2_SECRET_ACCESS_KEY" value=""/>
+        <env name="R2_BUCKET" value=""/>
+        <env name="R2_ENDPOINT" value=""/>
+        <env name="CUBANIA_FIGURE_VIDEO_MAX_MB" value="200"/>
     </php>
 </phpunit>

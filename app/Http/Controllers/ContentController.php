@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DanceType;
 use App\Models\Level;
+use App\Services\Content\FigureVideoStorage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,7 +48,7 @@ class ContentController extends Controller
         ]);
     }
 
-    public function level(Request $request, DanceType $danceType, Level $level): Response
+    public function level(Request $request, DanceType $danceType, Level $level, FigureVideoStorage $figureVideos): Response
     {
         $level->load([
             'danceType',
@@ -61,6 +62,10 @@ class ContentController extends Controller
             'level' => $level,
             'canDelete' => $this->canDelete($request),
             'contentHelpMode' => $this->contentHelpMode(),
+            'figureVideo' => [
+                'enabled' => $figureVideos->isConfigured(),
+                'maxSizeBytes' => $figureVideos->maxUploadBytes(),
+            ],
         ]);
     }
 

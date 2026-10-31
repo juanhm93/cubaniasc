@@ -14,6 +14,8 @@ export default function ConfirmDeleteDialog({
     description,
     itemName,
     confirming,
+    confirmLabel = 'Eliminar',
+    confirmingLabel = 'Eliminando…',
     onOpenChange,
     onConfirm,
 }: {
@@ -22,6 +24,8 @@ export default function ConfirmDeleteDialog({
     description: string;
     itemName?: string | null;
     confirming: boolean;
+    confirmLabel?: string;
+    confirmingLabel?: string;
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
 }) {
@@ -52,7 +56,7 @@ export default function ConfirmDeleteDialog({
                         disabled={confirming}
                         onClick={() => void onConfirm()}
                     >
-                        {confirming ? 'Eliminando…' : 'Eliminar'}
+                        {confirming ? confirmingLabel : confirmLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>

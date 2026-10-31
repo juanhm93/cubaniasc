@@ -25,7 +25,15 @@ export type ReviewLevelContent = {
     name: string;
     description: string | null;
     video_url: string | null;
+    video: ReviewFigureVideo;
     sort_order: number;
+};
+
+export type ReviewFigureVideo = {
+    available: boolean;
+    size_bytes: number | null;
+    duration_seconds: number | null;
+    version: number;
 };
 
 export type ReviewSession = {

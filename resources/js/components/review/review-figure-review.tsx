@@ -1,9 +1,12 @@
+import { useCallback } from 'react';
 import { youtubeVideoId } from '@/components/base/cubania/youtube-embed-url';
 import { ReviewVideoPlayer } from '@/components/review/review-video-player';
 import { useTranslation } from '@/i18n/use-translation';
+import { fetchFigureVideoUrl } from '@/lib/review-service';
 import type { ReviewLevelContent } from '@/types/review';
 
 type ReviewFigureReviewProps = {
+    sessionId: number;
     figure: ReviewLevelContent;
     index: number;
     total: number;
@@ -12,6 +15,7 @@ type ReviewFigureReviewProps = {
 };
 
 export function ReviewFigureReview({
+    sessionId,
     figure,
     index,
     total,
@@ -20,6 +24,11 @@ export function ReviewFigureReview({
 }: ReviewFigureReviewProps) {
     const { t } = useTranslation();
     const videoId = figure.video_url ? youtubeVideoId(figure.video_url) : null;
+    const hasFile = figure.video.available;
+    const loadFileUrl = useCallback(
+        () => fetchFigureVideoUrl(sessionId, figure.id),
+        [sessionId, figure.id],
+    );
 
     return (
         <section className="cubania-review__panel">
@@ -37,11 +46,12 @@ export function ReviewFigureReview({
                 </p>
             ) : null}
 
-            {videoId ? (
+            {videoId || hasFile ? (
                 <ReviewVideoPlayer
                     key={figure.id}
-                    videoId={videoId}
                     title={figure.name}
+                    videoId={videoId}
+                    loadFileUrl={hasFile ? loadFileUrl : null}
                 />
             ) : null}
 
