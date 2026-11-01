@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Songs\SaveRecommendedSong;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRecommendedSongRequest;
 use App\Http\Requests\UpdateRecommendedSongRequest;
@@ -9,7 +10,6 @@ use App\Models\DanceType;
 use App\Models\Level;
 use App\Models\RecommendedSong;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +29,8 @@ class RecommendedSongController extends Controller
                 'id' => $song->id,
                 'title' => $song->title,
                 'artist' => $song->artist,
-                'audio_or_link_url' => $song->audio_or_link_url,
+                'audio_file_path' => $song->audio_file_path,
+                'audio' => $song->audio_file,
                 'is_active' => $song->is_active,
                 'levels' => $song->levels
                     ->map(fn (Level $level): array => ['id' => $level->id, 'name' => $level->name])
@@ -61,12 +62,9 @@ class RecommendedSongController extends Controller
         ]);
     }
 
-    public function store(StoreRecommendedSongRequest $request): RedirectResponse
+    public function store(StoreRecommendedSongRequest $request, SaveRecommendedSong $save): RedirectResponse
     {
-        DB::transaction(function () use ($request): void {
-            $song = RecommendedSong::query()->create($request->safe()->except('level_ids'));
-            $song->levels()->sync($request->validated('level_ids'));
-        });
+        $save->execute(new RecommendedSong, $request->validated());
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -76,12 +74,9 @@ class RecommendedSongController extends Controller
         return redirect()->route('admin.recommended-songs.index');
     }
 
-    public function update(UpdateRecommendedSongRequest $request, RecommendedSong $recommendedSong): RedirectResponse
+    public function update(UpdateRecommendedSongRequest $request, RecommendedSong $recommendedSong, SaveRecommendedSong $save): RedirectResponse
     {
-        DB::transaction(function () use ($request, $recommendedSong): void {
-            $recommendedSong->update($request->safe()->except('level_ids'));
-            $recommendedSong->levels()->sync($request->validated('level_ids'));
-        });
+        $save->execute($recommendedSong, $request->validated());
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\FigureVideoUrlPurpose;
+use App\Enums\MediaUrlPurpose;
 use App\Models\LevelContent;
 use App\Services\Content\FigureVideoStorage;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -85,7 +85,7 @@ class FigureVideoDiskTest extends TestCase
             'video_file_version' => 3,
         ]);
 
-        $signed = app(FigureVideoStorage::class)->signedUrl($figure, FigureVideoUrlPurpose::Download, 30);
+        $signed = app(FigureVideoStorage::class)->signedUrl($figure, MediaUrlPurpose::Download, 30);
 
         $url = parse_url($signed['url']);
         parse_str($url['query'], $query);

@@ -6,7 +6,7 @@ use App\Actions\FigureVideos\AttachFigureVideo;
 use App\Actions\FigureVideos\LinkFigureVideo;
 use App\Actions\FigureVideos\ListFigureVideoLibrary;
 use App\Actions\FigureVideos\RemoveFigureVideo;
-use App\Enums\FigureVideoUrlPurpose;
+use App\Enums\MediaUrlPurpose;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ConfirmLevelContentVideoRequest;
 use App\Http\Requests\FigureVideoLibraryRequest;
@@ -97,7 +97,7 @@ class LevelContentVideoController extends Controller
 
         $signed = $this->storage->signedUrl(
             $levelContent,
-            FigureVideoUrlPurpose::Stream,
+            MediaUrlPurpose::Stream,
             (int) config('cubania.figure_videos.stream_url_minutes'),
         );
 
@@ -117,7 +117,7 @@ class LevelContentVideoController extends Controller
 
         $signed = $this->storage->signedUrl(
             $levelContent,
-            FigureVideoUrlPurpose::Download,
+            MediaUrlPurpose::Download,
             (int) config('cubania.figure_videos.staff_download_url_minutes'),
         );
 

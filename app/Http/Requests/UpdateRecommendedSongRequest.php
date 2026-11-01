@@ -4,45 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\PlatformAbility;
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\RecommendedSong;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\RequiredIf;
 
-class UpdateRecommendedSongRequest extends FormRequest
+class UpdateRecommendedSongRequest extends StoreRecommendedSongRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user()?->hasAbility(PlatformAbility::Content) ?? false;
-    }
-
     /**
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * A song from before the bucket can be fixed in parts while it stays inactive:
+     * only an active song needs a file, since one without it is never recommended.
      */
-    public function rules(): array
+    protected function audioFileRequirement(): string|RequiredIf
     {
-        return [
-            'title' => ['required', 'string', 'max:160'],
-            'artist' => ['required', 'string', 'max:160'],
-            'audio_or_link_url' => ['required', 'string', 'url:http,https', 'max:512'],
-            'is_active' => ['required', 'boolean'],
-            'level_ids' => ['required', 'array', 'min:1'],
-            'level_ids.*' => ['integer', 'distinct', Rule::exists('levels', 'id')->withoutTrashed()],
-        ];
-    }
+        return Rule::requiredIf(function (): bool {
+            $song = $this->route('recommendedSong');
 
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'title' => 'título',
-            'artist' => 'artista',
-            'audio_or_link_url' => 'enlace',
-            'is_active' => 'activa',
-            'level_ids' => 'niveles',
-            'level_ids.*' => 'nivel',
-        ];
+            return $this->boolean('is_active') || ($song instanceof RecommendedSong && $song->hasAudioFile());
+        });
     }
 }

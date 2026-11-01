@@ -185,8 +185,9 @@ export default function RepasoPage() {
                                 />
                             ) : null}
 
-                            {panel.step === 'songs' ? (
+                            {panel.step === 'songs' && panel.session ? (
                                 <ReviewSongsStep
+                                    sessionId={panel.session.id}
                                     songs={panel.songs}
                                     loading={panel.loading}
                                     onComplete={panel.finishSession}

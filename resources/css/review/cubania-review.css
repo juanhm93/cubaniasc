@@ -1357,61 +1357,17 @@
 
 /* ---------- Songs ---------- */
 
-.cubania-landing .cubania-review__song-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 20px;
-    border: 1px solid rgba(249, 245, 255, 0.12);
-    background: rgba(10, 0, 16, 0.45);
-    border-radius: 6px;
-    text-decoration: none;
-    color: inherit;
-    transition:
-        border-color 0.2s,
-        transform 0.2s;
-}
-
-.cubania-landing .cubania-review__song-card:hover {
-    border-color: rgba(245, 200, 66, 0.45);
-    transform: translateY(-2px);
-}
-
-.cubania-landing .cubania-review__song-card > span {
-    flex: 1;
-    min-width: 0;
-}
-
-.cubania-landing .cubania-review__song-icon {
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    padding: 8px;
-    border-radius: 50%;
-    background: rgba(245, 200, 66, 0.15);
-    color: var(--cubania-amarillo);
-}
-
-.cubania-landing .cubania-review__song-link {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    color: rgba(249, 245, 255, 0.4);
-}
-
-.cubania-landing .cubania-review__song-title {
-    display: block;
-    margin: 0 0 2px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.15rem;
-    letter-spacing: 0.04em;
-    color: var(--cubania-amarillo);
-}
-
-.cubania-landing .cubania-review__song-artist {
-    display: block;
-    font-size: 0.9rem;
-    color: rgba(249, 245, 255, 0.65);
+/* The Tailwind theme resolves its colors on :root, so the shared song player takes
+   the review's palette by redefining the --color-* tokens themselves. */
+.cubania-landing .cubania-review__song-player {
+    --color-card: rgba(10, 0, 16, 0.45);
+    --color-card-foreground: var(--cubania-blanco);
+    --color-border: rgba(249, 245, 255, 0.12);
+    --color-primary: var(--cubania-amarillo);
+    --color-primary-foreground: var(--cubania-negro);
+    --color-muted-foreground: var(--review-muted);
+    --color-accent: var(--review-border);
+    --color-destructive: var(--review-danger);
 }
 
 /* ---------- Sign out ---------- */

@@ -22,6 +22,18 @@ class SongRecommendationServiceTest extends TestCase
         $this->service = app(SongRecommendationService::class);
     }
 
+    public function test_songs_without_a_file_are_never_recommended(): void
+    {
+        $level = Level::factory()->create();
+        $playable = RecommendedSong::factory()->create();
+        $withoutFile = RecommendedSong::factory()->withoutAudioFile()->create();
+        $level->recommendedSongs()->attach([$playable->id, $withoutFile->id]);
+
+        $songs = $this->service->recommendForLevel($level);
+
+        $this->assertSame([$playable->id], $songs->pluck('id')->all());
+    }
+
     public function test_recommends_active_songs_for_level(): void
     {
         $level = Level::factory()->create();

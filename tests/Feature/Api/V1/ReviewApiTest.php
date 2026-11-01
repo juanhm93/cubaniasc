@@ -215,7 +215,9 @@ class ReviewApiTest extends TestCase
         $songs = $client->getJson(route('v1.review.sessions.songs', $sessionId))
             ->assertOk()
             ->assertJsonCount(3, 'data')
-            ->assertJsonStructure(['data' => [['id', 'title', 'artist', 'audio_or_link_url']]])
+            ->assertJsonStructure(['data' => [['id', 'title', 'artist', 'audio' => ['available', 'format', 'size_bytes', 'duration_seconds', 'version']]]])
+            ->assertJsonMissingPath('data.0.audio_or_link_url')
+            ->assertJsonMissingPath('data.0.level_ids')
             ->json('data');
         $client->getJson(route('v1.review.sessions.songs', $sessionId))->assertJsonPath('data', $songs);
         $client->getJson(route('v1.review.sessions.show', $sessionId))->assertJsonPath('data.next_step', 'songs');

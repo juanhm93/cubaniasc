@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Review;
 
 use App\Actions\Review\CompleteReviewSession;
-use App\Enums\FigureVideoUrlPurpose;
+use App\Actions\Songs\CreateSongAudioUrl;
+use App\Enums\MediaUrlPurpose;
 use App\Enums\ReviewTodayStatus;
 use App\Http\Controllers\Api\Review\Concerns\InteractsWithReviewSessions;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Review\SongAudioUrlRequest;
 use App\Http\Requests\Review\StoreReviewSessionFiguresRequest;
 use App\Http\Resources\Review\LevelContentResource;
 use App\Http\Resources\Review\RecommendedSongResource;
 use App\Http\Resources\Review\ReviewSessionResource;
 use App\Http\Resources\Review\StudentStreakResource;
 use App\Models\LevelContent;
+use App\Models\RecommendedSong;
 use App\Models\ReviewSession;
+use App\Repositories\Review\RecommendedSongRepository;
 use App\Services\Content\FigureVideoStorage;
 use App\Services\Review\FigureSelectionService;
 use App\Services\Review\ReviewSessionService;
@@ -147,7 +151,7 @@ final class ReviewSessionController extends Controller
 
         $signed = $storage->signedUrl(
             $content,
-            FigureVideoUrlPurpose::Stream,
+            MediaUrlPurpose::Stream,
             max(1, min($remainingMinutes, (int) config('cubania.figure_videos.stream_url_minutes'))),
         );
 
@@ -167,6 +171,26 @@ final class ReviewSessionController extends Controller
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
 
         return RecommendedSongResource::collection($this->songRecommendationService->forSession($session));
+    }
+
+    /**
+     * Signed URL to play or download one of the session's songs. Unlike the figures it
+     * works after the timer runs out: the student can still listen to the songs.
+     */
+    public function songAudioUrl(
+        SongAudioUrlRequest $request,
+        ReviewSession $session,
+        RecommendedSong $song,
+        RecommendedSongRepository $songs,
+        CreateSongAudioUrl $createUrl,
+    ): JsonResponse {
+        $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
+
+        if (! $songs->sessionHasSong($session, $song) || ! $song->hasAudioFile()) {
+            abort(404);
+        }
+
+        return response()->json(['data' => $createUrl->execute($song, $request->purpose())]);
     }
 
     /**

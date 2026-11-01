@@ -1,0 +1,37 @@
+{
+    "data": [
+        {
+            "id": 21,
+            "title": "Dulce Habanera",
+            "artist": "Sierra Maestra",
+            "audio": {
+                "available": true,
+                "format": "mp3",
+                "size_bytes": 5662310,
+                "duration_seconds": 247,
+                "version": 1
+            },
+            "level_ids": [4, 3]
+        },
+        {
+            "id": 18,
+            "title": "Temba, tumba, timba",
+            "artist": "Los Van Van",
+            "audio": {
+                "available": true,
+                "format": "mp3",
+                "size_bytes": 4718592,
+                "duration_seconds": null,
+                "version": 2
+            },
+            "level_ids": [4]
+        }
+    ],
+    "meta": {
+        "current_level_id": 4,
+        "levels": [
+            { "id": 4, "name": "Básico 2", "slug": "basico_2", "sort_order": 2, "is_current": true },
+            { "id": 3, "name": "Básico 1", "slug": "basico_1", "sort_order": 1, "is_current": false }
+        ]
+    }
+}

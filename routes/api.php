@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\Review\ReviewQuizController as AppReviewQuizController;
 use App\Http\Controllers\Api\V1\Review\ReviewSessionController as AppReviewSessionController;
 use App\Http\Controllers\Api\V1\Review\ReviewTodayController;
+use App\Http\Controllers\Api\V1\SongController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,12 @@ Route::prefix('v1')->name('v1.')->group(function (): void {
     Route::middleware(['auth:sanctum', 'app.student'])->group(function (): void {
         Route::get('me', MeController::class)->name('me');
         Route::post('auth/logout', LogoutController::class)->name('auth.logout');
+
+        // The student's music library: songs of their level and the earlier ones.
+        Route::get('songs', [SongController::class, 'index'])->name('songs.index');
+        Route::post('songs/{song}/audio-url', [SongController::class, 'audioUrl'])
+            ->middleware('throttle:60,1')
+            ->name('songs.audio-url');
 
         // Daily review ("repaso"). Shares services and repositories with the web panel below.
         Route::prefix('review')->name('review.')->group(function (): void {
@@ -81,6 +88,9 @@ Route::prefix('review')->name('review.')->group(function (): void {
             ->name('sessions.figures.video-url');
         Route::get('sessions/{session}/songs', [ReviewSessionController::class, 'songs'])
             ->name('sessions.songs');
+        Route::post('sessions/{session}/songs/{song}/audio-url', [ReviewSessionController::class, 'songAudioUrl'])
+            ->middleware('throttle:60,1')
+            ->name('sessions.songs.audio-url');
         Route::get('sessions/{session}/quiz/next', [ReviewQuizController::class, 'next'])
             ->name('sessions.quiz.next');
         Route::post('sessions/{session}/quiz/{item}/answer', [ReviewQuizController::class, 'answer'])
