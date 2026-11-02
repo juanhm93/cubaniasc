@@ -236,6 +236,24 @@ export async function fetchSessionSongs(
     return result.data;
 }
 
+export async function fetchSongAudioUrl(
+    sessionId: number,
+    songId: number,
+    purpose: 'stream' | 'download',
+): Promise<{ url: string; filename: string }> {
+    const result = await request<
+        DataResponse<{ url: string; filename: string }>
+    >(
+        review.sessions.songs.audioUrl.url({
+            session: sessionId,
+            song: songId,
+        }),
+        { method: 'POST', body: JSON.stringify({ purpose }) },
+    );
+
+    return result.data;
+}
+
 export async function fetchNextQuizQuestion(
     sessionId: number,
 ): Promise<ReviewQuizItem | null> {

@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services\Content;
 
-use App\Enums\FigureVideoUrlPurpose;
-use App\Exceptions\Content\FigureVideoStorageUnavailableException;
+use App\Enums\MediaUrlPurpose;
 use App\Models\Level;
 use App\Models\LevelContent;
+use App\Services\Content\Concerns\InteractsWithMediaBucket;
 use Aws\Exception\AwsException;
 use Carbon\CarbonInterface;
-use Closure;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemException;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 
 /**
  * The only place that talks to the bucket holding the figure videos (R2). Files
@@ -29,14 +27,11 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
  */
 final class FigureVideoStorage
 {
+    use InteractsWithMediaBucket;
+
     public const CONTENT_TYPE = 'video/mp4';
 
     public const MANAGED_PREFIX = 'level-contents/';
-
-    public function isConfigured(): bool
-    {
-        return filled(config('filesystems.disks.'.$this->diskName().'.bucket'));
-    }
 
     public function maxUploadBytes(): int
     {
@@ -213,11 +208,11 @@ final class FigureVideoStorage
      *
      * @return array{url: string, expires_at: CarbonInterface, filename: string}
      */
-    public function signedUrl(LevelContent $content, FigureVideoUrlPurpose $purpose, int $minutes): array
+    public function signedUrl(LevelContent $content, MediaUrlPurpose $purpose, int $minutes): array
     {
         $filename = $this->filenameFor($content);
 
-        return $this->presign($content->video_file_path, $filename, $purpose, $minutes) + ['filename' => $filename];
+        return $this->presign($content->video_file_path, self::CONTENT_TYPE, $filename, $purpose, $minutes) + ['filename' => $filename];
     }
 
     /**
@@ -232,8 +227,9 @@ final class FigureVideoStorage
 
         return $this->presign(
             $key,
+            self::CONTENT_TYPE,
             "{$slug}.mp4",
-            FigureVideoUrlPurpose::Stream,
+            MediaUrlPurpose::Stream,
             (int) config('cubania.figure_videos.preview_url_minutes'),
         );
     }
@@ -246,25 +242,6 @@ final class FigureVideoStorage
         $slug = Str::slug($content->name) ?: 'figura';
 
         return "{$slug}-{$content->id}-v{$content->video_file_version}.mp4";
-    }
-
-    /**
-     * @return array{url: string, expires_at: CarbonInterface}
-     */
-    private function presign(string $key, string $filename, FigureVideoUrlPurpose $purpose, int $minutes): array
-    {
-        $expiresAt = now()->addMinutes($minutes);
-
-        $url = $this->attempt(fn (FilesystemAdapter $disk): string => $disk->temporaryUrl(
-            $key,
-            $expiresAt,
-            [
-                'ResponseContentType' => self::CONTENT_TYPE,
-                'ResponseContentDisposition' => HeaderUtils::makeDisposition($purpose->disposition(), $filename),
-            ],
-        ));
-
-        return ['url' => $url, 'expires_at' => $expiresAt];
     }
 
     /**
@@ -287,27 +264,13 @@ final class FigureVideoStorage
         return strlen($header) >= 8 && substr($header, 4, 4) === 'ftyp';
     }
 
-    /**
-     * @template TResult
-     *
-     * @param  Closure(FilesystemAdapter): TResult  $operation
-     * @return TResult
-     */
-    private function attempt(Closure $operation): mixed
-    {
-        if (! $this->isConfigured()) {
-            throw FigureVideoStorageUnavailableException::notConfigured();
-        }
-
-        try {
-            return $operation(Storage::disk($this->diskName()));
-        } catch (FilesystemException|AwsException $exception) {
-            throw FigureVideoStorageUnavailableException::unreachable($exception);
-        }
-    }
-
     private function diskName(): string
     {
         return (string) config('cubania.figure_videos.disk');
+    }
+
+    private function unavailableMessage(): string
+    {
+        return 'El almacenamiento de videos no está disponible.';
     }
 }

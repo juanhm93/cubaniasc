@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\Collection;
 final class RecommendedSongRepository
 {
     /**
-     * Random active songs linked to the level.
+     * Random active songs linked to the level. A song without its file is never
+     * recommended: it could not be played.
      *
      * @param  list<int>  $excludeIds
      * @return Collection<int, RecommendedSong>
@@ -30,11 +31,43 @@ final class RecommendedSongRepository
 
         return RecommendedSong::query()
             ->where('is_active', true)
+            ->whereNotNull('audio_file_path')
             ->whereHas('levels', fn (Builder $query) => $query->whereKey($level->id))
             ->when($excludeIds !== [], fn (Builder $query) => $query->whereNotIn('id', $excludeIds))
             ->inRandomOrder()
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Playable songs of the levels, each with only those levels loaded, so a song
+     * shared with a higher level does not reveal it.
+     *
+     * @param  list<int>  $levelIds
+     * @return Collection<int, RecommendedSong>
+     */
+    public function activeForLevels(array $levelIds): Collection
+    {
+        if ($levelIds === []) {
+            return new Collection;
+        }
+
+        return RecommendedSong::query()
+            ->where('is_active', true)
+            ->whereNotNull('audio_file_path')
+            ->whereHas('levels', fn (Builder $query) => $query->whereKey($levelIds))
+            ->with(['levels' => fn ($query) => $query->whereKey($levelIds)])
+            ->orderBy('title')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * @param  list<int>  $levelIds
+     */
+    public function belongsToLevels(RecommendedSong $song, array $levelIds): bool
+    {
+        return $levelIds !== [] && $song->levels()->whereKey($levelIds)->exists();
     }
 
     /**
@@ -48,6 +81,11 @@ final class RecommendedSongRepository
     public function sessionHasSongs(ReviewSession $session): bool
     {
         return $session->songs()->exists();
+    }
+
+    public function sessionHasSong(ReviewSession $session, RecommendedSong $song): bool
+    {
+        return $session->songs()->whereKey($song->id)->exists();
     }
 
     /**
