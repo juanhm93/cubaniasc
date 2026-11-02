@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\LevelContentVideoController;
 use App\Http\Controllers\Api\LevelController as ApiLevelController;
 use App\Http\Controllers\Api\LevelVideoLibraryController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\RecommendedSongAudioController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LevelController;
@@ -130,6 +131,16 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
                 ->name('level-contents.video.stream-url');
             Route::get('level-contents/{levelContent}/video/download', [LevelContentVideoController::class, 'download'])
                 ->name('level-contents.video.download');
+
+            // The review's songs are files of one folder of the bucket. Players and downloads use signed URLs.
+            Route::get('song-library', [RecommendedSongAudioController::class, 'library'])
+                ->name('song-library.index');
+            Route::get('song-library/preview-url', [RecommendedSongAudioController::class, 'previewUrl'])
+                ->name('song-library.preview-url');
+            Route::get('recommended-songs/{recommendedSong}/stream-url', [RecommendedSongAudioController::class, 'streamUrl'])
+                ->name('recommended-songs.stream-url');
+            Route::get('recommended-songs/{recommendedSong}/download', [RecommendedSongAudioController::class, 'download'])
+                ->name('recommended-songs.download');
         });
     });
 

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
-import { useFileVideoPlayer } from '@/hooks/use-file-video-player';
+import { useFileMediaPlayer } from '@/hooks/use-file-media-player';
 import type { VideoSource } from '@/hooks/use-preferred-video-source';
 import { formatTimer } from '@/hooks/use-review-panel';
 import { PLAYBACK_RATES, useYouTubePlayer } from '@/hooks/use-youtube-player';
@@ -97,7 +97,7 @@ export function ReviewVideoPlayer({
         videoId ? 'youtube' : 'file',
     );
     const youtube = useYouTubePlayer(iframeRef, videoId ?? '');
-    const file = useFileVideoPlayer(videoRef, loadFileUrl, source === 'file');
+    const file = useFileMediaPlayer(videoRef, loadFileUrl, source === 'file');
     const player = source === 'file' ? file : youtube;
 
     const channels: Array<{ source: VideoSource; label: string }> = [

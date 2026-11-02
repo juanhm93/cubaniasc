@@ -148,8 +148,9 @@ class ReviewPanelSchemaTest extends TestCase
         $this->seed(ReviewPanelSeeder::class);
 
         $this->assertDatabaseHas('recommended_songs', [
-            'title' => 'La Vida Es Un Carnaval',
-            'artist' => 'Celia Cruz',
+            'title' => 'Temba, tumba, timba',
+            'artist' => 'Los Van Van',
+            'audio_file_path' => 'musica-salsa-casino/Los Van Van - Temba, tumba, timba.mp3',
             'is_active' => true,
         ]);
 

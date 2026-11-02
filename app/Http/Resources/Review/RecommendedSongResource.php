@@ -20,7 +20,7 @@ class RecommendedSongResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'artist' => $this->artist,
-            'audio_or_link_url' => $this->audio_or_link_url,
+            'audio' => $this->audio_file,
         ];
     }
 }

@@ -56,7 +56,13 @@ export type ReviewSong = {
     id: number;
     title: string;
     artist: string;
-    audio_or_link_url: string;
+    audio: {
+        available: boolean;
+        format: string | null;
+        size_bytes: number | null;
+        duration_seconds: number | null;
+        version: number;
+    };
 };
 
 export type ReviewQuizOption = {

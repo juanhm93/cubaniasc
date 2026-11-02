@@ -12,7 +12,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class SongResource extends JsonResource
 {
     /**
-     * @return array{id: int, title: string, artist: string, audio_or_link_url: string}
+     * `level_ids` only comes in the library: the session's songs are not grouped.
+     *
+     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
@@ -20,7 +22,8 @@ class SongResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'artist' => $this->artist,
-            'audio_or_link_url' => $this->audio_or_link_url,
+            'audio' => $this->audio_file,
+            'level_ids' => $this->whenLoaded('levels', fn (): array => $this->levels->modelKeys()),
         ];
     }
 }

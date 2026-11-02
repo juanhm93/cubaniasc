@@ -1,22 +1,63 @@
 import { Link } from '@inertiajs/react';
-import { ExternalLink, Music } from 'lucide-react';
+import { useCallback } from 'react';
 import { ReviewStreakCard } from '@/components/review/review-streak-card';
+import { SongPlayer } from '@/components/song-player';
 import { useTranslation } from '@/i18n/use-translation';
+import { fetchSongAudioUrl } from '@/lib/review-service';
 import { home } from '@/routes';
 import type { ReviewSong, ReviewStreak } from '@/types/review';
 
 type ReviewSongsStepProps = {
+    sessionId: number;
     songs: ReviewSong[];
     loading: boolean;
     onComplete: () => void;
 };
 
+/**
+ * The URL to play is requested when the step opens, so the file is ready when the
+ * student taps play. The one to download is requested on the tap: it answers with
+ * `attachment`, so the browser saves the file and the page stays where it is.
+ */
+function ReviewSongPlayer({
+    sessionId,
+    song,
+}: {
+    sessionId: number;
+    song: ReviewSong;
+}) {
+    const loadUrl = useCallback(
+        async () => (await fetchSongAudioUrl(sessionId, song.id, 'stream')).url,
+        [sessionId, song.id],
+    );
+
+    const download = async (): Promise<void> => {
+        const { url } = await fetchSongAudioUrl(sessionId, song.id, 'download');
+
+        window.location.assign(url);
+    };
+
+    return (
+        <SongPlayer
+            className="cubania-review__song-player"
+            title={song.title}
+            artist={song.artist}
+            loadUrl={loadUrl}
+            durationSeconds={song.audio.duration_seconds}
+            onDownload={download}
+            autoLoad
+        />
+    );
+}
+
 export function ReviewSongsStep({
+    sessionId,
     songs,
     loading,
     onComplete,
 }: ReviewSongsStepProps) {
     const { t } = useTranslation();
+    const playableSongs = songs.filter((song) => song.audio.available);
 
     return (
         <section className="cubania-review__panel">
@@ -28,36 +69,16 @@ export function ReviewSongsStep({
             </p>
 
             <div className="cubania-review__grid">
-                {songs.map((song) => (
-                    <a
+                {playableSongs.map((song) => (
+                    <ReviewSongPlayer
                         key={song.id}
-                        href={song.audio_or_link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="cubania-review__song-card"
-                        data-cubania-cursor="interactive"
-                    >
-                        <Music
-                            className="cubania-review__song-icon"
-                            aria-hidden
-                        />
-                        <span>
-                            <span className="cubania-review__song-title">
-                                {song.title}
-                            </span>
-                            <span className="cubania-review__song-artist">
-                                {song.artist}
-                            </span>
-                        </span>
-                        <ExternalLink
-                            className="cubania-review__song-link"
-                            aria-hidden
-                        />
-                    </a>
+                        sessionId={sessionId}
+                        song={song}
+                    />
                 ))}
             </div>
 
-            {songs.length === 0 ? (
+            {playableSongs.length === 0 ? (
                 <p className="cubania-review__muted">
                     {t('review.songs.empty')}
                 </p>

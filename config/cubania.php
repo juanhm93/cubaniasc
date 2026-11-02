@@ -118,6 +118,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Review songs
+    |--------------------------------------------------------------------------
+    |
+    | The songs of the review are files of one folder of the same private
+    | bucket. The academy adds them to R2 by hand: the panel only picks from
+    | that folder and the app never moves or deletes them.
+    |
+    */
+
+    'songs' => [
+        'disk' => 'r2',
+        'folder' => env('CUBANIA_SONGS_FOLDER', 'musica-salsa-casino'),
+        'download_url_minutes' => 30,
+        'stream_url_minutes' => 60,
+        'staff_download_url_minutes' => 5,
+        'preview_url_minutes' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Academy timezone
     |--------------------------------------------------------------------------
     |

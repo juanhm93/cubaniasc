@@ -1,6 +1,6 @@
 <?php
 
-use App\Exceptions\Content\FigureVideoStorageUnavailableException;
+use App\Exceptions\Content\MediaStorageUnavailableException;
 use App\Exceptions\Review\ActiveEnrollmentNotFoundException;
 use App\Exceptions\Review\InvalidFigureSelectionException;
 use App\Exceptions\Review\QuizAnswerRejectedException;
@@ -95,7 +95,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        $exceptions->render(function (FigureVideoStorageUnavailableException $exception, Request $request) {
+        $exceptions->render(function (MediaStorageUnavailableException $exception, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => $exception->getMessage()], 503);
             }

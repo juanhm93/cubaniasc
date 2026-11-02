@@ -1,8 +1,11 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { FormEventHandler } from 'react';
 import ConfirmDeleteDialog from '@/components/content/confirm-delete-dialog';
+import SongLibraryDialog from '@/components/content/song-library-dialog';
+import type { ChosenSongFile } from '@/components/content/song-library-dialog';
 import InputError from '@/components/input-error';
+import { SongPlayer } from '@/components/song-player';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/i18n/use-translation';
+import { readableFileName, suggestSongFields } from '@/lib/song-file-name';
 import admin from '@/routes/admin';
+import {
+    getSongPreviewUrl,
+    getSongStreamUrl,
+    songDownloadUrl,
+} from '@/services/songLibraryService';
 
 type LevelOption = {
     id: number;
@@ -34,7 +43,11 @@ type SongRow = {
     id: number;
     title: string;
     artist: string;
-    audio_or_link_url: string;
+    audio_file_path: string | null;
+    audio: {
+        available: boolean;
+        duration_seconds: number | null;
+    };
     is_active: boolean;
     levels: LevelOption[];
 };
@@ -47,7 +60,8 @@ type RecommendedSongsIndexProps = {
 type SongFormData = {
     title: string;
     artist: string;
-    audio_or_link_url: string;
+    audio_file_path: string | null;
+    duration_seconds: number | null;
     is_active: boolean;
     level_ids: number[];
 };
@@ -55,10 +69,55 @@ type SongFormData = {
 const emptyForm: SongFormData = {
     title: '',
     artist: '',
-    audio_or_link_url: '',
+    audio_file_path: null,
+    duration_seconds: null,
     is_active: true,
     level_ids: [],
 };
+
+function fileNameOf(key: string): string {
+    return readableFileName(key.split('/').pop() ?? key);
+}
+
+function SongRowPlayer({ song }: { song: SongRow }) {
+    const { t } = useTranslation();
+    const loadUrl = useCallback(() => getSongStreamUrl(song.id), [song.id]);
+
+    if (!song.audio.available) {
+        return (
+            <div className="grid gap-1">
+                <span className="truncate text-sm font-medium">
+                    {song.title}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                    {song.artist}
+                </span>
+                <Badge variant="outline" className="w-fit">
+                    {t('admin.recommendedSongs.noFile')}
+                </Badge>
+            </div>
+        );
+    }
+
+    return (
+        <SongPlayer
+            title={song.title}
+            artist={song.artist}
+            loadUrl={loadUrl}
+            durationSeconds={song.audio.duration_seconds}
+            downloadHref={songDownloadUrl(song.id)}
+            compact
+        />
+    );
+}
+
+function ChosenFilePlayer({ fileKey }: { fileKey: string }) {
+    const loadUrl = useCallback(() => getSongPreviewUrl(fileKey), [fileKey]);
+
+    return (
+        <SongPlayer title={fileNameOf(fileKey)} loadUrl={loadUrl} autoLoad />
+    );
+}
 
 export default function AdminRecommendedSongsIndex({
     songs,
@@ -66,6 +125,7 @@ export default function AdminRecommendedSongsIndex({
 }: RecommendedSongsIndexProps) {
     const { t } = useTranslation();
     const [formDialogOpen, setFormDialogOpen] = useState(false);
+    const [libraryOpen, setLibraryOpen] = useState(false);
     const [editingSong, setEditingSong] = useState<SongRow | null>(null);
     const [songToDelete, setSongToDelete] = useState<SongRow | null>(null);
     const [deletingSong, setDeletingSong] = useState(false);
@@ -85,11 +145,28 @@ export default function AdminRecommendedSongsIndex({
         form.setData({
             title: song.title,
             artist: song.artist,
-            audio_or_link_url: song.audio_or_link_url,
+            audio_file_path: song.audio_file_path,
+            duration_seconds: song.audio.duration_seconds,
             is_active: song.is_active,
             level_ids: song.levels.map((level) => level.id),
         });
         setFormDialogOpen(true);
+    };
+
+    /**
+     * Prefills from the file name what staff has not written yet.
+     */
+    const chooseFile = (file: ChosenSongFile): void => {
+        const suggestion = suggestSongFields(file.name);
+
+        form.clearErrors('audio_file_path');
+        form.setData({
+            ...form.data,
+            title: form.data.title || suggestion.title,
+            artist: form.data.artist || suggestion.artist,
+            audio_file_path: file.key,
+            duration_seconds: file.durationSeconds,
+        });
     };
 
     const toggleLevel = (levelId: number, checked: boolean): void => {
@@ -160,10 +237,7 @@ export default function AdminRecommendedSongsIndex({
                             <thead>
                                 <tr className="border-b border-sidebar-border/70">
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        {t('admin.recommendedSongs.songTitle')}
-                                    </th>
-                                    <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
-                                        {t('admin.recommendedSongs.artist')}
+                                        {t('admin.recommendedSongs.song')}
                                     </th>
                                     <th className="h-11 px-3 py-2 text-left align-middle font-medium text-muted-foreground">
                                         {t('navigation.levels')}
@@ -180,7 +254,7 @@ export default function AdminRecommendedSongsIndex({
                                 {songs.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={5}
+                                            colSpan={4}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
                                             {t(
@@ -194,20 +268,8 @@ export default function AdminRecommendedSongsIndex({
                                             key={song.id}
                                             className="border-b border-sidebar-border/70 last:border-0"
                                         >
-                                            <td className="px-3 py-3 align-middle font-medium">
-                                                <a
-                                                    href={
-                                                        song.audio_or_link_url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="underline-offset-4 hover:underline"
-                                                >
-                                                    {song.title}
-                                                </a>
-                                            </td>
-                                            <td className="px-3 py-3 align-middle">
-                                                {song.artist}
+                                            <td className="w-1/2 max-w-0 min-w-72 px-3 py-3 align-middle">
+                                                <SongRowPlayer song={song} />
                                             </td>
                                             <td className="px-3 py-3 align-middle">
                                                 <div className="flex flex-wrap gap-1">
@@ -288,6 +350,31 @@ export default function AdminRecommendedSongsIndex({
                         </DialogHeader>
 
                         <div className="grid gap-2">
+                            <Label>{t('admin.recommendedSongs.file')}</Label>
+                            {form.data.audio_file_path ? (
+                                <ChosenFilePlayer
+                                    key={form.data.audio_file_path}
+                                    fileKey={form.data.audio_file_path}
+                                />
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    {t('admin.recommendedSongs.fileHint')}
+                                </p>
+                            )}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-fit"
+                                onClick={() => setLibraryOpen(true)}
+                            >
+                                {form.data.audio_file_path
+                                    ? t('admin.recommendedSongs.changeFile')
+                                    : t('admin.recommendedSongs.chooseFile')}
+                            </Button>
+                            <InputError message={form.errors.audio_file_path} />
+                        </div>
+
+                        <div className="grid gap-2">
                             <Label htmlFor="song-title">
                                 {t('admin.recommendedSongs.songTitle')}
                             </Label>
@@ -299,7 +386,6 @@ export default function AdminRecommendedSongsIndex({
                                     form.setData('title', e.target.value)
                                 }
                                 required
-                                autoFocus
                             />
                             <InputError message={form.errors.title} />
                         </div>
@@ -318,32 +404,6 @@ export default function AdminRecommendedSongsIndex({
                                 required
                             />
                             <InputError message={form.errors.artist} />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="song-link">
-                                {t('admin.recommendedSongs.link')}
-                            </Label>
-                            <Input
-                                id="song-link"
-                                name="audio_or_link_url"
-                                type="url"
-                                placeholder="https://"
-                                value={form.data.audio_or_link_url}
-                                onChange={(e) =>
-                                    form.setData(
-                                        'audio_or_link_url',
-                                        e.target.value,
-                                    )
-                                }
-                                required
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                {t('admin.recommendedSongs.linkHint')}
-                            </p>
-                            <InputError
-                                message={form.errors.audio_or_link_url}
-                            />
                         </div>
 
                         <fieldset className="grid gap-3">
@@ -419,6 +479,13 @@ export default function AdminRecommendedSongsIndex({
                             </Button>
                         </DialogFooter>
                     </form>
+
+                    <SongLibraryDialog
+                        songId={editingSong?.id ?? null}
+                        open={libraryOpen}
+                        onOpenChange={setLibraryOpen}
+                        onChoose={chooseFile}
+                    />
                 </DialogContent>
             </Dialog>
 

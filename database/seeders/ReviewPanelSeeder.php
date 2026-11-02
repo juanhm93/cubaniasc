@@ -32,27 +32,27 @@ class ReviewPanelSeeder extends Seeder
 
         $songs = [
             [
-                'title' => 'La Vida Es Un Carnaval',
-                'artist' => 'Celia Cruz',
-                'audio_or_link_url' => 'https://www.youtube.com/watch?v=example1',
+                'title' => 'Temba, tumba, timba',
+                'artist' => 'Los Van Van',
+                'audio_file_path' => 'musica-salsa-casino/Los Van Van - Temba, tumba, timba.mp3',
                 'levels' => ['basico_1', 'basico_2'],
             ],
             [
-                'title' => 'Vivir Mi Vida',
-                'artist' => 'Marc Anthony',
-                'audio_or_link_url' => 'https://www.youtube.com/watch?v=example2',
+                'title' => 'Dulce Habanera',
+                'artist' => 'Sierra Maestra',
+                'audio_file_path' => 'musica-salsa-casino/Sierra Maestra - Dulce Habanera.mp3',
                 'levels' => ['basico_1'],
             ],
             [
-                'title' => 'Bailando',
-                'artist' => 'Enrique Iglesias',
-                'audio_or_link_url' => 'https://www.youtube.com/watch?v=example3',
+                'title' => 'Lamento Yoruba',
+                'artist' => 'Havana D\'Primera',
+                'audio_file_path' => 'musica-salsa-casino/Havana D_Primera - Lamento Yoruba.mp3',
                 'levels' => ['basico_2'],
             ],
             [
-                'title' => 'Valió la Pena',
-                'artist' => 'Marc Anthony',
-                'audio_or_link_url' => 'https://www.youtube.com/watch?v=example4',
+                'title' => 'Somos Cubanos',
+                'artist' => 'Los Van Van',
+                'audio_file_path' => 'musica-salsa-casino/Los Van van - Somos Cubanos.mp3',
                 'levels' => ['basico_1', 'basico_2'],
             ],
         ];
@@ -66,11 +66,13 @@ class ReviewPanelSeeder extends Seeder
                     'title' => $songData['title'],
                     'artist' => $songData['artist'],
                 ],
-                [
-                    'audio_or_link_url' => $songData['audio_or_link_url'],
-                    'is_active' => true,
-                ]
+                ['is_active' => true],
             );
+
+            $song->forceFill([
+                'audio_file_path' => $songData['audio_file_path'],
+                'audio_file_version' => 1,
+            ])->save();
 
             $levelIds = Level::query()
                 ->whereIn('slug', $levelSlugs)

@@ -23,7 +23,7 @@ info:
        - `select_figures`: `GET .../figure-options` y elegir con `POST .../figures`.
        - `review_figures`: mostrar cada figura elegida y registrar `POST .../figures/{figure}/view`.
        - `quiz`: `GET .../quiz/next` y `POST .../quiz/{item}/answer` hasta que `quiz/next` devuelva `data: null`.
-       - `songs`: `GET .../songs` y terminar con `POST .../complete`.
+       - `songs`: `GET .../songs`, reproducirlas con `POST /songs/{song}/audio-url` y terminar con `POST .../complete`.
        - `expired`: se acabó el tiempo. Si había figuras elegidas, aún se pueden ver las canciones y terminar.
        - `completed`: listo; `/review/today` queda en `locked` hasta el día siguiente.
 
@@ -42,6 +42,16 @@ info:
 
     La URL firmada es de otro dominio (Cloudflare R2): se pide sin `Authorization` ni otros headers
     de esta API. Guía completa para la app: `docs/app/videos-de-figuras.md`.
+
+    **Música (`/songs`):** las canciones son archivos de una carpeta del mismo bucket privado. La
+    acción principal es reproducirlas; también se pueden guardar en el teléfono.
+    1. `GET /songs`: biblioteca del alumno, con las canciones de su nivel y de los anteriores y el
+       estado de cada archivo (bloque `audio`). Nunca trae la URL.
+    2. `POST /songs/{song}/audio-url`: URL firmada y temporal para reproducir (`purpose: stream`,
+       por defecto) o guardar (`purpose: download`).
+    3. Comparar `audio.version` con la versión guardada en el teléfono para saber si cambió.
+
+    Guía completa: `docs/desarrollo/musica-recomendada.md`.
 
     **Convenciones:**
     - Enviar siempre `Accept: application/json`. Los errores bajo `/api` salen en JSON igualmente.
@@ -67,11 +77,14 @@ tags:
     description: Repaso diario del alumno (figuras, quiz y canciones de su nivel).
   - name: Figuras
     description: Catálogo de figuras del alumno y URLs firmadas de sus videos MP4 (descarga y streaming).
+  - name: Música
+    description: Biblioteca de canciones del alumno y URLs firmadas de sus archivos (reproducción y descarga).
   - name: Repaso web
     description: |
       Rutas del panel de repaso web (`/repaso`), fuera de `/api/v1`. Usan el token del panel
       (`POST /api/review/identify`), no el de la app. Se documentan aquí para que el contrato del
-      video sea uno solo; la app usa `/level-contents/{content}/download-url`.
+      video y de la música sea uno solo; la app usa `/level-contents/{content}/download-url` y
+      `/songs/{song}/audio-url`.
 
 paths:
   /auth/request-code:
@@ -444,8 +457,12 @@ paths:
       summary: Canciones recomendadas
       operationId: getReviewSongs
       description: |
-        Hasta 3 canciones activas del nivel (se completan con niveles anteriores). Se eligen la primera
-        vez que se piden y luego son siempre las mismas. Funciona aunque la sesión haya vencido.
+        Hasta 3 canciones activas y con archivo del nivel (se completan con niveles anteriores). Se
+        eligen la primera vez que se piden y luego son siempre las mismas. Funciona aunque la sesión
+        haya vencido.
+
+        Una sesión anterior a la música del bucket puede traer canciones con
+        `audio.available: false`: no se pueden reproducir.
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -664,6 +681,159 @@ paths:
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503': { $ref: '#/components/responses/VideoStorageUnavailable' }
 
+  /songs:
+    get:
+      tags: [Música]
+      summary: Canciones a las que el alumno tiene acceso
+      operationId: listSongs
+      description: |
+        Las mismas de las que se eligen sus recomendaciones: activas, con archivo y vinculadas al nivel
+        de su curso activo o a los niveles anteriores del mismo tipo de baile. Orden: por título y
+        luego por `id`. Sin paginación.
+
+        `level_ids` solo incluye niveles que el alumno tiene: una canción compartida con un nivel
+        superior no lo revela.
+
+        Si el alumno ya no tiene una inscripción activa, `data` y `meta.levels` vienen vacíos y
+        `meta.current_level_id` es `null`.
+
+        No incluye URLs: se piden con `POST /songs/{song}/audio-url`.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Canciones del alumno.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Song'
+                        - type: object
+                          required: [level_ids]
+                  meta:
+                    type: object
+                    required: [current_level_id, levels]
+                    properties:
+                      current_level_id:
+                        type: [integer, 'null']
+                        description: Nivel del curso activo. `null` sin inscripción activa.
+                      levels:
+                        type: array
+                        description: Niveles incluidos, del actual al más lejano. Sirve para agrupar.
+                        items: { $ref: '#/components/schemas/FigureLevel' }
+              example:
+                data:
+                  - id: 21
+                    title: Dulce Habanera
+                    artist: Sierra Maestra
+                    audio: { available: true, format: mp3, size_bytes: 5662310, duration_seconds: 247, version: 1 }
+                    level_ids: [4, 3]
+                meta:
+                  current_level_id: 4
+                  levels:
+                    - { id: 4, name: Básico 2, slug: basico_2, sort_order: 2, is_current: true }
+                    - { id: 3, name: Básico 1, slug: basico_1, sort_order: 1, is_current: false }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/SongForbidden' }
+
+  /songs/{song}/audio-url:
+    parameters:
+      - $ref: '#/components/parameters/SongId'
+    post:
+      tags: [Música]
+      summary: URL firmada del archivo de una canción
+      operationId: createSongAudioUrl
+      description: |
+        Devuelve una URL temporal del archivo en el bucket privado (Cloudflare R2).
+
+        - Usarla **sin** `Authorization` ni los demás headers de esta API: es otro dominio.
+        - `purpose: stream` (por defecto): vence a los 60 minutos y responde `inline`.
+        - `purpose: download`: vence a los 30 minutos y R2 responde con
+          `Content-Disposition: attachment`.
+        - R2 comprueba la firma al empezar cada petición. Si una descarga se reanuda (petición con
+          `Range`) después de `expires_at`, R2 responde 403: pedir una URL nueva y reanudar.
+        - Pedirla justo antes de usarla y no guardarla.
+
+        Primero se comprueba el acceso (403) y después que la canción se pueda usar (404).
+        Límite: 60 por minuto.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SongAudioUrlRequest' }
+            examples:
+              reproducir:
+                value: { purpose: stream }
+              descargar:
+                value: { purpose: download }
+      responses:
+        '200':
+          description: URL firmada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/SongAudioUrl' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/SongForbidden' }
+        '404': { $ref: '#/components/responses/SongNotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/SongStorageUnavailable' }
+
+  /sessions/{session}/songs/{song}/audio-url:
+    servers:
+      - url: https://cubaniasc.com/api/review
+        description: Producción (panel de repaso web)
+      - url: https://cubania.purphura.com/api/review
+        description: Staging (panel de repaso web)
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+      - $ref: '#/components/parameters/SongId'
+    post:
+      tags: [Repaso web]
+      summary: URL firmada para reproducir o descargar una canción en el repaso web
+      operationId: createReviewSongAudioUrl
+      description: |
+        Usa el token del panel de repaso web.
+
+        - Solo para canciones asignadas a una sesión propia. Un 404 también cubre una canción que no
+          es de esa sesión.
+        - A diferencia de las figuras, funciona aunque el tiempo de la sesión haya vencido.
+        - Mismos `purpose`, vencimientos y respuesta que `POST /songs/{song}/audio-url`.
+
+        Límite: 60 por minuto.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SongAudioUrlRequest' }
+      responses:
+        '200':
+          description: URL firmada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data: { $ref: '#/components/schemas/SongAudioUrl' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/SongStorageUnavailable' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -683,6 +853,12 @@ components:
       in: path
       required: true
       description: Id de la figura (`Figure.id`).
+      schema: { type: integer }
+    SongId:
+      name: song
+      in: path
+      required: true
+      description: Id de la canción (`Song.id`).
       schema: { type: integer }
 
   schemas:
@@ -911,15 +1087,64 @@ components:
 
     Song:
       type: object
-      required: [id, title, artist, audio_or_link_url]
+      required: [id, title, artist, audio]
       properties:
         id: { type: integer }
         title: { type: string }
         artist: { type: string }
-        audio_or_link_url:
+        audio: { $ref: '#/components/schemas/SongAudio' }
+        level_ids:
+          type: array
+          description: Solo en `GET /songs`. Niveles del alumno en los que está la canción.
+          items: { type: integer }
+
+    SongAudio:
+      type: object
+      description: Estado del archivo. Nunca trae la URL ni la clave del bucket.
+      required: [available, format, size_bytes, duration_seconds, version]
+      properties:
+        available: { type: boolean, description: Tiene archivo y se puede reproducir. }
+        format: { type: [string, 'null'], enum: [mp3, wav, null] }
+        size_bytes: { type: [integer, 'null'], example: 5662310 }
+        duration_seconds:
+          type: [integer, 'null']
+          description: Puede ser `null` aunque haya archivo. La duración real sale del reproductor.
+          example: 247
+        version:
+          type: integer
+          description: Sube cada vez que la canción cambia de archivo. Sirve para saber si la copia local quedó vieja.
+          example: 1
+
+    SongAudioUrlRequest:
+      type: object
+      properties:
+        purpose:
+          type: string
+          enum: [stream, download]
+          default: stream
+
+    SongAudioUrl:
+      type: object
+      required: [url, expires_at, size_bytes, version, filename]
+      properties:
+        url:
           type: string
           format: uri
-          description: Enlace para abrir fuera de la app (Spotify, YouTube…).
+          description: URL firmada de R2. Pedirla sin headers de esta API.
+          example: https://ACCOUNT_ID.r2.cloudflarestorage.com/cubania-videos/musica-salsa-casino/Sierra%20Maestra%20-%20Dulce%20Habanera.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=…
+        expires_at: { type: string, format: date-time }
+        size_bytes:
+          type: [integer, 'null']
+          description: Tamaño esperado del archivo. Sirve para el progreso y para validar la descarga.
+          example: 5662310
+        version:
+          type: integer
+          description: Versión del archivo que se va a descargar. Guardarla en el índice local.
+          example: 1
+        filename:
+          type: string
+          description: Nombre sugerido para el archivo.
+          example: sierra-maestra-dulce-habanera.mp3
 
     ReviewStreak:
       type: object
@@ -1035,3 +1260,27 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Message' }
           example: { message: El almacenamiento de videos no está disponible. }
+    SongForbidden:
+      description: |
+        El token no es de la app, o la canción no está en los niveles del alumno (también cuando ya
+        no tiene una inscripción activa).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          examples:
+            sinAcceso:
+              value: { message: No tienes acceso a esta canción. }
+            tokenAjeno:
+              value: { message: Este token no tiene acceso a la app. }
+    SongNotFound:
+      description: La canción no existe (o se borró), está inactiva o no tiene archivo.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: Esta canción no está disponible. }
+    SongStorageUnavailable:
+      description: El almacenamiento de música no está configurado o no responde. Reintentar más tarde.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Message' }
+          example: { message: El almacenamiento de música no está disponible. }
