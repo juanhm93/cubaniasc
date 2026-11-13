@@ -505,6 +505,100 @@
     }
 }
 
+/* ---------- Welcome reminder (dialog portal, outside the page root) ---------- */
+
+.cubania-landing.cubania-review-welcome {
+    min-height: auto;
+    max-height: calc(100dvh - 2rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 0;
+    padding: 0;
+    border: 1px solid rgba(245, 200, 66, 0.35);
+    border-radius: 6px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(107, 33, 200, 0.35),
+            rgba(10, 0, 16, 0.2) 60%
+        ),
+        var(--cubania-gris);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Radix close button: last child of the dialog, the only thing on top of the photo. */
+.cubania-landing.cubania-review-welcome > button:last-child {
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: rgba(10, 0, 16, 0.65);
+    color: var(--cubania-blanco);
+    opacity: 1;
+}
+
+/* Whole photo, edge to edge, never cropped. */
+.cubania-landing .cubania-review-welcome__photo {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.cubania-landing .cubania-review-welcome__content {
+    display: grid;
+    gap: 20px;
+    padding: 24px 28px 28px;
+}
+
+.cubania-landing .cubania-review-welcome__title,
+.cubania-landing .cubania-review-welcome__body,
+.cubania-landing .cubania-review-welcome__confirm {
+    animation: cubania-review-welcome-fade 0.6s ease-out both;
+}
+
+.cubania-landing .cubania-review-welcome__title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: clamp(2.2rem, 6vw, 2.8rem);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    color: var(--cubania-amarillo);
+    animation-delay: 0.15s;
+}
+
+.cubania-landing .cubania-review-welcome__body {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--cubania-blanco);
+    animation-delay: 0.35s;
+}
+
+.cubania-landing .cubania-review-welcome__confirm {
+    width: 100%;
+    animation-delay: 0.55s;
+}
+
+@keyframes cubania-review-welcome-fade {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cubania-landing .cubania-review-welcome__title,
+    .cubania-landing .cubania-review-welcome__body,
+    .cubania-landing .cubania-review-welcome__confirm {
+        animation: none;
+    }
+}
+
 .cubania-landing .cubania-review__countdown {
     margin: -8px 0 16px;
     font-family: 'Bebas Neue', sans-serif;
