@@ -914,6 +914,12 @@
             "start": "Empezar repaso",
             "starting": "Preparando…"
         },
+        "welcome": {
+            "title": "Un recordatorio",
+            "body": "Tu teléfono te da los pasos; tus amigos te dan el baile. Repasa aquí, pero no te quedes en la pantalla: ve y baila.",
+            "confirm": "Entendido, a repasar",
+            "photoAlt": "Alumnos de Cubanía sonriendo juntos con la camiseta de la academia"
+        },
         "steps": {
             "figures": "Figuras",
             "quiz": "Quiz",
