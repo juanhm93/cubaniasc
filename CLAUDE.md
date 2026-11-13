@@ -99,6 +99,10 @@ El esquema está casi todo en `database/migrations/2026_04_29_000000_create_acad
 - En producción: HTTPS forzado, `DB::prohibitDestructiveCommands()` y contraseñas fuertes (12+ caracteres, mixtas, no filtradas).
 - Registro y enlace de login conmutables con `AUTH_REGISTRATION_ENABLED` y `AUTH_LOGIN_VISIBLE` (`AuthAccess`).
 
+## Tareas
+
+El backlog está en el tablero de Notion [cubania salsa casino app](https://app.notion.com/p/d33b07d3bada49c0a5085ff4bfa87a89?v=41635d32877781ae89ed000c24226ec2) (espejo del GitHub Project `juanhm93/projects/3`). Cuando se pidan las tareas o qué hay pendiente, usa el skill `/tareas`: lista el tablero por estado y guía la implementación de la tarea elegida.
+
 ## Pendientes conocidos
 
 - `deploy.yml` no ejecuta tests y hace `composer install` sin `--no-dev`. `tests.yml` corre por separado y no bloquea el deploy.
