@@ -1,5 +1,11 @@
 import { Clock, CircleHelp, Footprints, Music } from 'lucide-react';
+import { useState } from 'react';
 import { ReviewStreakCard } from '@/components/review/review-streak-card';
+import {
+    markReviewWelcomeSeen,
+    ReviewWelcomeDialog,
+    reviewWelcomeSeenToday,
+} from '@/components/review/review-welcome-dialog';
 import { useTranslation } from '@/i18n/use-translation';
 import type { ReviewAuth, ReviewStreak } from '@/types/review';
 
@@ -23,6 +29,23 @@ export function ReviewDashboard({
     const { t } = useTranslation();
     const minutes = Math.round(auth.level.review_duration_seconds / 60);
     const firstName = auth.student.name.split(' ')[0];
+    const [welcomeOpen, setWelcomeOpen] = useState(false);
+
+    const handleStart = () => {
+        if (reviewWelcomeSeenToday()) {
+            onStart();
+
+            return;
+        }
+
+        setWelcomeOpen(true);
+    };
+
+    const confirmWelcome = () => {
+        markReviewWelcomeSeen();
+        setWelcomeOpen(false);
+        onStart();
+    };
 
     return (
         <section className="cubania-review__dashboard">
@@ -60,7 +83,7 @@ export function ReviewDashboard({
                     type="button"
                     className="cubania-btn cubania-btn--primary cubania-review__start"
                     disabled={loading}
-                    onClick={onStart}
+                    onClick={handleStart}
                     data-cubania-cursor="interactive"
                 >
                     {loading
@@ -70,6 +93,12 @@ export function ReviewDashboard({
             </div>
 
             <ReviewStreakCard streak={streak} />
+
+            <ReviewWelcomeDialog
+                open={welcomeOpen}
+                onOpenChange={setWelcomeOpen}
+                onConfirm={confirmWelcome}
+            />
         </section>
     );
 }
