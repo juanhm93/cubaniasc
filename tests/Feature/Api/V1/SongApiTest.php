@@ -240,7 +240,7 @@ class SongApiTest extends TestCase
         $this->getJson(route('v1.songs.index'))->assertUnauthorized();
         $this->postJson(route('v1.songs.audio-url', $song))->assertUnauthorized();
 
-        $token = $student->createToken('review-panel')->plainTextToken;
+        $token = $student->createToken('review-panel', ['review'])->plainTextToken;
 
         $this->withToken($token)->getJson(route('v1.songs.index'))->assertForbidden();
         $this->withToken($token)->postJson(route('v1.songs.audio-url', $song))->assertForbidden();
