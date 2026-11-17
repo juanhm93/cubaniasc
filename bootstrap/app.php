@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureAppStudentToken;
 use App\Http\Middleware\EnsureOwnerUser;
+use App\Http\Middleware\EnsureReviewStudentToken;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectIfRegistrationDisabled;
@@ -30,7 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // No proxy sits in front of the shared hosting, so X-Forwarded-For from a client must be
+        // ignored or every rate limiter can be bypassed. Only a local web-server proxy is trusted.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
         $middleware->alias([
             'active' => RedirectIfUserPending::class,
@@ -38,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability' => EnsureAbility::class,
             'owner' => EnsureOwnerUser::class,
             'app.student' => EnsureAppStudentToken::class,
+            'review.student' => EnsureReviewStudentToken::class,
         ]);
 
         $middleware->web(append: [

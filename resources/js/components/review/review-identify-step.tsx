@@ -2,27 +2,115 @@ import { CircleHelp, Clock, Footprints, Music } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from '@/i18n/use-translation';
+import type { ReviewIdentifier } from '@/lib/review-service';
 
 type IdentifyMode = 'email' | 'dni';
 
 type ReviewIdentifyStepProps = {
     loading: boolean;
-    onSubmit: (payload: { email?: string; dni?: string }) => void;
+    codeSent: boolean;
+    onRequestCode: (identifier: ReviewIdentifier) => void;
+    onVerifyCode: (code: string) => void;
+    onResendCode: () => void;
+    onChangeIdentifier: () => void;
 };
 
 export function ReviewIdentifyStep({
     loading,
-    onSubmit,
+    codeSent,
+    onRequestCode,
+    onVerifyCode,
+    onResendCode,
+    onChangeIdentifier,
 }: ReviewIdentifyStepProps) {
     const { t } = useTranslation();
     const [mode, setMode] = useState<IdentifyMode>('email');
     const [email, setEmail] = useState('');
     const [dni, setDni] = useState('');
+    const [code, setCode] = useState('');
 
-    const submit = (event: FormEvent) => {
+    const submitIdentifier = (event: FormEvent) => {
         event.preventDefault();
-        onSubmit(mode === 'email' ? { email } : { dni });
+        setCode('');
+        onRequestCode(mode === 'email' ? { email } : { dni });
     };
+
+    const submitCode = (event: FormEvent) => {
+        event.preventDefault();
+        onVerifyCode(code);
+    };
+
+    if (codeSent) {
+        return (
+            <section className="cubania-review__panel cubania-review__panel--identify">
+                <h2 className="cubania-review__panel-title">
+                    {t('review.identify.codeTitle')}
+                </h2>
+                <p className="cubania-review__panel-lead">
+                    {t('review.identify.codeLead')}
+                </p>
+
+                <form
+                    onSubmit={submitCode}
+                    className="cubania-review__identify-form"
+                >
+                    <div className="cubania-pre-reg__field">
+                        <label
+                            className="cubania-pre-reg__label"
+                            htmlFor="review-code"
+                        >
+                            {t('review.identify.codeLabel')}
+                        </label>
+                        <input
+                            id="review-code"
+                            className="cubania-pre-reg__input"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            pattern="[0-9]{6}"
+                            maxLength={6}
+                            value={code}
+                            onChange={(event) =>
+                                setCode(event.target.value.replace(/\D/g, ''))
+                            }
+                            autoFocus
+                            required
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="cubania-btn cubania-btn--primary"
+                        disabled={loading || code.length !== 6}
+                        data-cubania-cursor="interactive"
+                    >
+                        {loading
+                            ? t('review.identify.codeSubmitting')
+                            : t('review.identify.codeSubmit')}
+                    </button>
+                </form>
+
+                <div className="cubania-review__toggle">
+                    <button
+                        type="button"
+                        className="cubania-review__toggle-btn"
+                        onClick={onResendCode}
+                        disabled={loading}
+                    >
+                        {t('review.identify.resend')}
+                    </button>
+                    <button
+                        type="button"
+                        className="cubania-review__toggle-btn"
+                        onClick={onChangeIdentifier}
+                        disabled={loading}
+                    >
+                        {t('review.identify.changeIdentifier')}
+                    </button>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="cubania-review__panel cubania-review__panel--identify">
@@ -73,7 +161,10 @@ export function ReviewIdentifyStep({
                 </button>
             </div>
 
-            <form onSubmit={submit} className="cubania-review__identify-form">
+            <form
+                onSubmit={submitIdentifier}
+                className="cubania-review__identify-form"
+            >
                 {mode === 'email' ? (
                     <div className="cubania-pre-reg__field">
                         <label
