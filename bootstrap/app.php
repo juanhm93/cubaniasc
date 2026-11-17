@@ -10,12 +10,16 @@ use App\Exceptions\Review\ReviewSessionNotCompletableException;
 use App\Exceptions\Review\StudentNotIdentifiableException;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsureAdminRole;
+use App\Http\Middleware\EnsureAdminTwoFactorEnabled;
 use App\Http\Middleware\EnsureAppStudentToken;
 use App\Http\Middleware\EnsureOwnerUser;
+use App\Http\Middleware\EnsureReviewStudentToken;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectIfRegistrationDisabled;
 use App\Http\Middleware\RedirectIfUserPending;
+use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\ThrottleRegistration;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -30,18 +34,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // No proxy sits in front of the shared hosting, so X-Forwarded-For from a client must be
+        // ignored or every rate limiter can be bypassed. Only a local web-server proxy is trusted.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->append(SecurityHeaders::class);
         $middleware->alias([
             'active' => RedirectIfUserPending::class,
+            'admin.2fa' => EnsureAdminTwoFactorEnabled::class,
             'admin' => EnsureAdminRole::class,
             'ability' => EnsureAbility::class,
             'owner' => EnsureOwnerUser::class,
             'app.student' => EnsureAppStudentToken::class,
+            'review.student' => EnsureReviewStudentToken::class,
         ]);
 
         $middleware->web(append: [
             RedirectIfRegistrationDisabled::class,
+            ThrottleRegistration::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
