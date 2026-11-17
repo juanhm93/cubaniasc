@@ -35,6 +35,7 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="AUTH_REGISTRATION_ENABLED" value="true"/>
         <env name="AUTH_LOGIN_VISIBLE" value="true"/>
+        <env name="AUTH_REQUIRE_ADMIN_2FA" value="false"/>
         <env name="R2_ACCESS_KEY_ID" value=""/>
         <env name="R2_SECRET_ACCESS_KEY" value=""/>
         <env name="R2_BUCKET" value=""/>

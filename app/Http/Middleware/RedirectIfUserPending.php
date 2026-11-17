@@ -9,7 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class RedirectIfUserPending
 {
     /**
-     * Redirect users with pending approval away from the application until an administrator activates their account.
+     * Keep every user who is not explicitly active (pending, or any other status) away
+     * from the application until an administrator activates their account.
      *
      * @param  Closure(Request): (Response)  $next
      */
@@ -17,7 +18,7 @@ class RedirectIfUserPending
     {
         $user = $request->user();
 
-        if ($user === null || $user->status !== 'pending') {
+        if ($user === null || $user->isActive()) {
             return $next($request);
         }
 

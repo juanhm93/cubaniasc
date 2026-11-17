@@ -12,12 +12,14 @@ type PreRegistrationPageProps = {
     canLogin?: boolean;
     canRegister?: boolean;
     status?: string | null;
+    formToken: string;
 };
 
 export default function PreRegistrationPage({
     canLogin = true,
     canRegister = true,
     status = null,
+    formToken,
 }: PreRegistrationPageProps) {
     const { auth } = usePage().props;
     const { t } = useTranslation();
@@ -29,6 +31,9 @@ export default function PreRegistrationPage({
         country: '',
         message: '',
         agree: false as boolean,
+        // Anti-spam: a field people never see (bots fill it in) and the time the form was shown.
+        website: '',
+        form_token: formToken,
     });
 
     const submit: FormEventHandler = (e) => {
@@ -70,6 +75,34 @@ export default function PreRegistrationPage({
                         </p>
                     ) : null}
                     <form onSubmit={submit} noValidate>
+                        <div
+                            aria-hidden="true"
+                            style={{
+                                position: 'absolute',
+                                left: '-10000px',
+                                width: '1px',
+                                height: '1px',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            <label htmlFor="pre-reg-website">Website</label>
+                            <input
+                                id="pre-reg-website"
+                                type="text"
+                                name="website"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                value={form.data.website}
+                                onChange={(e) =>
+                                    form.setData('website', e.target.value)
+                                }
+                            />
+                        </div>
+                        {form.errors.form_token ? (
+                            <p className="cubania-pre-reg__error" role="alert">
+                                {form.errors.form_token}
+                            </p>
+                        ) : null}
                         <div className="cubania-pre-reg__field">
                             <label
                                 className="cubania-pre-reg__label"

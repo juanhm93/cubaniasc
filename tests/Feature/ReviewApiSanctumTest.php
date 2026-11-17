@@ -7,7 +7,6 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Student;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -27,7 +26,7 @@ class ReviewApiSanctumTest extends TestCase
     {
         $student = Student::factory()->create();
 
-        $token = $student->createToken('review-panel');
+        $token = $student->createToken('review-panel', ['review']);
 
         $this->assertNotEmpty($token->plainTextToken);
         $this->assertDatabaseHas('personal_access_tokens', [
@@ -45,13 +44,13 @@ class ReviewApiSanctumTest extends TestCase
             'dni' => '12345678',
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.me'))
             ->assertOk()
             ->assertJsonPath('data.name', 'Ana López')
-            ->assertJsonPath('data.email', 'ana@example.com')
-            ->assertJsonPath('data.dni', '12345678');
+            ->assertJsonMissingPath('data.email')
+            ->assertJsonMissingPath('data.dni');
     }
 
     public function test_guest_cannot_access_protected_review_route(): void
@@ -67,19 +66,16 @@ class ReviewApiSanctumTest extends TestCase
             'email' => 'carlos@example.com',
         ]);
 
-        $plainTextToken = $student->createToken('review-panel')->plainTextToken;
+        $plainTextToken = $student->createToken('review-panel', ['review'])->plainTextToken;
 
         $this->withToken($plainTextToken)
             ->getJson(route('review.me'))
             ->assertOk()
-            ->assertJsonPath('data.name', 'Carlos Ruiz')
-            ->assertJsonPath('data.email', 'carlos@example.com');
+            ->assertJsonPath('data.name', 'Carlos Ruiz');
     }
 
-    public function test_identify_route_is_rate_limited_by_email_or_dni(): void
+    public function test_verify_code_route_is_rate_limited_by_email_or_dni(): void
     {
-        RateLimiter::clear('review-identify');
-
         $student = Student::factory()->create(['email' => 'alumno@example.com']);
         Enrollment::factory()->create([
             'student_id' => $student->id,
@@ -88,13 +84,15 @@ class ReviewApiSanctumTest extends TestCase
         ]);
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->postJson(route('review.identify'), [
+            $this->postJson(route('review.auth.verify-code'), [
                 'email' => 'alumno@example.com',
-            ])->assertOk();
+                'code' => '000000',
+            ])->assertUnprocessable();
         }
 
-        $this->postJson(route('review.identify'), [
+        $this->postJson(route('review.auth.verify-code'), [
             'email' => 'alumno@example.com',
+            'code' => '000000',
         ])->assertTooManyRequests();
     }
 }

@@ -7,8 +7,10 @@ use App\Mail\PreRegistrationConfirmationMail;
 use App\Models\PreRegistration;
 use App\Notifications\NewPreRegistrationNotification;
 use App\Support\PreRegistrationRecipients;
+use App\Support\PreRegistrationSpamGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,14 +25,26 @@ class PreRegistrationController extends Controller
     {
         return Inertia::render('pre-registration', [
             'status' => $request->session()->get('status'),
+            'formToken' => PreRegistrationSpamGuard::issueToken(),
         ]);
     }
 
+    /**
+     * Bots, and emails that already pre-registered, get the same success response as a
+     * real submission but nothing is stored or emailed: the form never reveals who is
+     * registered and never becomes a way to flood the staff or third parties with mail.
+     */
     public function store(StorePublicPreRegistrationRequest $request): RedirectResponse
     {
-        $preRegistration = PreRegistration::query()->create($request->validated());
+        $data = $request->preRegistrationData();
 
-        $this->dispatchPreRegistrationMail($preRegistration);
+        if (PreRegistrationSpamGuard::looksAutomated($request)) {
+            Log::info('Pre-registration discarded as automated.', ['ip' => $request->ip()]);
+        } elseif (! PreRegistration::withTrashed()->where('email', $data['email'])->exists()) {
+            $preRegistration = PreRegistration::query()->create($data);
+
+            $this->dispatchPreRegistrationMail($preRegistration);
+        }
 
         return redirect()
             ->route('pre-registration.create')
