@@ -144,17 +144,14 @@ class PaymentController extends Controller
     {
         $data = $request->validatedForPayment();
 
+        $method = strtolower(trim((string) ($data['method'] ?? '')));
         $receiptPath = null;
 
-        if ($request->hasFile('receipt')) {
-            $receiptPath = $request->file('receipt')->store('payments/receipts', 'public');
-        }
-
-        $method = strtolower(trim((string) ($data['method'] ?? '')));
-
         if ($method === 'efectivo') {
+            // Cash payments carry neither reference nor receipt; the upload is not stored.
             $data['reference'] = null;
-            $receiptPath = null;
+        } elseif ($request->hasFile('receipt')) {
+            $receiptPath = $request->file('receipt')->store(Payment::RECEIPT_DIRECTORY, Payment::RECEIPT_DISK);
         }
 
         $paidAt = isset($data['paid_at'])

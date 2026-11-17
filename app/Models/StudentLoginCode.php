@@ -7,13 +7,25 @@ namespace App\Models;
 use Database\Factories\StudentLoginCodeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentLoginCode extends Model
 {
     /** @use HasFactory<StudentLoginCodeFactory> */
-    use HasFactory;
+    use HasFactory, MassPrunable;
+
+    /**
+     * Codes stay one day after they expire (the failed-attempts window looks back one hour),
+     * then the scheduled model:prune deletes them.
+     *
+     * @return Builder<static>
+     */
+    public function prunable(): Builder
+    {
+        return static::query()->where('expires_at', '<', now()->subDay());
+    }
 
     protected $fillable = [
         'student_id',

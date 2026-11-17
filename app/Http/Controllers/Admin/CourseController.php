@@ -87,6 +87,7 @@ class CourseController extends Controller
             ->get(['id', 'name']);
 
         $teachers = User::query()
+            ->eligibleTeachers()
             ->when($companyId !== null, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('name')
             ->get(['id', 'name']);
@@ -278,6 +279,7 @@ class CourseController extends Controller
         }
 
         $teachers = User::query()
+            ->eligibleTeachers()
             ->when($companyId !== null, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('name')
             ->get(['id', 'name']);

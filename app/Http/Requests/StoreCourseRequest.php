@@ -44,6 +44,10 @@ class StoreCourseRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('users', 'id')->where(function ($query): void {
+                    $query->where('status', 'active')
+                        ->whereNull('deleted_at')
+                        ->where(fn ($eligible) => $eligible->whereNotNull('role_id')->orWhere('is_owner', true));
+
                     $companyId = $this->user()?->company_id;
 
                     if ($companyId !== null) {

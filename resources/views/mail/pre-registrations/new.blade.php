@@ -1,18 +1,18 @@
 @component('mail::message')
 # 🎉 ¡Tenemos una nueva preinscripción!
 
-Alguien más quiere bailar con nosotros. **{{ $preRegistration->name }}** acaba de completar el formulario de preinscripción.
+Alguien más quiere bailar con nosotros. **{{ \App\Support\MarkdownText::escape($preRegistration->name) }}** acaba de completar el formulario de preinscripción.
 
 @component('mail::panel')
-**Nombre:** {{ $preRegistration->name }}
+**Nombre:** {{ \App\Support\MarkdownText::escape($preRegistration->name) }}
 
-**Correo:** {{ $preRegistration->email }}
+**Correo:** {{ \App\Support\MarkdownText::escape($preRegistration->email) }}
 
-**Teléfono:** {{ $preRegistration->phone ?? 'No indicado' }}
+**Teléfono:** {{ $preRegistration->phone !== null ? \App\Support\MarkdownText::escape($preRegistration->phone) : 'No indicado' }}
 
 **País:** {{ $countryLabel ?? 'No indicado' }}
 
-**Mensaje:** {{ $preRegistration->message ?? 'Sin mensaje' }}
+**Mensaje:** {{ $preRegistration->message !== null ? \App\Support\MarkdownText::escape($preRegistration->message) : 'Sin mensaje' }}
 
 **Autorizó el tratamiento de sus datos:** {{ $preRegistration->agree ? 'Sí' : 'No' }}
 

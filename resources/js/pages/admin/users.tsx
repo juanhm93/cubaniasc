@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/i18n/use-translation';
 import admin from '@/routes/admin';
 
@@ -18,6 +19,7 @@ type UserItem = {
     status: string;
     role_id: number | null;
     is_owner?: boolean | number;
+    can_manage: boolean;
     role?: Role | null;
     company?: {
         id: number;
@@ -33,10 +35,6 @@ type AdminUsersProps = {
 
 const STATUS_VALUES = ['active', 'pending'] as const;
 
-function userIsOwner(user: UserItem): boolean {
-    return Boolean(user.is_owner);
-}
-
 export default function AdminUsers({
     users,
     roles,
@@ -44,6 +42,7 @@ export default function AdminUsers({
 }: AdminUsersProps) {
     const { t } = useTranslation();
     const [savingUserId, setSavingUserId] = useState<number | null>(null);
+    const [maintenancePassword, setMaintenancePassword] = useState('');
     const [maintenanceAction, setMaintenanceAction] = useState<
         'cache' | 'migrate' | null
     >(null);
@@ -99,6 +98,12 @@ export default function AdminUsers({
     }
 
     function runOwnerMaintenance(kind: 'cache' | 'migrate'): void {
+        if (maintenancePassword === '') {
+            toast.error(t('admin.users.maintenancePasswordRequired'));
+
+            return;
+        }
+
         const url =
             kind === 'cache'
                 ? admin.maintenance.cacheClear.url()
@@ -112,14 +117,19 @@ export default function AdminUsers({
 
         router.post(
             url,
-            {},
+            { password: maintenancePassword },
             {
                 preserveScroll: true,
                 onSuccess: () => {
+                    setMaintenancePassword('');
                     toast.success(successMessage);
                 },
-                onError: () => {
-                    toast.error(t('admin.users.actionFailed'));
+                onError: (errors) => {
+                    toast.error(
+                        errors.password ??
+                            errors.maintenance ??
+                            t('admin.users.actionFailed'),
+                    );
                 },
                 onFinish: () => {
                     setMaintenanceAction(null);
@@ -143,19 +153,37 @@ export default function AdminUsers({
                             </p>
                         </div>
                         {canRunOwnerMaintenance ? (
-                            <div className="flex shrink-0 flex-wrap gap-2">
+                            <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                <Input
+                                    type="password"
+                                    autoComplete="current-password"
+                                    aria-label={t(
+                                        'admin.users.maintenancePassword',
+                                    )}
+                                    placeholder={t(
+                                        'admin.users.maintenancePassword',
+                                    )}
+                                    className="h-8 w-48"
+                                    value={maintenancePassword}
+                                    onChange={(event) =>
+                                        setMaintenancePassword(
+                                            event.target.value,
+                                        )
+                                    }
+                                    disabled={maintenanceAction !== null}
+                                />
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     disabled={maintenanceAction !== null}
-                                    onClick={() =>
-                                        runOwnerMaintenance('cache')
-                                    }
+                                    onClick={() => runOwnerMaintenance('cache')}
                                 >
                                     {maintenanceAction === 'cache'
                                         ? t('admin.users.clearingCaches')
-                                        : t('admin.users.clearApplicationCaches')}
+                                        : t(
+                                              'admin.users.clearApplicationCaches',
+                                          )}
                                 </Button>
                                 <Button
                                     type="button"
@@ -194,8 +222,6 @@ export default function AdminUsers({
                             </thead>
                             <tbody>
                                 {users.map((user) => {
-                                    const isOwnerUser = userIsOwner(user);
-
                                     return (
                                         <tr
                                             key={user.id}
@@ -222,8 +248,7 @@ export default function AdminUsers({
                                                 </span>
                                             </td>
                                             <td className="w-[min(100%,14rem)] min-w-[12rem] px-3 py-3 align-middle">
-                                                {user.role?.slug === 'admin' ||
-                                                isOwnerUser ? (
+                                                {!user.can_manage ? (
                                                     <span className="text-muted-foreground">
                                                         {t('common.emDash')}
                                                     </span>
@@ -277,7 +302,7 @@ export default function AdminUsers({
                                                 )}
                                             </td>
                                             <td className="w-36 min-w-[9rem] px-3 py-3 align-middle">
-                                                {isOwnerUser ? (
+                                                {!user.can_manage ? (
                                                     <span className="inline-flex h-9 w-full items-center rounded-md border border-sidebar-border px-3 capitalize">
                                                         {statusLabel(
                                                             user.status,
@@ -318,7 +343,9 @@ export default function AdminUsers({
                                                             (value) => (
                                                                 <option
                                                                     key={value}
-                                                                    value={value}
+                                                                    value={
+                                                                        value
+                                                                    }
                                                                 >
                                                                     {t(
                                                                         `admin.userStatus.${value}`,

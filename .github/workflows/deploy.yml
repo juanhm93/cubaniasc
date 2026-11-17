@@ -8,7 +8,11 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref_name }}
-  cancel-in-progress: true
+  # Never cancel an FTP upload halfway: the server would be left with a mix of old and new files.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   laravel-tests:
@@ -28,6 +32,35 @@ jobs:
           - 3306:3306
     steps:
       - uses: actions/checkout@v4
+      - name: Check deployment secrets
+        env:
+          IS_PRODUCTION: ${{ github.ref == 'refs/heads/main' }}
+          STAGING_SERVER: ${{ secrets.FTP_STAGING_SERVER || secrets.FTP_SERVER }}
+          STAGING_USERNAME: ${{ secrets.FTP_STAGING_USERNAME || secrets.FTP_USERNAME }}
+          STAGING_PASSWORD: ${{ secrets.FTP_STAGING_PASSWORD || secrets.FTP_PASSWORD }}
+          PRODUCTION_SERVER: ${{ secrets.FTP_PRODUCTION_SERVER }}
+          PRODUCTION_USERNAME: ${{ secrets.FTP_PRODUCTION_USERNAME }}
+          PRODUCTION_PASSWORD: ${{ secrets.FTP_PRODUCTION_PASSWORD }}
+          PRODUCTION_SERVER_DIR: ${{ secrets.FTP_PRODUCTION_SERVER_DIR }}
+        run: |
+          set -euo pipefail
+          if [ "$IS_PRODUCTION" = "true" ]; then
+            required="PRODUCTION_SERVER PRODUCTION_USERNAME PRODUCTION_PASSWORD PRODUCTION_SERVER_DIR"
+          else
+            required="STAGING_SERVER STAGING_USERNAME STAGING_PASSWORD"
+          fi
+          for name in $required; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing deployment secret for ${name}"
+              exit 1
+            fi
+          done
+          if [ "$IS_PRODUCTION" != "true" ] \
+            && [ "$STAGING_SERVER" = "$PRODUCTION_SERVER" ] \
+            && [ "$STAGING_USERNAME" = "$PRODUCTION_USERNAME" ]; then
+            echo "::error::Staging would deploy with the production FTP account"
+            exit 1
+          fi
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -42,6 +75,8 @@ jobs:
         run: cp .env.example .env
       - name: Install PHP Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Audit PHP Dependencies
+        run: composer audit --locked --no-dev
       - name: Generate application key
         run: php artisan key:generate --force
       - name: Run migrations the database
@@ -53,23 +88,24 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: php artisan migrate --force --seed
-      - name: Clear Config and Cache
-        run: |
-          php artisan config:cache
-          php artisan config:clear
-          php artisan route:clear
-          php artisan view:clear
-      - name: Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
       - name: Install Node Dependencies
-        run: |
-          npm install
-          npm cache clean --force
+        run: npm ci
+      - name: Audit Node Dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Build Frontend Assets
         env:
           APP_URL: ${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com/' }}
           APP_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
         run: npm run build
+      - name: Run Tests
+        run: php artisan test --compact
+      - name: Remove Development Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-progress --prefer-dist --no-dev --optimize-autoloader
+      - name: Clear Config and Cache
+        run: |
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
       - name: Deploy staging to Purphura subdomain
         if: github.ref == 'refs/heads/develop'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -77,12 +113,18 @@ jobs:
           server: ${{ secrets.FTP_STAGING_SERVER || secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_STAGING_USERNAME || secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_STAGING_PASSWORD || secrets.FTP_PASSWORD }}
+          # The staging FTP account is rooted at the project folder.
           server-dir: ${{ secrets.FTP_STAGING_SERVER_DIR || '/' }}
+          # Encrypted by default. Set the repository variable FTP_PROTOCOL=ftp only if the host rejects FTPS.
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           exclude: |
             **/.git*
             **/.git*/**
             **/.github/**
             **/.cursor/**
+            **/.claude/**
+            **/.postman/**
+            **/.DS_Store
             **/node_modules/**
             **/tests/**
             **/.env
@@ -90,6 +132,15 @@ jobs:
             !.env.example
             !.env.staging.example
             !.env.production.example
+            storage/**
+            docs/**
+            specs/**
+            postman/**
+            *.md
+            server.php
+            phpunit.xml
+            .phpunit.result.cache
+            boost.json
       - name: Deploy production to cubaniasc.com
         if: github.ref == 'refs/heads/main'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -98,11 +149,15 @@ jobs:
           username: ${{ secrets.FTP_PRODUCTION_USERNAME }}
           password: ${{ secrets.FTP_PRODUCTION_PASSWORD }}
           server-dir: ${{ secrets.FTP_PRODUCTION_SERVER_DIR }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           exclude: |
             **/.git*
             **/.git*/**
             **/.github/**
             **/.cursor/**
+            **/.claude/**
+            **/.postman/**
+            **/.DS_Store
             **/node_modules/**
             **/tests/**
             **/.env
@@ -110,3 +165,20 @@ jobs:
             !.env.example
             !.env.staging.example
             !.env.production.example
+            storage/**
+            docs/**
+            specs/**
+            postman/**
+            *.md
+            server.php
+            phpunit.xml
+            .phpunit.result.cache
+            boost.json
+
+  security-smoke-test:
+    needs: laravel-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the deployed site from outside
+        run: bash .github/scripts/security-smoke-test.sh "${{ github.ref == 'refs/heads/main' && 'https://cubaniasc.com' || 'https://cubania.purphura.com' }}"

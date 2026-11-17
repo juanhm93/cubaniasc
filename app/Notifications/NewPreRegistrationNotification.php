@@ -31,7 +31,8 @@ class NewPreRegistrationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('🎉 ¡Nueva preinscripción: '.$this->preRegistration->name.'!')
+            // The applicant's text stays out of the subject, where it cannot be escaped.
+            ->subject('🎉 ¡Nueva preinscripción en '.config('app.name').'!')
             ->markdown('mail.pre-registrations.new', [
                 'preRegistration' => $this->preRegistration,
                 'countryLabel' => $this->countryLabel(),
