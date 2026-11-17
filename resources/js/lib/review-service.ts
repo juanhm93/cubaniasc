@@ -107,10 +107,29 @@ type DataResponse<T> = {
     data: T;
 };
 
-export async function identifyStudent(payload: {
+export type ReviewIdentifier = {
     email?: string;
     dni?: string;
-}): Promise<ReviewAuth> {
+};
+
+/**
+ * Asks the server to email a one-time code. It answers the same way whether
+ * or not the student exists, so the panel always moves on to the code step.
+ */
+export async function requestReviewCode(
+    identifier: ReviewIdentifier,
+): Promise<void> {
+    await request<unknown>(
+        review.auth.requestCode.url(),
+        { method: 'POST', body: JSON.stringify(identifier) },
+        false,
+    );
+}
+
+export async function verifyReviewCode(
+    identifier: ReviewIdentifier,
+    code: string,
+): Promise<ReviewAuth> {
     const result = await request<
         DataResponse<{
             token: string;
@@ -118,8 +137,8 @@ export async function identifyStudent(payload: {
             level: ReviewLevel;
         }>
     >(
-        review.identify.url(),
-        { method: 'POST', body: JSON.stringify(payload) },
+        review.auth.verifyCode.url(),
+        { method: 'POST', body: JSON.stringify({ ...identifier, code }) },
         false,
     );
 

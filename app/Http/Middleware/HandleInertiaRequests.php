@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user()?->loadMissing('role:id,name,slug'),
+                'user' => $this->sharedUser($request),
                 'abilities' => RoleAccess::mapFor($request->user()),
             ],
             'canLogin' => AuthAccess::canLogin(),
@@ -60,6 +60,28 @@ class HandleInertiaRequests extends Middleware
      * Count unread notifications without breaking every page when the
      * notifications table has not been migrated yet on the server.
      */
+    /**
+     * Only what the UI needs about the signed-in user; role_id, company_id, status
+     * and phone are not sent to every page.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function sharedUser(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        $user->loadMissing('role:id,name,slug');
+
+        return [
+            ...$user->only(['id', 'name', 'email', 'email_verified_at', 'is_owner', 'created_at', 'updated_at']),
+            'role' => $user->role?->only(['id', 'name', 'slug']),
+        ];
+    }
+
     private function unreadNotificationsCount(Request $request): int
     {
         try {

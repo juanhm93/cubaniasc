@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Review\ReviewAuthController;
 use App\Http\Controllers\Api\Review\ReviewQuizController;
 use App\Http\Controllers\Api\Review\ReviewSessionController;
 use App\Http\Controllers\Api\Review\ReviewStreakController;
-use App\Http\Controllers\Api\Review\StudentIdentificationController;
+use App\Http\Controllers\Api\Review\VerifyReviewLoginCodeController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RequestLoginCodeController;
 use App\Http\Controllers\Api\V1\Auth\VerifyLoginCodeController;
@@ -64,12 +64,22 @@ Route::prefix('v1')->name('v1.')->group(function (): void {
     });
 });
 
+/*
+| Web review panel (/repaso). Students sign in with the same emailed one-time code as the
+| app (shared rate limits) and receive a Sanctum token with the `review` ability.
+*/
 Route::prefix('review')->name('review.')->group(function (): void {
-    Route::post('identify', StudentIdentificationController::class)
-        ->middleware('throttle:review-identify')
-        ->name('identify');
+    Route::prefix('auth')->name('auth.')->group(function (): void {
+        Route::post('request-code', RequestLoginCodeController::class)
+            ->middleware('throttle:app-login-request')
+            ->name('request-code');
 
-    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::post('verify-code', VerifyReviewLoginCodeController::class)
+            ->middleware('throttle:app-login-verify')
+            ->name('verify-code');
+    });
+
+    Route::middleware(['auth:sanctum', 'review.student'])->group(function (): void {
         Route::get('me', [ReviewAuthController::class, 'me'])->name('me');
         Route::delete('logout', [ReviewAuthController::class, 'logout'])->name('logout');
         Route::get('streak', ReviewStreakController::class)->name('streak');
