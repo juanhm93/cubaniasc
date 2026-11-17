@@ -82,7 +82,8 @@ tags:
   - name: Repaso web
     description: |
       Rutas del panel de repaso web (`/repaso`), fuera de `/api/v1`. Usan el token del panel
-      (`POST /api/review/identify`), no el de la app. Se documentan aquí para que el contrato del
+      (`POST /api/review/auth/request-code` y `POST /api/review/auth/verify-code`, con el mismo
+      código de 6 dígitos por correo que la app y la ability `review`), no el de la app. Se documentan aquí para que el contrato del
       video y de la música sea uno solo; la app usa `/level-contents/{content}/download-url` y
       `/songs/{song}/audio-url`.
 
@@ -94,8 +95,12 @@ paths:
       operationId: requestLoginCode
       security: []
       description: |
-        Límite: 3 solicitudes por minuto por identificador y 10 por IP.
-        Pedir un código nuevo invalida el anterior.
+        Límites: 3 solicitudes por minuto por identificador e IP, 6 por hora por identificador
+        (desde cualquier IP), 10 por minuto y 60 por hora por IP. Comparte límites con
+        `/api/review/auth/request-code`.
+        Pedir un código nuevo invalida el anterior, salvo que el anterior tenga menos de 60 segundos:
+        en ese caso no se envía otro. El correo se envía después de responder, así que la respuesta
+        tarda lo mismo exista o no el alumno.
       requestBody:
         required: true
         content:
@@ -135,8 +140,11 @@ paths:
       operationId: verifyLoginCode
       security: []
       description: |
-        Límite: 5 intentos por minuto por identificador y 20 por IP.
+        Límites: 5 intentos por minuto por identificador e IP, 20 por hora por identificador
+        (desde cualquier IP) y 20 por minuto por IP. Comparte límites con `/api/review/auth/verify-code`.
         Cada código vence a los 10 minutos, sirve una sola vez y se invalida tras 5 intentos fallidos.
+        Con 10 intentos fallidos en la última hora, sumando todos sus códigos, el alumno no puede
+        entrar hasta que pase esa hora: incluso el código correcto responde 422.
       requestBody:
         required: true
         content:
