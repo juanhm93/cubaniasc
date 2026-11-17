@@ -74,6 +74,14 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureRateLimiting(): void
     {
+        // Each pre-registration emails every staff member and the applicant, so the form is
+        // capped per IP and globally: a flood must not exhaust the hosting's SMTP quota.
+        RateLimiter::for('pre-registration', fn (Request $request): array => [
+            Limit::perMinute(3)->by('pre-registration-ip:'.$request->ip()),
+            Limit::perHour(10)->by('pre-registration-ip-hour:'.$request->ip()),
+            Limit::perHour(30)->by('pre-registration-global'),
+        ]);
+
         RateLimiter::for('app-login-request', function (Request $request): array {
             $account = $this->loginIdentifier($request);
 

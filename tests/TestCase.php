@@ -4,7 +4,9 @@ namespace Tests;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\PreRegistrationSpamGuard;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Fortify\Features;
 
 abstract class TestCase extends BaseTestCase
@@ -31,5 +33,17 @@ abstract class TestCase extends BaseTestCase
             'role_id' => $role->id,
             ...$attributes,
         ]);
+    }
+
+    /**
+     * Anti-spam token of a pre-registration form shown a minute ago, as a person would submit it.
+     *
+     * @return array<string, string>
+     */
+    protected function preRegistrationFormFields(int $secondsAgo = 60): array
+    {
+        return [
+            PreRegistrationSpamGuard::TOKEN_FIELD => Crypt::encryptString((string) (now()->timestamp - $secondsAgo)),
+        ];
     }
 }

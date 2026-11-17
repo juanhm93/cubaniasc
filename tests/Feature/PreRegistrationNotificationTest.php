@@ -46,6 +46,7 @@ class PreRegistrationNotificationTest extends TestCase
             'phone' => '+584121234567',
             'country' => 'VE',
             'agree' => true,
+            ...$this->preRegistrationFormFields(),
             ...$overrides,
         ]);
     }

@@ -36,7 +36,7 @@ Route::get('api/horarios', PublicScheduleController::class)
 Route::get('pre-inscripcion', [PreRegistrationController::class, 'create'])
     ->name('pre-registration.create');
 Route::post('pre-inscripcion', [PreRegistrationController::class, 'store'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:pre-registration')
     ->name('pre-registration.store');
 
 Route::get('repaso', ReviewPanelController::class)->name('review-panel');
