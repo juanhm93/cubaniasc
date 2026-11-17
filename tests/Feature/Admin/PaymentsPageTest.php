@@ -207,6 +207,7 @@ class PaymentsPageTest extends TestCase
     public function test_store_saves_receipt_file(): void
     {
         Storage::fake('public');
+        Storage::fake('local');
 
         $role = Role::factory()->create(['slug' => 'admin']);
         $admin = User::factory()->create([
@@ -231,6 +232,7 @@ class PaymentsPageTest extends TestCase
 
         $payment = Payment::query()->latest('id')->first();
         $this->assertNotNull($payment?->receipt_path);
-        Storage::disk('public')->assertExists($payment->receipt_path);
+        Storage::disk('local')->assertExists($payment->receipt_path);
+        Storage::disk('public')->assertMissing($payment->receipt_path);
     }
 }

@@ -88,10 +88,14 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
 
-        RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+        RateLimiter::for('login', function (Request $request): array {
+            $account = Str::transliterate(Str::lower(trim((string) $request->input(Fortify::username()))));
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(5)->by($account.'|'.$request->ip()),
+                // Caps guessing against one account even when the attacker rotates IPs.
+                Limit::perHour(20)->by('login-account:'.$account),
+            ];
         });
     }
 }

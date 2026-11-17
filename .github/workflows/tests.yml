@@ -1,5 +1,8 @@
 name: tests
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -42,6 +45,11 @@ jobs:
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Audit Dependencies
+        run: |
+          composer audit --locked --no-dev
+          npm audit --omit=dev --audit-level=high
 
       - name: Copy Environment File
         run: cp .env.example .env

@@ -35,7 +35,8 @@ class StorePaymentRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01'],
             'method' => ['required', 'string', Rule::in(['efectivo', 'transferencia', 'otro'])],
             'reference' => ['nullable', 'string', 'max:255'],
-            'receipt' => ['nullable', 'image', 'max:4096'],
+            // Both the real content and the file name must be an image or a PDF.
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'extensions:jpg,jpeg,png,webp,gif,pdf', 'max:4096'],
             'paid_at' => ['nullable', 'date'],
             'due_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:5000'],

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
 use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
@@ -52,7 +53,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('account.pending');
 });
 
-Route::middleware(['auth', 'verified', 'active'])->group(function () {
+Route::middleware(['auth', 'verified', 'active', 'admin.2fa'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     /*
@@ -147,6 +148,9 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::middleware('ability:'.PlatformAbility::Payments->value)->group(function () {
         Route::get('admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
         Route::post('admin/payments', [PaymentController::class, 'store'])->name('admin.payments.store');
+        Route::get('admin/payments/{payment}/receipt', PaymentReceiptController::class)
+            ->whereNumber('payment')
+            ->name('admin.payments.receipt');
     });
 
     Route::middleware('ability:'.PlatformAbility::Students->value)->group(function () {
@@ -199,15 +203,24 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/places', [PlaceController::class, 'store'])->name('admin.places.store');
         Route::patch('admin/places/{place}', [PlaceController::class, 'update'])->name('admin.places.update');
         Route::delete('admin/places/{place}', [PlaceController::class, 'destroy'])->name('admin.places.destroy');
+    });
+});
 
-        Route::middleware('owner')->group(function () {
-            Route::get('admin/maintenance', [MaintenanceController::class, 'show'])
-                ->name('admin.maintenance.show');
-            Route::post('admin/maintenance/cache-clear', [MaintenanceController::class, 'clearApplicationCache'])
-                ->name('admin.maintenance.cache-clear');
-            Route::post('admin/maintenance/migrate', [MaintenanceController::class, 'runMigrations'])
-                ->name('admin.maintenance.migrate');
-        });
+/*
+| Owner maintenance (migrations, cache). Kept outside the verified/active/2FA chain on
+| purpose: it is the recovery path when a deploy leaves the panel broken, so it must not
+| depend on pages or migrations that may not exist yet. Every action asks for the owner's
+| password again and is rate limited.
+*/
+Route::middleware(['auth', 'owner'])->group(function () {
+    Route::get('admin/maintenance', [MaintenanceController::class, 'show'])
+        ->name('admin.maintenance.show');
+
+    Route::middleware('throttle:5,1')->group(function () {
+        Route::post('admin/maintenance/cache-clear', [MaintenanceController::class, 'clearApplicationCache'])
+            ->name('admin.maintenance.cache-clear');
+        Route::post('admin/maintenance/migrate', [MaintenanceController::class, 'runMigrations'])
+            ->name('admin.maintenance.migrate');
     });
 });
 
