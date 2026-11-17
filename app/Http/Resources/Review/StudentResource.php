@@ -8,7 +8,11 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Student */
+/**
+ * Only what the panel shows. Email and DNI are never sent back to the browser.
+ *
+ * @mixin Student
+ */
 class StudentResource extends JsonResource
 {
     /**
@@ -19,8 +23,6 @@ class StudentResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
-            'dni' => $this->dni,
         ];
     }
 }
