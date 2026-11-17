@@ -43,7 +43,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($student, $level);
         $figure = $this->selectFigure($session, $level, ['name' => 'Dile que no']);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))
             ->assertOk()
@@ -60,7 +60,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($student, $level);
         $figure = $this->selectFigure($session, $level, ['name' => 'Dile que no']);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]), [
             'purpose' => 'download',
@@ -79,7 +79,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($student, $level, $remainingSeconds);
         $figure = $this->selectFigure($session, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))->assertOk();
 
@@ -126,7 +126,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         [$otherStudent, $otherLevel] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($otherStudent, $otherLevel);
         $figure = $this->selectFigure($session, $otherLevel);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))->assertForbidden();
     }
@@ -138,7 +138,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         $offered = LevelContent::factory()->withVideoFile()->for($level)->create();
         $session->figures()->attach($offered->id, ['selected_by_student' => false]);
         $sameLevel = LevelContent::factory()->withVideoFile()->for($level)->create();
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.video-url', [$session, $offered]))->assertNotFound();
         $this->postJson(route('review.sessions.figures.video-url', [$session, $sameLevel]))->assertNotFound();
@@ -150,7 +150,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         $session = $this->createActiveSession($student, $level);
         $figure = LevelContent::factory()->for($level)->create();
         $session->figures()->attach($figure->id, ['selected_by_student' => true]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))->assertNotFound();
     }
@@ -163,7 +163,7 @@ class ReviewFigureVideoUrlTest extends TestCase
             'level_id' => $level->id,
         ]);
         $figure = $this->selectFigure($session, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))->assertStatus(410);
     }
@@ -174,7 +174,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         $session = $this->createActiveSession($student, $level);
         $figure = $this->selectFigure($session, $level);
         config(['filesystems.disks.r2.bucket' => null]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))
             ->assertStatus(503)
@@ -186,7 +186,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($student, $level);
         $figure = $this->selectFigure($session, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         for ($attempt = 0; $attempt < 60; $attempt++) {
             $this->postJson(route('review.sessions.figures.video-url', [$session, $figure]))->assertOk();
@@ -202,7 +202,7 @@ class ReviewFigureVideoUrlTest extends TestCase
         $figure = $this->selectFigure($session, $level);
         $youtubeOnly = LevelContent::factory()->for($level)->create(['video_url' => 'https://youtu.be/dQw4w9WgXcQ']);
         $session->figures()->attach($youtubeOnly->id, ['selected_by_student' => true]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->getJson(route('review.sessions.show', $session))
             ->assertOk()
