@@ -40,7 +40,7 @@ final class VerifyReviewLoginCodeController extends Controller
     {
         $student = $this->resolveStudent($request);
 
-        if ($student === null || ! $this->loginCodeService->verify($student, $request->validated('code'))) {
+        if (! $this->loginCodeService->verify($student, $request->validated('code'))) {
             throw ValidationException::withMessages([
                 'code' => 'El código no es válido o ya venció. Solicita uno nuevo.',
             ]);

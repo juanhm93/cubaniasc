@@ -75,7 +75,9 @@ class AppLoginTest extends TestCase
     {
         Mail::fake();
         [$student] = $this->createEnrolledStudent();
-        $previous = StudentLoginCode::factory()->for($student)->withCode('111111')->create();
+        $previous = StudentLoginCode::factory()->for($student)->withCode('111111')->create([
+            'created_at' => now()->subSeconds(StudentLoginCodeService::RESEND_COOLDOWN_SECONDS + 1),
+        ]);
 
         $this->postJson(route('v1.auth.request-code'), ['email' => $student->email])->assertStatus(202);
 
@@ -282,6 +284,45 @@ class AppLoginTest extends TestCase
         $stored = $student->loginCodes()->first();
         $this->assertNotSame($sentCode, $stored->code_hash);
         $this->assertTrue(Hash::check($sentCode, $stored->code_hash));
+    }
+
+    public function test_a_new_code_is_not_issued_during_the_resend_cooldown(): void
+    {
+        Mail::fake();
+        [$student] = $this->createEnrolledStudent();
+
+        $this->postJson(route('v1.auth.request-code'), ['email' => $student->email])->assertStatus(202);
+        $this->postJson(route('v1.auth.request-code'), ['email' => $student->email])->assertStatus(202);
+
+        Mail::assertSentCount(1);
+        $this->assertSame(1, $student->loginCodes()->count());
+
+        $this->travel(StudentLoginCodeService::RESEND_COOLDOWN_SECONDS + 1)->seconds();
+
+        $this->postJson(route('v1.auth.request-code'), ['email' => $student->email])->assertStatus(202);
+
+        Mail::assertSentCount(2);
+        $this->assertSame(1, $student->loginCodes()->pending()->count());
+    }
+
+    public function test_failed_attempts_add_up_across_codes_and_lock_the_student_out(): void
+    {
+        [$student] = $this->createEnrolledStudent();
+        StudentLoginCode::factory()->for($student)->create([
+            'attempts' => StudentLoginCodeService::MAX_FAILED_ATTEMPTS_PER_WINDOW,
+            'consumed_at' => now(),
+        ]);
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
+
+        $payload = ['email' => $student->email, 'code' => '482913', 'device_name' => 'Pixel 8'];
+
+        $this->postJson(route('v1.auth.verify-code'), $payload)->assertUnprocessable();
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+
+        $this->travel(StudentLoginCodeService::FAILED_ATTEMPTS_WINDOW_MINUTES + 1)->minutes();
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
+
+        $this->postJson(route('v1.auth.verify-code'), $payload)->assertOk();
     }
 
     /**

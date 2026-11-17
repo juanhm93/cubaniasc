@@ -1012,7 +1012,7 @@
             "unexpected": "Ocurrió un error inesperado. Intenta de nuevo.",
             "sessionEnded": "Tu sesión terminó. Identifícate de nuevo.",
             "invalidData": "Revisa los datos e intenta de nuevo.",
-            "tooManyAttempts": "Demasiados intentos. Espera un minuto y vuelve a probar."
+            "tooManyAttempts": "Demasiados intentos. Espera unos minutos y vuelve a probar."
         }
     }
 }
