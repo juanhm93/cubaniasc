@@ -41,7 +41,7 @@ class ReviewSongAudioUrlTest extends TestCase
         $this->freezeTime();
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session, ['artist' => 'Los Van Van', 'title' => 'Temba']);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))
             ->assertOk()
@@ -59,7 +59,7 @@ class ReviewSongAudioUrlTest extends TestCase
         $this->freezeTime();
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session, ['artist' => 'Los Van Van', 'title' => 'Temba']);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]), ['purpose' => 'download'])
             ->assertOk()
@@ -72,7 +72,7 @@ class ReviewSongAudioUrlTest extends TestCase
     {
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]), ['purpose' => 'share'])
             ->assertUnprocessable()
@@ -83,7 +83,7 @@ class ReviewSongAudioUrlTest extends TestCase
     {
         [$student, $session] = $this->createSession(['expires_at' => now()->subHour()]);
         $song = $this->assignSong($session);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->assertTrue(now()->isAfter($session->expires_at));
 
@@ -112,7 +112,7 @@ class ReviewSongAudioUrlTest extends TestCase
         [$student] = $this->createSession();
         [, $otherSession] = $this->createSession();
         $song = $this->assignSong($otherSession);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.songs.audio-url', [$otherSession, $song]))->assertForbidden();
     }
@@ -122,7 +122,7 @@ class ReviewSongAudioUrlTest extends TestCase
         [$student, $session] = $this->createSession();
         $song = RecommendedSong::factory()->create();
         $song->levels()->attach($session->level_id);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertNotFound();
     }
@@ -132,7 +132,16 @@ class ReviewSongAudioUrlTest extends TestCase
         [$student, $session] = $this->createSession();
         $song = RecommendedSong::factory()->withoutAudioFile()->create();
         $session->songs()->attach($song);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
+
+        $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertNotFound();
+    }
+
+    public function test_a_deactivated_song_has_no_url(): void
+    {
+        [$student, $session] = $this->createSession();
+        $song = $this->assignSong($session, ['is_active' => false]);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertNotFound();
     }
@@ -142,7 +151,7 @@ class ReviewSongAudioUrlTest extends TestCase
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session);
         config(['filesystems.disks.r2.bucket' => null]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))
             ->assertStatus(503)
@@ -153,7 +162,7 @@ class ReviewSongAudioUrlTest extends TestCase
     {
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         for ($request = 0; $request < 60; $request++) {
             $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertOk();
@@ -166,7 +175,7 @@ class ReviewSongAudioUrlTest extends TestCase
     {
         [$student, $session] = $this->createSession();
         $song = $this->assignSong($session, ['audio_file_duration_seconds' => 240]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->getJson(route('review.sessions.songs', $session))
             ->assertOk()

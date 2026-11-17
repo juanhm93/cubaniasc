@@ -12,6 +12,9 @@
         button { padding: .6rem 1rem; border: 0; border-radius: .4rem; background: #b91c1c; color: #fff; font-size: 1rem; cursor: pointer; }
         button.secondary { background: #374151; }
         .success { padding: .75rem 1rem; background: #dcfce7; color: #166534; border-radius: .4rem; }
+        .error { padding: .75rem 1rem; background: #fee2e2; color: #991b1b; border-radius: .4rem; }
+        label { display: block; font-weight: 600; margin-bottom: .35rem; }
+        input[type=password] { padding: .55rem .75rem; border: 1px solid #d1d5db; border-radius: .4rem; font-size: 1rem; width: min(100%, 20rem); }
         pre { background: #111827; color: #e5e7eb; padding: 1rem; border-radius: .4rem; overflow-x: auto; font-size: .85rem; }
         a { color: #1d4ed8; }
     </style>
@@ -24,16 +27,20 @@
         <p class="success">{{ session('success') }}</p>
     @endif
 
-    <div class="actions">
-        <form method="POST" action="{{ route('admin.maintenance.migrate') }}" onsubmit="return confirm('¿Ejecutar las migraciones pendientes?')">
-            @csrf
-            <button type="submit">Ejecutar migraciones</button>
-        </form>
-        <form method="POST" action="{{ route('admin.maintenance.cache-clear') }}">
-            @csrf
-            <button type="submit" class="secondary">Limpiar caché</button>
-        </form>
-    </div>
+    @if ($errors->any())
+        <p class="error">{{ $errors->first() }}</p>
+    @endif
+
+    <form method="POST" id="maintenance-form" action="{{ route('admin.maintenance.migrate') }}">
+        @csrf
+        <label for="password">Tu contraseña (se pide en cada acción)</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <div class="actions">
+            <button type="submit" onclick="return confirm('¿Ejecutar las migraciones pendientes?')">Ejecutar migraciones</button>
+            <button type="submit" class="secondary" formaction="{{ route('admin.maintenance.cache-clear') }}">Limpiar caché</button>
+        </div>
+    </form>
 
     @if (session('maintenance_output'))
         <h2>Resultado</h2>

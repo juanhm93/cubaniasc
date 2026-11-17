@@ -1,5 +1,5 @@
 @component('mail::message')
-# ¡Listo, {{ $preRegistration->name }}! 💃
+# ¡Listo, {{ \App\Support\MarkdownText::escape($preRegistration->name) }}! 💃
 
 Tu proceso de preinscripción **finalizó correctamente** y ya tenemos tus datos con nosotros.
 

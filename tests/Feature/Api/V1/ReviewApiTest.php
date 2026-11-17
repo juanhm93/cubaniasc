@@ -108,7 +108,7 @@ class ReviewApiTest extends TestCase
     public function test_review_endpoints_reject_guests_and_review_panel_tokens(): void
     {
         [$student] = $this->createEnrolledStudent();
-        $reviewPanelToken = $student->createToken('review-panel')->plainTextToken;
+        $reviewPanelToken = $student->createToken('review-panel', ['review'])->plainTextToken;
 
         $this->getJson(route('v1.review.today'))->assertUnauthorized();
         $this->postJson(route('v1.review.sessions.store'))->assertUnauthorized();

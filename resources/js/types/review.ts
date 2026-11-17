@@ -1,8 +1,6 @@
 export type ReviewStudent = {
     id: number;
     name: string;
-    email: string;
-    dni: string | null;
 };
 
 export type ReviewLevel = {

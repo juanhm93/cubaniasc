@@ -37,13 +37,26 @@ class UpdateAdminCourseRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('users', 'id')->where(function ($query) use ($course): void {
+                    $currentTeacherId = $course instanceof Course ? $course->user_id : null;
+
+                    // Eligible teachers, or the course's current teacher so it can be kept as is.
+                    $query->where(function ($q) use ($currentTeacherId): void {
+                        $q->where(fn ($eligible) => $eligible->where('status', 'active')
+                            ->whereNull('deleted_at')
+                            ->where(fn ($withRole) => $withRole->whereNotNull('role_id')->orWhere('is_owner', true)));
+
+                        if ($currentTeacherId !== null) {
+                            $q->orWhere('id', $currentTeacherId);
+                        }
+                    });
+
                     $companyId = $this->user()?->company_id;
 
                     if ($companyId !== null) {
-                        $query->where(function ($q) use ($companyId, $course): void {
+                        $query->where(function ($q) use ($companyId, $currentTeacherId): void {
                             $q->where('company_id', $companyId);
-                            if ($course instanceof Course && $course->user_id !== null) {
-                                $q->orWhere('id', $course->user_id);
+                            if ($currentTeacherId !== null) {
+                                $q->orWhere('id', $currentTeacherId);
                             }
                         });
                     }
