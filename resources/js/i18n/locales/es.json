@@ -579,7 +579,7 @@
             "reference": "Referencia",
             "referenceNotApplicableCash": "(no aplica en efectivo)",
             "referencePlaceholder": "Número de transferencia o referencia",
-            "receiptImage": "Comprobante",
+            "receiptImage": "Comprobante (imagen o PDF)",
             "paidAt": "Pagado el",
             "dueAtOptional": "Vence el (opcional)",
             "savePayment": "Guardar pago",

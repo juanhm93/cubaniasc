@@ -678,7 +678,7 @@ export default function AdminPayments({
                                     id="pay-receipt"
                                     name="receipt"
                                     type="file"
-                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
                                     disabled={form.processing || cashMode}
                                     onChange={(e) =>
                                         form.setData(
