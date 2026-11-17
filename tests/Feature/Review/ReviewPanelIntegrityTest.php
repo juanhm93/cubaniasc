@@ -11,6 +11,7 @@ use App\Models\QuizItem;
 use App\Models\QuizOption;
 use App\Models\ReviewSession;
 use App\Models\Student;
+use App\Models\StudentLoginCode;
 use App\Services\Review\StreakService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +32,7 @@ class ReviewPanelIntegrityTest extends TestCase
     public function test_daily_limit_uses_the_academy_local_day(): void
     {
         [$student] = $this->createEnrolledStudent();
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->travelToLocal('2026-09-24 21:00');
         $this->postJson(route('review.sessions.store'))->assertCreated();
@@ -43,7 +44,7 @@ class ReviewPanelIntegrityTest extends TestCase
     public function test_daily_limit_blocks_a_second_session_on_the_same_local_day_across_utc_midnight(): void
     {
         [$student] = $this->createEnrolledStudent();
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->travelToLocal('2026-09-24 10:00');
         $this->postJson(route('review.sessions.store'))->assertCreated();
@@ -71,7 +72,7 @@ class ReviewPanelIntegrityTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         LevelContent::factory()->count(8)->for($level)->create();
         $session = $this->createActiveSession($student, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $first = $this->getJson(route('review.sessions.figure-options', $session))
             ->assertOk()
@@ -89,7 +90,7 @@ class ReviewPanelIntegrityTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         LevelContent::factory()->count(8)->for($level)->create();
         $session = $this->createActiveSession($student, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $offeredIds = $this->getJson(route('review.sessions.figure-options', $session))->json('data.*.id');
         $notOfferedId = LevelContent::query()->whereNotIn('id', $offeredIds)->value('id');
@@ -115,7 +116,7 @@ class ReviewPanelIntegrityTest extends TestCase
         $session = $this->createActiveSession($student, $level);
         $figures = LevelContent::factory()->count(2)->for($level)->create();
         $session->figures()->attach($figures->pluck('id')->all(), ['selected_by_student' => true]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.current'))
             ->assertOk()
@@ -132,7 +133,7 @@ class ReviewPanelIntegrityTest extends TestCase
         $selected = LevelContent::factory()->for($level)->create();
         $other = LevelContent::factory()->for($level)->create();
         $session->figures()->attach($selected->id, ['selected_by_student' => true]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.view', [$session, $other]))->assertNotFound();
         $this->postJson(route('review.sessions.figures.view', [$session, $selected]))->assertOk();
@@ -145,7 +146,7 @@ class ReviewPanelIntegrityTest extends TestCase
         $item = QuizItem::factory()->create(['level_id' => $level->id]);
         $wrong = QuizOption::factory()->create(['quiz_item_id' => $item->id]);
         $correct = QuizOption::factory()->correct()->create(['quiz_item_id' => $item->id]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.quiz.answer', [$session, $item]), [
             'quiz_option_id' => $wrong->id,
@@ -169,7 +170,7 @@ class ReviewPanelIntegrityTest extends TestCase
         $foreignOption = QuizOption::factory()->correct()->create([
             'quiz_item_id' => QuizItem::factory()->create(['level_id' => $level->id])->id,
         ]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.quiz.answer', [$session, $item]), [
             'quiz_option_id' => $foreignOption->id,
@@ -184,7 +185,7 @@ class ReviewPanelIntegrityTest extends TestCase
             LevelContent::factory()->count(2)->for($level)->create()->pluck('id')->all(),
             ['selected_by_student' => false],
         );
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.complete', $session))->assertUnprocessable();
 
@@ -195,7 +196,7 @@ class ReviewPanelIntegrityTest extends TestCase
     {
         [$student, $level] = $this->createEnrolledStudent();
         $session = $this->createActiveSession($student, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.figure-options', $session))
             ->assertOk()
@@ -211,7 +212,7 @@ class ReviewPanelIntegrityTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         $onlyFigure = LevelContent::factory()->for($level)->create();
         $session = $this->createActiveSession($student, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.figure-options', $session))->assertJsonCount(1, 'data');
 
@@ -225,7 +226,7 @@ class ReviewPanelIntegrityTest extends TestCase
         [$student, $level] = $this->createEnrolledStudent();
         LevelContent::factory()->count(4)->for($level)->create();
         $session = $this->createActiveSession($student, $level);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $offeredIds = $this->getJson(route('review.sessions.figure-options', $session))->json('data.*.id');
 
@@ -242,7 +243,7 @@ class ReviewPanelIntegrityTest extends TestCase
             LevelContent::factory()->count(2)->for($level)->create()->pluck('id')->all(),
             ['selected_by_student' => true],
         );
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.complete', $session))
             ->assertOk()
@@ -268,7 +269,7 @@ class ReviewPanelIntegrityTest extends TestCase
             'expires_at' => now()->addMinutes(30),
             'completed_at' => now(),
         ]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->getJson(route('review.streak'))
             ->assertOk()
@@ -279,12 +280,13 @@ class ReviewPanelIntegrityTest extends TestCase
         $this->assertFalse($response->json('data.recent_days.5.completed'));
     }
 
-    public function test_identify_replaces_previous_tokens_and_sets_expiration(): void
+    public function test_verify_code_replaces_previous_review_tokens_and_sets_expiration(): void
     {
         [$student] = $this->createEnrolledStudent();
-        $student->createToken('review-panel');
+        $student->createToken('review-panel', ['review']);
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
 
-        $this->postJson(route('review.identify'), ['email' => $student->email])->assertOk();
+        $this->postJson(route('review.auth.verify-code'), ['email' => $student->email, 'code' => '482913'])->assertOk();
 
         $tokens = $student->tokens()->get();
 
@@ -292,28 +294,39 @@ class ReviewPanelIntegrityTest extends TestCase
         $this->assertNotNull($tokens->first()->expires_at);
     }
 
-    public function test_identify_uses_the_same_message_for_unknown_and_not_enrolled_students(): void
+    public function test_review_login_answers_the_same_for_unknown_and_not_enrolled_students(): void
     {
         $notEnrolled = Student::factory()->create();
+        StudentLoginCode::factory()->for($notEnrolled)->withCode('482913')->create();
 
-        $unknownMessage = $this->postJson(route('review.identify'), ['dni' => 'no-existe'])
-            ->assertNotFound()
+        $unknownRequest = $this->postJson(route('review.auth.request-code'), ['dni' => 'no-existe'])
+            ->assertStatus(202)
+            ->json();
+        $notEnrolledRequest = $this->postJson(route('review.auth.request-code'), ['email' => $notEnrolled->email])
+            ->assertStatus(202)
+            ->json();
+
+        $this->assertSame($unknownRequest, $notEnrolledRequest);
+
+        $unknownVerify = $this->postJson(route('review.auth.verify-code'), ['dni' => 'no-existe', 'code' => '482913'])
+            ->assertUnprocessable()
+            ->json('message');
+        $notEnrolledVerify = $this->postJson(route('review.auth.verify-code'), ['email' => $notEnrolled->email, 'code' => '482913'])
+            ->assertUnprocessable()
             ->json('message');
 
-        $notEnrolledMessage = $this->postJson(route('review.identify'), ['email' => $notEnrolled->email])
-            ->assertNotFound()
-            ->json('message');
-
-        $this->assertSame($unknownMessage, $notEnrolledMessage);
+        $this->assertSame($unknownVerify, $notEnrolledVerify);
     }
 
-    public function test_identify_is_rate_limited_per_ip_even_when_changing_identifier(): void
+    public function test_verify_code_is_rate_limited_per_ip_even_when_changing_identifier(): void
     {
         for ($attempt = 1; $attempt <= 20; $attempt++) {
-            $this->postJson(route('review.identify'), ['dni' => "V-{$attempt}"])->assertNotFound();
+            $this->postJson(route('review.auth.verify-code'), ['dni' => "V-{$attempt}", 'code' => '000000'])
+                ->assertUnprocessable();
         }
 
-        $this->postJson(route('review.identify'), ['dni' => 'V-21'])->assertTooManyRequests();
+        $this->postJson(route('review.auth.verify-code'), ['dni' => 'V-21', 'code' => '000000'])
+            ->assertTooManyRequests();
     }
 
     /**

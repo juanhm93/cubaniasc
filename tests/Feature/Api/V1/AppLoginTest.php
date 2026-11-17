@@ -203,7 +203,7 @@ class AppLoginTest extends TestCase
     {
         [$student] = $this->createEnrolledStudent();
         $student->createToken(VerifyLoginCodeController::TOKEN_PREFIX.'Old phone', ['app']);
-        $student->createToken('review-panel');
+        $student->createToken('review-panel', ['review']);
         StudentLoginCode::factory()->for($student)->withCode('482913')->create();
 
         $this->postJson(route('v1.auth.verify-code'), [
@@ -249,7 +249,7 @@ class AppLoginTest extends TestCase
     public function test_me_rejects_review_panel_tokens(): void
     {
         [$student] = $this->createEnrolledStudent();
-        $token = $student->createToken('review-panel')->plainTextToken;
+        $token = $student->createToken('review-panel', ['review'])->plainTextToken;
 
         $this->withToken($token)->getJson(route('v1.me'))->assertForbidden();
     }
@@ -258,7 +258,7 @@ class AppLoginTest extends TestCase
     {
         [$student] = $this->createEnrolledStudent();
         $appToken = $student->createToken(VerifyLoginCodeController::TOKEN_PREFIX.'Pixel 8', ['app'])->plainTextToken;
-        $student->createToken('review-panel');
+        $student->createToken('review-panel', ['review']);
 
         $this->withToken($appToken)->postJson(route('v1.auth.logout'))->assertNoContent();
 

@@ -82,7 +82,8 @@ tags:
   - name: Repaso web
     description: |
       Rutas del panel de repaso web (`/repaso`), fuera de `/api/v1`. Usan el token del panel
-      (`POST /api/review/identify`), no el de la app. Se documentan aquí para que el contrato del
+      (`POST /api/review/auth/request-code` y `POST /api/review/auth/verify-code`, con el mismo
+      código de 6 dígitos por correo que la app y la ability `review`), no el de la app. Se documentan aquí para que el contrato del
       video y de la música sea uno solo; la app usa `/level-contents/{content}/download-url` y
       `/songs/{song}/audio-url`.
 
