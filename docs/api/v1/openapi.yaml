@@ -529,7 +529,10 @@ paths:
       tags: [Figuras]
       summary: Figuras a las que el alumno tiene acceso
       operationId: listLevelContents
+      x-implemented: false
       description: |
+        **Pendiente: todavía no existe en el backend** (tarea «Descargar figuras en el teléfono desde Contenido»).
+
         Las mismas figuras que puede repasar: todas las del nivel de su curso activo y todas las de
         los niveles anteriores del mismo tipo de baile.
 
@@ -597,7 +600,8 @@ paths:
       - $ref: '#/components/parameters/LevelContentId'
     post:
       tags: [Figuras]
-      summary: URL firmada del MP4 de una figura
+      summary: URL firmada del MP4 de una figura (pendiente, todavía no existe)
+      x-implemented: false
       operationId: createLevelContentDownloadUrl
       description: |
         Devuelve una URL temporal del MP4 en el bucket privado (Cloudflare R2).

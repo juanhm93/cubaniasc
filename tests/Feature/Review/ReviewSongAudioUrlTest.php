@@ -137,6 +137,15 @@ class ReviewSongAudioUrlTest extends TestCase
         $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertNotFound();
     }
 
+    public function test_a_deactivated_song_has_no_url(): void
+    {
+        [$student, $session] = $this->createSession();
+        $song = $this->assignSong($session, ['is_active' => false]);
+        Sanctum::actingAs($student, ['review']);
+
+        $this->postJson(route('review.sessions.songs.audio-url', [$session, $song]))->assertNotFound();
+    }
+
     public function test_the_url_is_unavailable_when_the_bucket_is_not_configured(): void
     {
         [$student, $session] = $this->createSession();

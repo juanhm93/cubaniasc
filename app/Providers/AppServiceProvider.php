@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Models\DanceType;
 use App\Models\Level;
+use App\Models\RecommendedSong;
 use App\Models\Student;
 use App\Models\User;
 use App\Policies\DanceTypePolicy;
 use App\Policies\LevelPolicy;
+use App\Policies\RecommendedSongPolicy;
 use App\Policies\StudentPolicy;
 use App\Policies\UserPolicy;
 use Carbon\CarbonImmutable;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DanceType::class, DanceTypePolicy::class);
         Gate::policy(Student::class, StudentPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(RecommendedSong::class, RecommendedSongPolicy::class);
 
         Date::use(CarbonImmutable::class);
 

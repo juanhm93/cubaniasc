@@ -186,7 +186,8 @@ final class ReviewSessionController extends Controller
     ): JsonResponse {
         $this->authorizeReviewSession($this->authenticatedStudent($request), $session);
 
-        if (! $songs->sessionHasSong($session, $song) || ! $song->hasAudioFile()) {
+        // Same rule as the app API: a deactivated song is no longer served.
+        if (! $songs->sessionHasSong($session, $song) || ! $song->is_active || ! $song->hasAudioFile()) {
             abort(404);
         }
 

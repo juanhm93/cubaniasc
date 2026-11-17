@@ -193,7 +193,22 @@ class StudentController extends Controller
         $user = $request->user();
 
         return Inertia::render('admin/students/show', [
-            'student' => $student,
+            // Explicit fields: Student is an authenticatable model with API tokens, so passing
+            // it whole would leak any sensitive column added in the future.
+            'student' => [
+                ...$student->only([
+                    'id', 'name', 'dni', 'email', 'birthday', 'phone', 'address', 'city', 'state', 'zip',
+                    'country', 'emergency_contact_name', 'emergency_contact_phone',
+                ]),
+                'enrollments' => $student->enrollments->map(fn ($enrollment): array => [
+                    'id' => $enrollment->id,
+                    'status' => $enrollment->status,
+                    'course' => $enrollment->course === null ? null : [
+                        'id' => $enrollment->course->id,
+                        'level' => $enrollment->course->level?->only(['id', 'name']),
+                    ],
+                ])->values()->all(),
+            ],
             'canUpdateEmail' => $user !== null && $user->can('updateEmail', $student),
         ]);
     }

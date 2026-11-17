@@ -8,6 +8,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -79,6 +81,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * Users who can be assigned as a course's teacher: active staff with a role, or the owner.
+     * Pending registrations and role-less accounts are left out.
+     */
+    #[Scope]
+    protected function eligibleTeachers(Builder $query): void
+    {
+        $query->where('status', 'active')
+            ->where(fn (Builder $query) => $query->whereNotNull('role_id')->orWhere('is_owner', true));
     }
 
     public function isOwner(): bool
