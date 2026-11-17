@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentReceiptController;
 use App\Http\Controllers\Admin\PaymentStudentEnrollmentController;
 use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\PreRegistrationEnrollmentController;
@@ -147,6 +148,9 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::middleware('ability:'.PlatformAbility::Payments->value)->group(function () {
         Route::get('admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
         Route::post('admin/payments', [PaymentController::class, 'store'])->name('admin.payments.store');
+        Route::get('admin/payments/{payment}/receipt', PaymentReceiptController::class)
+            ->whereNumber('payment')
+            ->name('admin.payments.receipt');
     });
 
     Route::middleware('ability:'.PlatformAbility::Students->value)->group(function () {
