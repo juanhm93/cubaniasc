@@ -608,7 +608,9 @@
             "roleUpdated": "Rol actualizado",
             "roleUpdateFailed": "No se pudo actualizar el rol",
             "statusUpdated": "Estado actualizado",
-            "statusUpdateFailed": "No se pudo actualizar el estado"
+            "statusUpdateFailed": "No se pudo actualizar el estado",
+            "maintenancePassword": "Tu contraseña",
+            "maintenancePasswordRequired": "Escribe tu contraseña para confirmar la acción."
         },
         "places": {
             "title": "Lugares",

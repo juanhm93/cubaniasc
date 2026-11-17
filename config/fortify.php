@@ -159,6 +159,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Two-Factor Authentication For Owner And Admins
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the owner and admins must turn on two-factor authentication
+    | before using the panel; until then they can only reach the security page.
+    |
+    */
+
+    'require_admin_two_factor' => filter_var(env('AUTH_REQUIRE_ADMIN_2FA', true), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
     | Features
     |--------------------------------------------------------------------------
     |
