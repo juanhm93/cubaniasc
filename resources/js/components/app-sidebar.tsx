@@ -5,6 +5,7 @@ import {
     GraduationCap,
     LayoutGrid,
     MapPin,
+    Megaphone,
     Music,
     School,
     Users,
@@ -97,6 +98,11 @@ export function AppSidebar() {
                       title: 'navigation.places',
                       href: admin.places.index.url(),
                       icon: MapPin,
+                  },
+                  {
+                      title: 'navigation.promotions',
+                      href: admin.promotions.index.url(),
+                      icon: Megaphone,
                   },
               ]
             : []),
