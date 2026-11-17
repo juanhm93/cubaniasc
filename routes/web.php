@@ -2,6 +2,7 @@
 
 use App\Enums\PlatformAbility;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\LandingPromotionController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RecommendedSongAudioController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PreRegistrationController;
 use App\Http\Controllers\PublicScheduleController;
@@ -27,7 +29,7 @@ use App\Http\Controllers\ReviewPanelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', LandingController::class)->name('home');
 
 Route::get('api/horarios', PublicScheduleController::class)
     ->name('schedule.index');
@@ -199,6 +201,11 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::post('admin/places', [PlaceController::class, 'store'])->name('admin.places.store');
         Route::patch('admin/places/{place}', [PlaceController::class, 'update'])->name('admin.places.update');
         Route::delete('admin/places/{place}', [PlaceController::class, 'destroy'])->name('admin.places.destroy');
+
+        Route::get('admin/promotions', [LandingPromotionController::class, 'index'])->name('admin.promotions.index');
+        Route::post('admin/promotions', [LandingPromotionController::class, 'store'])->name('admin.promotions.store');
+        Route::patch('admin/promotions/{promotion}', [LandingPromotionController::class, 'update'])->name('admin.promotions.update');
+        Route::delete('admin/promotions/{promotion}', [LandingPromotionController::class, 'destroy'])->name('admin.promotions.destroy');
 
         Route::middleware('owner')->group(function () {
             Route::get('admin/maintenance', [MaintenanceController::class, 'show'])

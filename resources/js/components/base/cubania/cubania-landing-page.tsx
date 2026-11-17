@@ -5,10 +5,13 @@ import { CubaniaCursor } from '@/components/base/cubania/cubania-cursor';
 import { CubaniaFooter } from '@/components/base/cubania/cubania-footer';
 import { CubaniaHero } from '@/components/base/cubania/cubania-hero';
 import { CubaniaNav } from '@/components/base/cubania/cubania-nav';
+import { CubaniaPromotionModal } from '@/components/base/cubania/cubania-promotion-modal';
+import { CubaniaPromotionSection } from '@/components/base/cubania/cubania-promotion-section';
 import { CubaniaStylesSection } from '@/components/base/cubania/cubania-styles-section';
 import { CubaniaTestimonialsSection } from '@/components/base/cubania/cubania-testimonials-section';
 import { CubaniaWhatsappFloat } from '@/components/base/cubania/cubania-whatsapp-float';
 import { useCubaniaSmoothScroll } from '@/components/base/cubania/use-cubania-smooth-scroll';
+import type { LandingPromotion } from '@/types/cubania';
 
 import '../../../../css/landing/cubania-landing.css';
 
@@ -18,6 +21,8 @@ export type CubaniaLandingPageProps = {
     canRegister: boolean;
     /** When `true`, hides the system cursor and shows the Cubanía dot + ring. */
     customCursor?: boolean;
+    /** Today's promotion: entry modal, section after the hero, or both, as staff chose. */
+    promotion?: LandingPromotion | null;
 };
 
 /**
@@ -28,6 +33,7 @@ export function CubaniaLandingPage({
     canLogin,
     canRegister,
     customCursor = false,
+    promotion = null,
 }: CubaniaLandingPageProps): ReactNode {
     useCubaniaSmoothScroll();
 
@@ -47,12 +53,21 @@ export function CubaniaLandingPage({
                 canRegister={canRegister}
             />
             <CubaniaHero />
+            {promotion?.showSection ? (
+                <CubaniaPromotionSection promotion={promotion} />
+            ) : null}
             <CubaniaStylesSection />
             <CubaniaCtaBand />
             <CubaniaAboutSection />
             <CubaniaTestimonialsSection />
             <CubaniaFooter />
             <CubaniaWhatsappFloat />
+            {promotion?.showModal ? (
+                <CubaniaPromotionModal
+                    key={`${promotion.id}-${promotion.version}`}
+                    promotion={promotion}
+                />
+            ) : null}
         </div>
     );
 }

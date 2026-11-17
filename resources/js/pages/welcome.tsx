@@ -1,13 +1,16 @@
 import { Head, usePage } from '@inertiajs/react';
 import { CubaniaLandingPage } from '@/components/base/cubania';
 import { useTranslation } from '@/i18n/use-translation';
+import type { LandingPromotion } from '@/types/cubania';
 
 export default function Welcome({
     canLogin = true,
     canRegister = true,
+    promotion = null,
 }: {
     canLogin?: boolean;
     canRegister?: boolean;
+    promotion?: LandingPromotion | null;
 }) {
     const { auth } = usePage().props;
     const { t } = useTranslation();
@@ -25,6 +28,7 @@ export default function Welcome({
                 isAuthenticated={Boolean(auth.user)}
                 canLogin={canLogin}
                 canRegister={canRegister}
+                promotion={promotion}
             />
         </>
     );

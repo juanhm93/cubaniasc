@@ -32,3 +32,18 @@ export type CubaniaShared = {
     sliderImages: string[];
     footer: CubaniaFooterConfig;
 };
+
+/** Promotion the public landing shows today (`promotion` prop of `welcome`). */
+export type LandingPromotion = {
+    id: number;
+    title: string;
+    imageUrl: string;
+    ctaLabel: string | null;
+    ctaUrl: string | null;
+    showModal: boolean;
+    showSection: boolean;
+    /** Image shape, so the modal is narrow for a flyer and wide for a banner. */
+    modalOrientation: 'portrait' | 'landscape';
+    /** Changes whenever staff edits the promotion, so a dismissed modal shows again. */
+    version: number;
+};
