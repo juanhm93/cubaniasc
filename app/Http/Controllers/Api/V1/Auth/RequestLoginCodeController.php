@@ -12,6 +12,8 @@ use App\Services\Review\StudentIdentificationService;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 
+use function Illuminate\Support\defer;
+
 final class RequestLoginCodeController extends Controller
 {
     public function __construct(
@@ -21,6 +23,8 @@ final class RequestLoginCodeController extends Controller
 
     /**
      * Always answers the same way, so the endpoint does not reveal who is enrolled.
+     * The code is generated and emailed after the response is sent: a synchronous
+     * SMTP call only for real students would leak who is enrolled through timing.
      */
     public function __invoke(RequestLoginCodeRequest $request): JsonResponse
     {
@@ -30,7 +34,13 @@ final class RequestLoginCodeController extends Controller
                 dni: $request->validated('dni'),
             );
 
-            $this->loginCodeService->issue($student);
+            defer(function () use ($student): void {
+                try {
+                    $this->loginCodeService->issue($student);
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
+            });
         } catch (StudentNotIdentifiableException) {
             // Same response as the happy path on purpose.
         } catch (Throwable $exception) {

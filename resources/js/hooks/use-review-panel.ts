@@ -9,14 +9,16 @@ import {
     fetchNextQuizQuestion,
     fetchSessionSongs,
     fetchStreak,
-    identifyStudent,
     loadReviewAuth,
     logoutReview,
     recordFigureView,
+    requestReviewCode,
     startReviewSession,
     storeSelectedFigures,
     submitQuizAnswer,
+    verifyReviewCode,
 } from '@/lib/review-service';
+import type { ReviewIdentifier } from '@/lib/review-service';
 import type {
     CurrentSessionResult,
     QuizFeedback,
@@ -74,6 +76,8 @@ export function useReviewPanel() {
     const [remainingSeconds, setRemainingSeconds] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [pendingIdentifier, setPendingIdentifier] =
+        useState<ReviewIdentifier | null>(null);
 
     const resetPanelState = useCallback(() => {
         setSession(null);
@@ -300,12 +304,43 @@ export function useReviewPanel() {
         }
     };
 
-    const identify = (payload: { email?: string; dni?: string }) =>
+    const requestCode = (identifier: ReviewIdentifier) =>
         run(async () => {
-            const nextAuth = await identifyStudent(payload);
+            await requestReviewCode(identifier);
+            setPendingIdentifier(identifier);
+        });
+
+    const resendCode = () =>
+        pendingIdentifier ? requestCode(pendingIdentifier) : Promise.resolve();
+
+    const changeIdentifier = () => {
+        setPendingIdentifier(null);
+        setError(null);
+    };
+
+    const verifyCode = async (code: string) => {
+        if (!pendingIdentifier) {
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const nextAuth = await verifyReviewCode(pendingIdentifier, code);
+            setPendingIdentifier(null);
             setAuth(nextAuth);
             await syncWithServer();
-        });
+        } catch (err) {
+            if (err instanceof ReviewApiError && err.status === 422) {
+                setError(t('review.identify.invalidCode'));
+            } else {
+                handleApiError(err);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const startReview = () =>
         run(async () => {
@@ -464,7 +499,11 @@ export function useReviewPanel() {
         remainingSeconds,
         loading,
         error,
-        identify,
+        codeSent: pendingIdentifier !== null,
+        requestCode,
+        resendCode,
+        changeIdentifier,
+        verifyCode,
         startReview,
         toggleFigure,
         confirmFigureSelection,
