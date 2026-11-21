@@ -7,9 +7,9 @@ type AppBrandLogoProps = {
 export function AppBrandLogo({ className }: AppBrandLogoProps) {
     return (
         <img
-            src="/logo.webp"
+            src="/brand/logos/cubania-logo-8.webp"
             alt="Cubanía"
-            className={cn('h-auto w-auto max-h-16 object-contain', className)}
+            className={cn('h-auto max-h-32 w-auto object-contain', className)}
         />
     );
 }

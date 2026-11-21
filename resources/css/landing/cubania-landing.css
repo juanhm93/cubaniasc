@@ -85,8 +85,11 @@
     text-decoration: none;
 }
 
-.cubania-landing .cubania-nav__logo-accent {
-    color: var(--cubania-blanco);
+.cubania-landing .cubania-nav__logo-image {
+    display: block;
+    width: 120px;
+    height: auto;
+    object-fit: contain;
 }
 
 .cubania-landing .cubania-nav__list {
