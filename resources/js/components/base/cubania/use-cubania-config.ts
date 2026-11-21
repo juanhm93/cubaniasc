@@ -40,6 +40,7 @@ const fallbackCubania: CubaniaShared = {
             competitions: false,
             blog: false,
             review: false,
+            staffAccess: true,
         },
     },
 };

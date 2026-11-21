@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
-import { reviewPanel } from '@/routes';
+import { login, reviewPanel } from '@/routes';
 
 /**
  * Site footer with columns and social links.
@@ -115,6 +115,17 @@ export function CubaniaFooter(): ReactNode {
                                             data-cubania-cursor="interactive"
                                         >
                                             {t('landing.footer.review')}
+                                        </Link>
+                                    </li>
+                                ) : null}
+                                {community.staffAccess ? (
+                                    <li>
+                                        <Link
+                                            href={login()}
+                                            className="cubania-footer__link"
+                                            data-cubania-cursor="interactive"
+                                        >
+                                            {t('landing.footer.staffAccess')}
                                         </Link>
                                     </li>
                                 ) : null}
