@@ -28,10 +28,12 @@ export function CubaniaNavMinimal(): ReactNode {
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
-                {t('landing.nav.logoCub')}
-                <span className="cubania-nav__logo-accent">
-                    {t('landing.nav.logoAnia')}
-                </span>
+                <img
+                    src="/brand/logos/cubania-logo-4.webp"
+                    alt="Cubanía"
+                    className="cubania-nav__logo-image"
+                    draggable={false}
+                />
             </Link>
 
             <Link
@@ -63,10 +65,12 @@ export function CubaniaNav({
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
-                {t('landing.nav.logoCub')}
-                <span className="cubania-nav__logo-accent">
-                    {t('landing.nav.logoAnia')}
-                </span>
+                <img
+                    src="/brand/logos/cubania-logo-4.webp"
+                    alt="Cubanía"
+                    className="cubania-nav__logo-image"
+                    draggable={false}
+                />
             </Link>
 
             <ul className="cubania-nav__list cubania-nav__list--primary">
