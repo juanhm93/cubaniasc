@@ -40,6 +40,12 @@ export const TIMED_STEPS: ReviewStep[] = [
     'quiz',
 ];
 
+/**
+ * Figures to choose when the session does not say it (a client loaded before the
+ * per-course setting existed).
+ */
+const DEFAULT_FIGURE_SELECTION_COUNT = 2;
+
 export function formatTimer(seconds: number): string {
     const safeSeconds = Math.max(0, seconds);
     const mins = Math.floor(safeSeconds / 60);
@@ -348,13 +354,17 @@ export function useReviewPanel() {
             await resumeSession(created);
         });
 
+    /** Figures the student must choose, set by the course of the session. */
+    const figureSelectionCount =
+        session?.figure_selection_count ?? DEFAULT_FIGURE_SELECTION_COUNT;
+
     const toggleFigure = (figureId: number) => {
         setSelectedFigureIds((current) => {
             if (current.includes(figureId)) {
                 return current.filter((id) => id !== figureId);
             }
 
-            if (current.length >= 2) {
+            if (current.length >= figureSelectionCount) {
                 return current;
             }
 
@@ -375,7 +385,8 @@ export function useReviewPanel() {
             }
 
             if (
-                selectedFigureIds.length !== Math.min(2, figureOptions.length)
+                selectedFigureIds.length !==
+                Math.min(figureSelectionCount, figureOptions.length)
             ) {
                 return;
             }
@@ -510,6 +521,7 @@ export function useReviewPanel() {
         continueFigureReview,
         answerQuiz,
         continueQuiz,
+        figureSelectionCount,
         showSongs,
         finishSession,
         signOut,

@@ -90,8 +90,6 @@ final class QuizGeneratorService
      */
     private function reviewLevelIds(ReviewSession $session): array
     {
-        $session->loadMissing('level');
-
-        return $this->levelResolver->reviewLevelIdsFor($session->level);
+        return $this->levelResolver->reviewLevelIdsForSession($session);
     }
 }

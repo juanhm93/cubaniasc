@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ReviewSettings;
 use Database\Factories\ReviewSessionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,10 +14,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Sesión de repaso de un alumno: registra duración y nivel.
  *
+ * Guarda el curso del que salió para aplicar sus ajustes de repaso
+ * ({@see ReviewSettings}); las sesiones anteriores no lo tienen.
+ *
  * `completed` indica que la sesión está cerrada (terminada o vencida);
  * `completed_at` solo se llena cuando el alumno la terminó de verdad.
  */
-#[Fillable(['student_id', 'level_id', 'started_at', 'expires_at', 'completed', 'completed_at'])]
+#[Fillable(['student_id', 'level_id', 'course_id', 'started_at', 'expires_at', 'completed', 'completed_at'])]
 class ReviewSession extends Model
 {
     /** @use HasFactory<ReviewSessionFactory> */
@@ -40,6 +44,11 @@ class ReviewSession extends Model
     public function level(): BelongsTo
     {
         return $this->belongsTo(Level::class);
+    }
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
     }
 
     public function figures(): BelongsToMany

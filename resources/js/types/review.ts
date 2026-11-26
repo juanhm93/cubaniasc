@@ -45,6 +45,11 @@ export type ReviewSession = {
     remaining_seconds: number;
     expired: boolean;
     quiz_max: number;
+    /** Figures offered and to choose, set by the student's course. */
+    figure_options_count?: number;
+    figure_selection_count?: number;
+    /** Each review level offers its own figures, shown in one tab per level. */
+    figure_options_by_level?: boolean;
     quiz_answered_count?: number;
     selected_figures?: ReviewLevelContent[];
     level?: ReviewLevel;

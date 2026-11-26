@@ -5,23 +5,22 @@ declare(strict_types=1);
 namespace App\Services\Review;
 
 use App\Exceptions\Review\InvalidFigureSelectionException;
+use App\Models\Course;
 use App\Models\Level;
 use App\Models\LevelContent;
 use App\Models\ReviewSession;
 use App\Models\Student;
 use App\Models\StudentFigureView;
 use App\Repositories\Review\ReviewFigureRepository;
+use App\Support\ReviewSettings;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 final class FigureSelectionService
 {
-    public const OPTIONS_COUNT = 4;
-
-    public const SELECTION_COUNT = 2;
-
     /**
-     * Minimum options taken from the student's current level (when it has enough figures).
+     * Minimum options taken from the student's current level (when it has enough figures),
+     * capped by the number of options offered.
      */
     public const MIN_CURRENT_LEVEL_OPTIONS = 2;
 
@@ -44,8 +43,13 @@ final class FigureSelectionService
             return $offered;
         }
 
-        $session->loadMissing('level');
-        $options = $this->getSelectableFigures($student, $session->level);
+        $session->loadMissing(['level', 'course']);
+        $options = $this->getSelectableFigures(
+            $student,
+            $session->level,
+            $session->course,
+            ReviewSettings::forSession($session),
+        );
 
         $this->figures->offerInSession($session, $this->idsOf($options));
 
@@ -86,21 +90,41 @@ final class FigureSelectionService
     }
 
     /**
-     * Recent views first, then the course progress, then random catalog figures. At least
-     * {@see self::MIN_CURRENT_LEVEL_OPTIONS} options belong to the current level when possible;
-     * the rest can come from earlier levels of the same dance type.
+     * Recent views first, then the course progress, then random catalog figures. As many
+     * options as the settings offer; at least {@see self::MIN_CURRENT_LEVEL_OPTIONS} belong to
+     * the current level when possible, the rest can come from the earlier levels of the same
+     * dance type that the settings include. When the settings offer figures by level, each
+     * review level gets its own options instead ({@see self::selectableFiguresByLevel()}).
+     * The course and its settings default to the student's active course.
      *
      * @return Collection<int, LevelContent>
      */
-    public function getSelectableFigures(Student $student, Level $level, int $limit = self::OPTIONS_COUNT): Collection
-    {
-        $reviewLevelIds = $this->levelResolver->reviewLevelIdsFor($level);
+    public function getSelectableFigures(
+        Student $student,
+        Level $level,
+        ?Course $course = null,
+        ?ReviewSettings $settings = null,
+    ): Collection {
+        $course ??= $this->levelResolver->resolveActiveCourse($student);
+        $settings ??= ReviewSettings::forCourse($course, $level);
+        $limit = $settings->figureOptionsCount;
+
+        if ($settings->figuresByLevel) {
+            return $this->selectableFiguresByLevel(
+                $student,
+                $course,
+                $this->levelResolver->reviewLevelsFor($level, $settings->previousLevelsCount),
+                $limit,
+            );
+        }
+
+        $reviewLevelIds = $this->levelResolver->reviewLevelIdsFor($level, $settings->previousLevelsCount);
 
         $candidates = $this->figures->recentlyViewedBy($student, $reviewLevelIds, $limit);
 
         $candidates = $candidates->concat(
             $this->figures->coveredInCourse(
-                $this->levelResolver->resolveActiveCourse($student),
+                $course,
                 $level,
                 $limit,
                 $this->idsOf($candidates),
@@ -113,7 +137,7 @@ final class FigureSelectionService
 
         $currentLevelFigures = $candidates
             ->where('level_id', $level->id)
-            ->take(self::MIN_CURRENT_LEVEL_OPTIONS);
+            ->take(min(self::MIN_CURRENT_LEVEL_OPTIONS, $limit));
 
         $figures = $currentLevelFigures
             ->concat($candidates->reject(fn (LevelContent $figure): bool => $currentLevelFigures->contains('id', $figure->id)))
@@ -153,7 +177,10 @@ final class FigureSelectionService
         }
 
         $allowedLevelContentIds ??= $this->figures->offeredIdsInSession($session);
-        $expectedCount = $this->requiredSelectionCount(count($allowedLevelContentIds));
+        $expectedCount = $this->requiredSelectionCount(
+            ReviewSettings::forSession($session)->figureSelectionCount,
+            count($allowedLevelContentIds),
+        );
 
         if (count($levelContentIds) !== $expectedCount) {
             throw InvalidFigureSelectionException::invalidCount($expectedCount);
@@ -163,8 +190,7 @@ final class FigureSelectionService
             throw InvalidFigureSelectionException::notAllowed();
         }
 
-        $session->loadMissing('level');
-        $reviewLevelIds = $this->levelResolver->reviewLevelIdsFor($session->level);
+        $reviewLevelIds = $this->levelResolver->reviewLevelIdsForSession($session);
 
         if ($this->figures->countInLevels($reviewLevelIds, $levelContentIds) !== $expectedCount) {
             throw InvalidFigureSelectionException::notAllowed();
@@ -174,12 +200,12 @@ final class FigureSelectionService
     }
 
     /**
-     * Two figures, or fewer when the catalog offered fewer options (a level that is still
-     * being loaded). With no known options the full count is required.
+     * The figures the settings ask for, or fewer when the catalog offered fewer options
+     * (a level that is still being loaded). With no known options the full count is required.
      */
-    public function requiredSelectionCount(int $offeredCount): int
+    public function requiredSelectionCount(int $selectionCount, int $offeredCount): int
     {
-        return $offeredCount === 0 ? self::SELECTION_COUNT : min(self::SELECTION_COUNT, $offeredCount);
+        return $offeredCount === 0 ? $selectionCount : min($selectionCount, $offeredCount);
     }
 
     /**
@@ -194,6 +220,39 @@ final class FigureSelectionService
     public function recordView(Student $student, LevelContent $levelContent): StudentFigureView
     {
         return $this->figures->recordView($student, $levelContent, now());
+    }
+
+    /**
+     * Up to `$limit` figures of every review level, grouped by level in review order (current
+     * level first). Within a level: recent views, then the course progress, then the catalog.
+     *
+     * @param  Collection<int, Level>  $levels
+     * @return Collection<int, LevelContent>
+     */
+    private function selectableFiguresByLevel(Student $student, Course $course, Collection $levels, int $limit): Collection
+    {
+        $figures = collect();
+
+        foreach ($levels as $reviewLevel) {
+            $levelFigures = $this->figures->recentlyViewedBy($student, [$reviewLevel->id], $limit);
+
+            $levelFigures = $levelFigures->concat($this->figures->coveredInCourse(
+                $course,
+                $reviewLevel,
+                $limit - $levelFigures->count(),
+                $this->idsOf($levelFigures),
+            ));
+
+            $levelFigures = $levelFigures->concat($this->figures->randomFromLevel(
+                $reviewLevel->id,
+                $limit - $levelFigures->count(),
+                $this->idsOf($levelFigures),
+            ));
+
+            $figures = $figures->concat($levelFigures->unique('id')->take($limit));
+        }
+
+        return (new EloquentCollection($figures->values()->all()))->loadMissing('level');
     }
 
     /**

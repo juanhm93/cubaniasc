@@ -4,12 +4,14 @@ import {
     ChevronDown,
     ClipboardCheck,
     Eye,
+    GraduationCap,
     ListChecks,
     Settings2,
 } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import { useMemo, useState } from 'react';
 import { youtubeWatchUrlToEmbedUrl } from '@/components/base/cubania/youtube-embed-url';
+import { CourseReviewSettingsForm } from '@/components/courses/course-review-settings-form';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,6 +27,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTranslation } from '@/i18n/use-translation';
 import { cn } from '@/lib/utils';
 import admin from '@/routes/admin';
+import type { CourseReviewSettings } from '@/types/course';
 
 type LocationOption = {
     id: number;
@@ -143,6 +146,8 @@ type CourseShowProps = {
     levelContents: LevelContentRow[];
     places: LocationOption[];
     teachers: LocationOption[];
+    /** Null when the course has no level yet. */
+    reviewSettings: CourseReviewSettings | null;
 };
 
 const ATT_STATUS_VALUES = ['present', 'absent', 'late', 'excused'] as const;
@@ -159,7 +164,13 @@ const ATT_STATUS_ON_CLASS: Record<AttendanceStatusValue, string> = {
         'data-[state=on]:border-sky-500 data-[state=on]:bg-sky-500/15 data-[state=on]:text-sky-700 dark:data-[state=on]:text-sky-300',
 };
 
-type CourseTab = 'attendance' | 'figures';
+const COURSE_TABS = ['attendance', 'figures', 'review'] as const;
+
+type CourseTab = (typeof COURSE_TABS)[number];
+
+function isCourseTab(value: unknown): value is CourseTab {
+    return COURSE_TABS.includes(value as CourseTab);
+}
 
 const COURSE_TAB_STORAGE_KEY = 'cubania.course-show-tab';
 
@@ -169,9 +180,9 @@ const COURSE_TAB_STORAGE_KEY = 'cubania.course-show-tab';
  */
 function readStoredCourseTab(): CourseTab {
     try {
-        return window.localStorage.getItem(COURSE_TAB_STORAGE_KEY) === 'figures'
-            ? 'figures'
-            : 'attendance';
+        const stored = window.localStorage.getItem(COURSE_TAB_STORAGE_KEY);
+
+        return isCourseTab(stored) ? stored : 'attendance';
     } catch {
         return 'attendance';
     }
@@ -271,6 +282,7 @@ export default function AdminCourseShow({
     levelContents,
     places,
     teachers,
+    reviewSettings,
 }: CourseShowProps) {
     const { t } = useTranslation();
     const { props } = usePage<{ errors?: Record<string, string> }>();
@@ -620,12 +632,12 @@ export default function AdminCourseShow({
                     type="single"
                     value={activeTab}
                     onValueChange={(value) => {
-                        if (value === 'attendance' || value === 'figures') {
+                        if (isCourseTab(value)) {
                             changeTab(value);
                         }
                     }}
                     variant="outline"
-                    className="w-full sm:max-w-md"
+                    className="w-full sm:max-w-xl"
                     aria-label={t('admin.courses.sectionsLabel')}
                 >
                     <ToggleGroupItem
@@ -647,6 +659,13 @@ export default function AdminCourseShow({
                         <span className="text-xs text-muted-foreground tabular-nums">
                             {coveredFiguresCount}/{levelContents.length}
                         </span>
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                        value="review"
+                        className="h-11 flex-1 gap-2"
+                    >
+                        <GraduationCap className="size-4" aria-hidden />
+                        {t('admin.courses.tabReview')}
                     </ToggleGroupItem>
                 </ToggleGroup>
 
@@ -801,6 +820,27 @@ export default function AdminCourseShow({
                                     })}
                                 </ul>
                             </>
+                        )}
+                    </section>
+                ) : activeTab === 'review' ? (
+                    <section className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+                        <div className="mb-4">
+                            <h2 className="text-lg font-medium">
+                                {t('admin.courses.review.title')}
+                            </h2>
+                            <p className="text-xs text-muted-foreground">
+                                {t('admin.courses.review.description')}
+                            </p>
+                        </div>
+                        {reviewSettings ? (
+                            <CourseReviewSettingsForm
+                                courseId={course.id}
+                                settings={reviewSettings}
+                            />
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                {t('admin.courses.review.noLevel')}
+                            </p>
                         )}
                     </section>
                 ) : (

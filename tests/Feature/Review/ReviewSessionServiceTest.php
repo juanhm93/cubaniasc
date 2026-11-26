@@ -45,6 +45,37 @@ class ReviewSessionServiceTest extends TestCase
         $this->assertSame(420, $this->service->remainingSeconds($session));
     }
 
+    public function test_session_keeps_its_course_and_uses_the_custom_course_duration(): void
+    {
+        $this->freezeSecond();
+
+        $level = Level::factory()->create(['review_duration_seconds' => 420]);
+        $student = $this->enrollStudentInLevel($level);
+        $course = $student->enrollments()->firstOrFail()->course;
+        $course->update(['review_custom_settings' => true, 'review_duration_seconds' => 2700]);
+
+        $session = $this->service->create($student);
+
+        $this->assertSame($course->id, $session->course_id);
+        $this->assertSame(2700, $this->service->remainingSeconds($session));
+    }
+
+    public function test_course_in_normal_mode_uses_the_level_duration(): void
+    {
+        $this->freezeSecond();
+
+        $level = Level::factory()->create(['review_duration_seconds' => 420]);
+        $student = $this->enrollStudentInLevel($level);
+        $student->enrollments()->firstOrFail()->course->update([
+            'review_custom_settings' => false,
+            'review_duration_seconds' => 2700,
+        ]);
+
+        $session = $this->service->create($student);
+
+        $this->assertSame(420, $this->service->remainingSeconds($session));
+    }
+
     public function test_marks_session_as_expired_after_duration(): void
     {
         $level = Level::factory()->create(['review_duration_seconds' => 60]);
