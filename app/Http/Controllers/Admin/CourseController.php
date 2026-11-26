@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\EnrollmentStatus;
+use App\Http\Controllers\Admin\Concerns\AuthorizesCourseCompany;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\ToggleCourseLevelContentRequest;
 use App\Http\Requests\UpdateAdminCourseRequest;
+use App\Http\Requests\UpdateCourseReviewSettingsRequest;
 use App\Http\Requests\UpsertCourseAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\Course;
@@ -20,6 +22,8 @@ use App\Models\Level;
 use App\Models\LevelContent;
 use App\Models\Place;
 use App\Models\User;
+use App\Repositories\LevelRepository;
+use App\Support\ReviewSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -29,6 +33,10 @@ use Inertia\Response;
 
 class CourseController extends Controller
 {
+    use AuthorizesCourseCompany;
+
+    public function __construct(private readonly LevelRepository $levels) {}
+
     /**
      * List academy courses (scoped to admin company when set).
      */
@@ -148,7 +156,7 @@ class CourseController extends Controller
         $this->authorizeCourseCompany($request, $course);
 
         $course->load([
-            'level:id,name,slug,sort_order,dance_type_id',
+            'level:id,name,slug,sort_order,dance_type_id,review_duration_seconds',
             'schedule:id,days',
             'scheduleSlots',
             'place:id,name',
@@ -330,7 +338,45 @@ class CourseController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
             ]),
+            'reviewSettings' => $this->reviewSettingsPayload($course),
         ]);
+    }
+
+    /**
+     * Review mode of the course, its saved custom values and the normal ones, so the form
+     * can show what normal means and prefill custom with sensible values.
+     *
+     * @return array{custom: bool, values: array{previous_levels_count: int|null, figure_options_count: int, figure_selection_count: int, duration_minutes: int}, defaults: array{previous_levels_count: null, figure_options_count: int, figure_selection_count: int, duration_minutes: int}, available_previous_levels: int, limits: array{max_figure_options: int, min_duration_minutes: int, max_duration_minutes: int}}|null
+     */
+    private function reviewSettingsPayload(Course $course): ?array
+    {
+        if ($course->level === null) {
+            return null;
+        }
+
+        $defaults = ReviewSettings::defaultsFor($course->level);
+
+        return [
+            'custom' => $course->review_custom_settings,
+            'values' => [
+                'previous_levels_count' => $course->review_previous_levels_count,
+                'figure_options_count' => $course->review_figure_options_count ?? $defaults->figureOptionsCount,
+                'figure_selection_count' => $course->review_figure_selection_count ?? $defaults->figureSelectionCount,
+                'duration_minutes' => intdiv($course->review_duration_seconds ?? $defaults->durationSeconds, 60),
+            ],
+            'defaults' => [
+                'previous_levels_count' => null,
+                'figure_options_count' => $defaults->figureOptionsCount,
+                'figure_selection_count' => $defaults->figureSelectionCount,
+                'duration_minutes' => intdiv($defaults->durationSeconds, 60),
+            ],
+            'available_previous_levels' => $this->levels->countPreviousLevelsOf($course->level),
+            'limits' => [
+                'max_figure_options' => UpdateCourseReviewSettingsRequest::MAX_FIGURE_OPTIONS,
+                'min_duration_minutes' => UpdateCourseReviewSettingsRequest::MIN_DURATION_MINUTES,
+                'max_duration_minutes' => UpdateCourseReviewSettingsRequest::MAX_DURATION_MINUTES,
+            ],
+        ];
     }
 
     public function update(UpdateAdminCourseRequest $request, Course $course): RedirectResponse
@@ -472,15 +518,6 @@ class CourseController extends Controller
         }
 
         return redirect()->route('admin.courses.show', $course);
-    }
-
-    private function authorizeCourseCompany(Request $request, Course $course): void
-    {
-        $companyId = $request->user()?->company_id;
-
-        if ($companyId !== null && (int) $course->company_id !== (int) $companyId) {
-            abort(403);
-        }
     }
 
     /**

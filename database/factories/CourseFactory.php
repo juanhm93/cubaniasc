@@ -32,7 +32,25 @@ class CourseFactory extends Factory
             'user_id' => User::factory(),
             'price' => fake()->randomFloat(2, 25, 600),
             'is_active' => true,
+            'review_custom_settings' => false,
         ];
+    }
+
+    /**
+     * Course with its own review settings instead of the normal ones.
+     *
+     * @param  array{review_previous_levels_count?: int|null, review_figure_options_count?: int, review_figure_selection_count?: int, review_duration_seconds?: int}  $overrides
+     */
+    public function customReview(array $overrides = []): static
+    {
+        return $this->state(fn (): array => [
+            'review_custom_settings' => true,
+            'review_previous_levels_count' => null,
+            'review_figure_options_count' => 4,
+            'review_figure_selection_count' => 2,
+            'review_duration_seconds' => 1800,
+            ...$overrides,
+        ]);
     }
 
     public function configure(): static

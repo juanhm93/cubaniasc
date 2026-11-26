@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Review;
 
+use App\Models\Course;
 use App\Models\Level;
 use App\Models\ReviewSession;
 use App\Models\Student;
@@ -23,12 +24,14 @@ final class ReviewSessionRepository
     public function start(
         Student $student,
         Level $level,
+        Course $course,
         CarbonInterface $startedAt,
         CarbonInterface $expiresAt,
     ): ReviewSession {
         return ReviewSession::query()->create([
             'student_id' => $student->id,
             'level_id' => $level->id,
+            'course_id' => $course->id,
             'started_at' => $startedAt,
             'expires_at' => $expiresAt,
             'completed' => false,

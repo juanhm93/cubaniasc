@@ -12,7 +12,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['level_id', 'schedule_id', 'price', 'company_id', 'place_id', 'user_id', 'is_active'])]
+#[Fillable([
+    'level_id',
+    'schedule_id',
+    'price',
+    'company_id',
+    'place_id',
+    'user_id',
+    'is_active',
+    'review_custom_settings',
+    'review_previous_levels_count',
+    'review_figure_options_count',
+    'review_figure_selection_count',
+    'review_duration_seconds',
+])]
 class Course extends Model
 {
     /** @use HasFactory<CourseFactory> */
@@ -23,6 +36,11 @@ class Course extends Model
         return [
             'price' => 'decimal:2',
             'is_active' => 'boolean',
+            'review_custom_settings' => 'boolean',
+            'review_previous_levels_count' => 'integer',
+            'review_figure_options_count' => 'integer',
+            'review_figure_selection_count' => 'integer',
+            'review_duration_seconds' => 'integer',
         ];
     }
 

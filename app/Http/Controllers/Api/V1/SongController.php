@@ -19,7 +19,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 /**
  * The student's music library in the mobile app: the songs of their level and of the
- * earlier ones, the same pool the review recommends from. Without an active
+ * earlier ones their course includes, the same pool the review recommends from. Without an active
  * enrollment the library is empty.
  */
 final class SongController extends Controller
@@ -33,8 +33,9 @@ final class SongController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $currentLevel = $this->levelResolver->findLevel($this->authenticatedStudent($request));
-        $levels = $currentLevel === null ? collect() : $this->levelResolver->reviewLevelsFor($currentLevel);
+        $student = $this->authenticatedStudent($request);
+        $currentLevel = $this->levelResolver->findLevel($student);
+        $levels = $currentLevel === null ? collect() : $this->levelResolver->resolveReviewLevels($student);
 
         return SongResource::collection($this->songs->activeForLevels($levels->map(fn (Level $level): int => (int) $level->id)->all()))
             ->additional([
@@ -59,8 +60,10 @@ final class SongController extends Controller
      */
     public function audioUrl(SongAudioUrlRequest $request, RecommendedSong $song, CreateSongAudioUrl $createUrl): JsonResponse
     {
-        $level = $this->levelResolver->findLevel($this->authenticatedStudent($request));
-        $levelIds = $level === null ? [] : $this->levelResolver->reviewLevelIdsFor($level);
+        $student = $this->authenticatedStudent($request);
+        $levelIds = $this->levelResolver->findLevel($student) === null
+            ? []
+            : $this->levelResolver->resolveReviewLevels($student)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
 
         if (! $this->songs->belongsToLevels($song, $levelIds)) {
             abort(403, 'No tienes acceso a esta canción.');

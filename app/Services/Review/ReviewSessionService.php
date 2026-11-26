@@ -9,6 +9,7 @@ use App\Exceptions\Review\ReviewDailyLimitException;
 use App\Models\ReviewSession;
 use App\Models\Student;
 use App\Repositories\Review\ReviewSessionRepository;
+use App\Support\ReviewSettings;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -21,16 +22,22 @@ final class ReviewSessionService
         private readonly ReviewSessionRepository $sessions,
     ) {}
 
+    /**
+     * Starts a session at the level of the student's active course. The session keeps the
+     * course, so its review settings (and the duration set here) apply until it ends.
+     */
     public function create(Student $student): ReviewSession
     {
         $level = $this->levelResolver->resolveLevel($student);
+        $course = $this->levelResolver->resolveActiveCourse($student);
         $startedAt = now();
 
         return $this->sessions->start(
             $student,
             $level,
+            $course,
             $startedAt,
-            $startedAt->copy()->addSeconds($level->review_duration_seconds),
+            $startedAt->copy()->addSeconds(ReviewSettings::forCourse($course, $level)->durationSeconds),
         );
     }
 
