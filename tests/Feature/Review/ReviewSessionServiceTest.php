@@ -27,6 +27,8 @@ class ReviewSessionServiceTest extends TestCase
 
     public function test_creates_session_with_level_review_duration(): void
     {
+        $this->freezeSecond();
+
         $level = Level::factory()->create(['review_duration_seconds' => 420]);
         $student = $this->enrollStudentInLevel($level);
 
@@ -40,8 +42,7 @@ class ReviewSessionServiceTest extends TestCase
         ]);
 
         $this->assertTrue($session->started_at->equalTo($session->expires_at->copy()->subSeconds(420)));
-        $this->assertGreaterThanOrEqual(419, $this->service->remainingSeconds($session));
-        $this->assertLessThanOrEqual(420, $this->service->remainingSeconds($session));
+        $this->assertSame(420, $this->service->remainingSeconds($session));
     }
 
     public function test_marks_session_as_expired_after_duration(): void

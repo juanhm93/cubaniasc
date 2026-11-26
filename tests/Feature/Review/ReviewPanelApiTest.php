@@ -121,6 +121,8 @@ class ReviewPanelApiTest extends TestCase
 
     public function test_authenticated_student_can_create_review_session(): void
     {
+        $this->freezeSecond();
+
         [$student, $level] = $this->createEnrolledStudent(['review_duration_seconds' => 420]);
         Sanctum::actingAs($student, ['review']);
 
@@ -128,9 +130,8 @@ class ReviewPanelApiTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('data.level_id', $level->id)
-            ->assertJsonPath('data.completed', false);
-
-        $this->assertGreaterThanOrEqual(419, $response->json('data.remaining_seconds'));
+            ->assertJsonPath('data.completed', false)
+            ->assertJsonPath('data.remaining_seconds', 420);
     }
 
     public function test_student_can_view_own_session_state(): void
