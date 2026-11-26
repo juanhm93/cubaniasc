@@ -19,6 +19,7 @@ export type CubaniaFooterCommunityLinks = {
     competitions: boolean;
     blog: boolean;
     review: boolean;
+    staffAccess: boolean;
 };
 
 export type CubaniaFooterConfig = {

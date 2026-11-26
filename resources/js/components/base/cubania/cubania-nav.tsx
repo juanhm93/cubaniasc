@@ -6,6 +6,7 @@ import {
 } from '@/components/base/cubania/cubania-social-icons';
 import { useCubaniaConfig } from '@/components/base/cubania/use-cubania-config';
 import { useTranslation } from '@/i18n/use-translation';
+import { brandLogoUrl } from '@/lib/brand-logos';
 import { dashboard, home, login, register } from '@/routes';
 import preRegistration from '@/routes/pre-registration';
 
@@ -28,10 +29,12 @@ export function CubaniaNavMinimal(): ReactNode {
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
-                {t('landing.nav.logoCub')}
-                <span className="cubania-nav__logo-accent">
-                    {t('landing.nav.logoAnia')}
-                </span>
+                <img
+                    src={brandLogoUrl(4)}
+                    alt="Cubanía"
+                    className="cubania-nav__logo-image"
+                    draggable={false}
+                />
             </Link>
 
             <Link
@@ -63,10 +66,12 @@ export function CubaniaNav({
                 className="cubania-nav__logo"
                 data-cubania-cursor="interactive"
             >
-                {t('landing.nav.logoCub')}
-                <span className="cubania-nav__logo-accent">
-                    {t('landing.nav.logoAnia')}
-                </span>
+                <img
+                    src={brandLogoUrl(4)}
+                    alt="Cubanía"
+                    className="cubania-nav__logo-image"
+                    draggable={false}
+                />
             </Link>
 
             <ul className="cubania-nav__list cubania-nav__list--primary">

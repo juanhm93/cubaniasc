@@ -118,6 +118,28 @@ class LandingCubaniaConfigTest extends TestCase
                 ->where('cubania.footer.community.review', false));
     }
 
+    public function test_landing_shares_staff_panel_link_visibility_from_config(): void
+    {
+        config(['landingpage.footer.community.staff_access' => true]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('cubania.footer.community.staffAccess', true));
+
+        $this->get(route('pre-registration.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('cubania.footer.community.staffAccess', true));
+
+        config(['landingpage.footer.community.staff_access' => false]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('cubania.footer.community.staffAccess', false));
+    }
+
     public function test_pre_registration_page_receives_cubania_social_links(): void
     {
         config([
