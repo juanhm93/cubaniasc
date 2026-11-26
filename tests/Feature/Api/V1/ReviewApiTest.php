@@ -108,7 +108,7 @@ class ReviewApiTest extends TestCase
     public function test_review_endpoints_reject_guests_and_review_panel_tokens(): void
     {
         [$student] = $this->createEnrolledStudent();
-        $reviewPanelToken = $student->createToken('review-panel')->plainTextToken;
+        $reviewPanelToken = $student->createToken('review-panel', ['review'])->plainTextToken;
 
         $this->getJson(route('v1.review.today'))->assertUnauthorized();
         $this->postJson(route('v1.review.sessions.store'))->assertUnauthorized();
@@ -119,6 +119,8 @@ class ReviewApiTest extends TestCase
 
     public function test_starting_creates_the_session_and_starting_again_resumes_it(): void
     {
+        $this->freezeSecond();
+
         [$student, $level] = $this->createEnrolledStudent(['review_duration_seconds' => 420]);
         $client = $this->actingAsAppStudent($student);
 
@@ -130,9 +132,8 @@ class ReviewApiTest extends TestCase
             ->assertJsonPath('data.expired', false)
             ->assertJsonPath('data.completed_at', null)
             ->assertJsonPath('data.next_step', 'select_figures')
-            ->assertJsonPath('data.quiz_max', ReviewSessionService::MAX_QUIZ_QUESTIONS);
-
-        $this->assertGreaterThanOrEqual(419, $created->json('data.remaining_seconds'));
+            ->assertJsonPath('data.quiz_max', ReviewSessionService::MAX_QUIZ_QUESTIONS)
+            ->assertJsonPath('data.remaining_seconds', 420);
 
         $client->postJson(route('v1.review.sessions.store'))
             ->assertOk()
