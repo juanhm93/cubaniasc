@@ -1,3 +1,4 @@
+import { brandLogoUrl } from '@/lib/brand-logos';
 import { cn } from '@/lib/utils';
 
 type AppBrandLogoProps = {
@@ -7,7 +8,7 @@ type AppBrandLogoProps = {
 export function AppBrandLogo({ className }: AppBrandLogoProps) {
     return (
         <img
-            src="/brand/logos/cubania-logo-8.webp"
+            src={brandLogoUrl(8)}
             alt="Cubanía"
             className={cn('h-auto max-h-32 w-auto object-contain', className)}
         />
