@@ -891,13 +891,21 @@
         "loading": "Cargando…",
         "identify": {
             "title": "Identifícate para repasar",
-            "lead": "Ingresa el correo o la cédula con la que estás inscrito en Cubanía. No necesitas contraseña.",
+            "lead": "Ingresa el correo o la cédula con la que estás inscrito en Cubanía. Te enviaremos un código de 6 dígitos a tu correo.",
             "email": "Correo",
             "dni": "Cédula",
             "emailLabel": "Correo electrónico",
             "dniLabel": "Cédula",
-            "submit": "Entrar",
-            "submitting": "Verificando…"
+            "submit": "Enviar código",
+            "submitting": "Enviando…",
+            "codeTitle": "Revisa tu correo",
+            "codeLead": "Si los datos corresponden a un alumno con inscripción activa, enviamos un código de 6 dígitos a su correo registrado. Vence en 10 minutos.",
+            "codeLabel": "Código de acceso",
+            "codeSubmit": "Entrar",
+            "codeSubmitting": "Verificando…",
+            "resend": "Enviar otro código",
+            "changeIdentifier": "Usar otro correo o cédula",
+            "invalidCode": "El código no es válido o ya venció. Solicita uno nuevo."
         },
         "features": {
             "minutes": "{{count}} min",

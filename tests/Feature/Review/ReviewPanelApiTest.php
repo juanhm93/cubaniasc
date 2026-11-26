@@ -3,6 +3,11 @@
 namespace Tests\Feature\Review;
 
 use App\Enums\EnrollmentStatus;
+use App\Http\Controllers\Api\Review\VerifyReviewLoginCodeController;
+use App\Http\Controllers\Api\V1\Auth\VerifyLoginCodeController;
+use App\Http\Middleware\EnsureAppStudentToken;
+use App\Http\Middleware\EnsureReviewStudentToken;
+use App\Mail\StudentLoginCodeMail;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Level;
@@ -12,10 +17,12 @@ use App\Models\QuizOption;
 use App\Models\RecommendedSong;
 use App\Models\ReviewSession;
 use App\Models\Student;
+use App\Models\StudentLoginCode;
 use App\Models\StudentStreak;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -23,53 +30,108 @@ class ReviewPanelApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_identify_returns_token_and_student_data_for_enrolled_student(): void
+    public function test_request_code_emails_a_one_time_code_to_an_enrolled_student(): void
+    {
+        Mail::fake();
+        [$student] = $this->createEnrolledStudent();
+
+        $this->postJson(route('review.auth.request-code'), ['email' => $student->email])
+            ->assertStatus(202)
+            ->assertJsonMissingPath('data.token');
+
+        Mail::assertSent(StudentLoginCodeMail::class, fn (StudentLoginCodeMail $mail): bool => $mail->hasTo($student->email));
+        $this->assertSame(0, $student->tokens()->count());
+    }
+
+    public function test_verify_code_returns_a_review_token_without_personal_data(): void
     {
         [$student, $level] = $this->createEnrolledStudent();
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
 
-        $response = $this->postJson(route('review.identify'), [
+        $response = $this->postJson(route('review.auth.verify-code'), [
             'email' => $student->email,
+            'code' => '482913',
         ]);
 
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
                     'token',
-                    'student' => ['id', 'name', 'email', 'dni'],
+                    'student' => ['id', 'name'],
                     'level' => ['id', 'name', 'slug', 'review_duration_seconds'],
                 ],
             ])
+            ->assertJsonMissingPath('data.student.email')
+            ->assertJsonMissingPath('data.student.dni')
             ->assertJsonPath('data.student.id', $student->id)
             ->assertJsonPath('data.level.id', $level->id);
 
-        $this->assertDatabaseHas('personal_access_tokens', [
-            'tokenable_type' => Student::class,
-            'tokenable_id' => $student->id,
-            'name' => 'review-panel',
-        ]);
+        $token = $student->tokens()->sole();
+        $this->assertSame(VerifyReviewLoginCodeController::TOKEN_NAME, $token->name);
+        $this->assertSame([EnsureReviewStudentToken::ABILITY], $token->abilities);
+        $this->assertSame(0, $student->loginCodes()->pending()->count());
     }
 
-    public function test_identify_returns_not_found_for_unenrolled_student(): void
+    public function test_verify_code_without_a_valid_code_does_not_issue_a_token(): void
     {
-        Student::factory()->create(['email' => 'solo@example.com']);
+        [$student] = $this->createEnrolledStudent();
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
 
-        $this->postJson(route('review.identify'), [
-            'email' => 'solo@example.com',
-        ])->assertNotFound();
+        $this->postJson(route('review.auth.verify-code'), ['email' => $student->email])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('code');
+
+        $this->postJson(route('review.auth.verify-code'), ['email' => $student->email, 'code' => '111111'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('code');
+
+        $this->assertSame(0, $student->tokens()->count());
+    }
+
+    public function test_verify_code_rejects_unenrolled_students(): void
+    {
+        $student = Student::factory()->create(['email' => 'solo@example.com']);
+        StudentLoginCode::factory()->for($student)->withCode('482913')->create();
+
+        $this->postJson(route('review.auth.verify-code'), ['email' => 'solo@example.com', 'code' => '482913'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('code');
+
+        $this->assertSame(0, $student->tokens()->count());
+    }
+
+    public function test_review_routes_reject_tokens_without_the_review_ability(): void
+    {
+        [$student] = $this->createEnrolledStudent();
+
+        $tokens = [
+            'legacy wildcard token' => $student->createToken(VerifyReviewLoginCodeController::TOKEN_NAME)->plainTextToken,
+            'mobile app token' => $student->createToken(VerifyLoginCodeController::TOKEN_PREFIX.'Pixel 8', [EnsureAppStudentToken::ABILITY])->plainTextToken,
+        ];
+
+        foreach ($tokens as $plainTextToken) {
+            Auth::forgetGuards();
+
+            $this->withToken($plainTextToken)
+                ->getJson(route('review.me'))
+                ->assertForbidden();
+        }
+
     }
 
     public function test_authenticated_student_can_create_review_session(): void
     {
+        $this->freezeSecond();
+
         [$student, $level] = $this->createEnrolledStudent(['review_duration_seconds' => 420]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->postJson(route('review.sessions.store'));
 
         $response->assertCreated()
             ->assertJsonPath('data.level_id', $level->id)
-            ->assertJsonPath('data.completed', false);
-
-        $this->assertGreaterThanOrEqual(419, $response->json('data.remaining_seconds'));
+            ->assertJsonPath('data.completed', false)
+            ->assertJsonPath('data.remaining_seconds', 420);
     }
 
     public function test_student_can_view_own_session_state(): void
@@ -81,7 +143,7 @@ class ReviewPanelApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.show', $session))
             ->assertOk()
@@ -98,7 +160,7 @@ class ReviewPanelApiTest extends TestCase
             'level_id' => $otherLevel->id,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.show', $session))->assertForbidden();
     }
@@ -113,7 +175,7 @@ class ReviewPanelApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.figure-options', $session))
             ->assertOk()
@@ -131,7 +193,7 @@ class ReviewPanelApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.store', $session), [
             'level_content_ids' => [$figures[0]->id, $outside->id],
@@ -148,7 +210,7 @@ class ReviewPanelApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.figures.store', $session), [
             'level_content_ids' => [$figures[0]->id, $figures[1]->id],
@@ -175,7 +237,7 @@ class ReviewPanelApiTest extends TestCase
             $song->levels()->attach($level);
         }
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.songs', $session))
             ->assertOk()
@@ -196,7 +258,7 @@ class ReviewPanelApiTest extends TestCase
         QuizOption::factory()->for($quizItem)->correct()->create(['description' => 'Correcta']);
         QuizOption::factory()->count(2)->for($quizItem)->create();
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $response = $this->getJson(route('review.sessions.quiz.next', $session));
 
@@ -218,7 +280,7 @@ class ReviewPanelApiTest extends TestCase
         $correctOption = QuizOption::factory()->for($quizItem)->correct()->create();
         QuizOption::factory()->count(2)->for($quizItem)->create();
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.quiz.answer', [$session, $quizItem]), [
             'quiz_option_id' => $correctOption->id,
@@ -236,7 +298,7 @@ class ReviewPanelApiTest extends TestCase
         ]);
         $this->attachSelectedFigures($session, $level);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.complete', $session))
             ->assertOk()
@@ -255,7 +317,7 @@ class ReviewPanelApiTest extends TestCase
             'last_review_at' => now()->subDay(),
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.streak'))
             ->assertOk()
@@ -265,7 +327,7 @@ class ReviewPanelApiTest extends TestCase
     public function test_logout_revokes_current_token(): void
     {
         [$student] = $this->createEnrolledStudent();
-        $token = $student->createToken('review-panel');
+        $token = $student->createToken('review-panel', ['review']);
         $plainTextToken = $token->plainTextToken;
 
         $this->withToken($plainTextToken)
@@ -298,7 +360,7 @@ class ReviewPanelApiTest extends TestCase
 
         $this->attachSelectedFigures($session, $level);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.figure-options', $session))->assertGone();
         $this->getJson(route('review.sessions.songs', $session))
@@ -312,7 +374,7 @@ class ReviewPanelApiTest extends TestCase
     public function test_create_session_resumes_active_session(): void
     {
         [$student, $level] = $this->createEnrolledStudent(['review_duration_seconds' => 1800]);
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $first = $this->postJson(route('review.sessions.store'))
             ->assertCreated()
@@ -338,7 +400,7 @@ class ReviewPanelApiTest extends TestCase
             'completed' => true,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->postJson(route('review.sessions.store'))
             ->assertConflict()
@@ -356,7 +418,7 @@ class ReviewPanelApiTest extends TestCase
             'completed' => false,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['review']);
 
         $this->getJson(route('review.sessions.current'))
             ->assertOk()

@@ -114,7 +114,11 @@ export default function RepasoPage() {
                             {panel.step === 'identify' ? (
                                 <ReviewIdentifyStep
                                     loading={panel.loading}
-                                    onSubmit={panel.identify}
+                                    codeSent={panel.codeSent}
+                                    onRequestCode={panel.requestCode}
+                                    onVerifyCode={panel.verifyCode}
+                                    onResendCode={panel.resendCode}
+                                    onChangeIdentifier={panel.changeIdentifier}
                                 />
                             ) : null}
 
