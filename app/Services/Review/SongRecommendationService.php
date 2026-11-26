@@ -8,6 +8,7 @@ use App\Models\Level;
 use App\Models\RecommendedSong;
 use App\Models\ReviewSession;
 use App\Repositories\Review\RecommendedSongRepository;
+use App\Support\ReviewSettings;
 use Illuminate\Support\Collection;
 
 final class SongRecommendationService
@@ -21,15 +22,16 @@ final class SongRecommendationService
 
     /**
      * Active songs of the level; when there are not enough, fills with songs of the
-     * earlier levels of the same dance type (closest first).
+     * earlier levels of the same dance type (closest first) that enter the review.
      *
+     * @param  int|null  $previousLevelsCount  Earlier levels to draw from; null uses all of them.
      * @return Collection<int, RecommendedSong>
      */
-    public function recommendForLevel(Level $level, int $count = self::SONGS_PER_SESSION): Collection
+    public function recommendForLevel(Level $level, int $count = self::SONGS_PER_SESSION, ?int $previousLevelsCount = null): Collection
     {
         $songs = collect();
 
-        foreach ($this->levelResolver->reviewLevelsFor($level) as $reviewLevel) {
+        foreach ($this->levelResolver->reviewLevelsFor($level, $previousLevelsCount) as $reviewLevel) {
             if ($songs->count() >= $count) {
                 break;
             }
@@ -51,7 +53,7 @@ final class SongRecommendationService
     {
         $session->loadMissing('level');
 
-        $songs = $this->recommendForLevel($session->level, $count);
+        $songs = $this->recommendForLevel($session->level, $count, ReviewSettings::forSession($session)->previousLevelsCount);
 
         $this->songs->assignToSession($session, $songs->pluck('id')->map(fn (mixed $id): int => (int) $id)->all());
 

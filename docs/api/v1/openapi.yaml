@@ -45,8 +45,8 @@ info:
 
     **Música (`/songs`):** las canciones son archivos de una carpeta del mismo bucket privado. La
     acción principal es reproducirlas; también se pueden guardar en el teléfono.
-    1. `GET /songs`: biblioteca del alumno, con las canciones de su nivel y de los anteriores y el
-       estado de cada archivo (bloque `audio`). Nunca trae la URL.
+    1. `GET /songs`: biblioteca del alumno, con las canciones de su nivel y de los anteriores que
+       incluye su curso, y el estado de cada archivo (bloque `audio`). Nunca trae la URL.
     2. `POST /songs/{song}/audio-url`: URL firmada y temporal para reproducir (`purpose: stream`,
        por defecto) o guardar (`purpose: download`).
     3. Comparar `audio.version` con la versión guardada en el teléfono para saber si cambió.
@@ -287,8 +287,14 @@ paths:
       summary: Figuras para elegir
       operationId: getReviewFigureOptions
       description: |
-        Hasta 4 figuras: primero las vistas recientemente, luego las marcadas en el curso y luego
-        del catálogo; al menos 2 del nivel actual cuando las hay, el resto de niveles anteriores.
+        Hasta `figure_options_count` figuras de la sesión (4 por defecto; lo configura el curso):
+        primero las vistas recientemente, luego las marcadas en el curso y luego del catálogo; al
+        menos 2 del nivel actual cuando las hay, el resto de los niveles anteriores que el curso
+        incluye en el repaso.
+        Si la sesión tiene `figure_options_by_level`, cada nivel del repaso trae sus propias
+        `figure_options_count` figuras, agrupadas por nivel (primero el actual, luego los anteriores
+        del más cercano al más lejano); la app las muestra en una pestaña por nivel usando
+        `level_id`/`level_name`, y el alumno puede combinar figuras de varios niveles.
         Se guardan la primera vez, así que recargar devuelve las mismas. Puede venir vacía si el
         nivel aún no tiene figuras cargadas; en ese caso se pasa directo al quiz.
       security: [{ bearerAuth: [] }]
@@ -310,7 +316,9 @@ paths:
       tags: [Repaso]
       summary: Elegir las figuras a repasar
       operationId: storeReviewFigures
-      description: Exactamente 2 de las opciones ofrecidas (o todas, si se ofrecieron menos). Solo se elige una vez.
+      description: |
+        Exactamente `figure_selection_count` de la sesión (2 por defecto; lo configura el curso) de
+        las opciones ofrecidas, o todas si se ofrecieron menos. Solo se elige una vez.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -323,7 +331,7 @@ paths:
                 level_content_ids:
                   type: array
                   minItems: 1
-                  maxItems: 2
+                  description: Como máximo `figure_selection_count` de la sesión.
                   items: { type: integer }
             example: { level_content_ids: [12, 31] }
       responses:
@@ -689,7 +697,8 @@ paths:
       operationId: listSongs
       description: |
         Las mismas de las que se eligen sus recomendaciones: activas, con archivo y vinculadas al nivel
-        de su curso activo o a los niveles anteriores del mismo tipo de baile. Orden: por título y
+        de su curso activo o a los niveles anteriores del mismo tipo de baile que el curso incluye en
+        el repaso (todos, salvo que el curso lo limite). Orden: por título y
         luego por `id`. Sin paginación.
 
         `level_ids` solo incluye niveles que el alumno tiene: una canción compartida con un nivel
@@ -942,6 +951,9 @@ components:
         - completed_at
         - next_step
         - quiz_max
+        - figure_options_count
+        - figure_selection_count
+        - figure_options_by_level
         - quiz_answered_count
         - level
         - selected_figures
@@ -959,6 +971,20 @@ components:
           enum: [select_figures, review_figures, quiz, songs, expired, completed]
           description: Paso en el que el alumno debe continuar (ver la descripción general).
         quiz_max: { type: integer, example: 5 }
+        figure_options_count:
+          type: integer
+          example: 4
+          description: Figuras que se ofrecen para elegir (por nivel si `figure_options_by_level`). Lo configura el curso del alumno.
+        figure_selection_count:
+          type: integer
+          example: 2
+          description: Figuras que el alumno debe elegir (o todas las ofrecidas, si son menos). Lo configura el curso.
+        figure_options_by_level:
+          type: boolean
+          example: false
+          description: |
+            true cuando el curso (modo personalizado con niveles anteriores) ofrece `figure_options_count`
+            figuras por cada nivel del repaso. `figure_selection_count` sigue siendo el total a elegir.
         quiz_answered_count: { type: integer }
         level: { $ref: '#/components/schemas/ReviewLevel' }
         selected_figures:

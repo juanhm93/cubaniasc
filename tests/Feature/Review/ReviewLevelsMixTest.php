@@ -3,6 +3,7 @@
 namespace Tests\Feature\Review;
 
 use App\Enums\EnrollmentStatus;
+use App\Http\Resources\Review\ReviewSessionResource;
 use App\Models\Course;
 use App\Models\DanceType;
 use App\Models\Enrollment;
@@ -122,6 +123,124 @@ class ReviewLevelsMixTest extends TestCase
         $this->assertCount(3, $songs);
     }
 
+    public function test_a_custom_course_limits_the_earlier_levels_in_the_review(): void
+    {
+        [$student, $basic1, $basic2, $intermediate, $course] = $this->createStudentInLevel(3);
+        $course->update(['review_custom_settings' => true, 'review_previous_levels_count' => 1]);
+        $resolver = app(StudentLevelResolver::class);
+
+        $this->assertSame([$intermediate->id, $basic2->id], $resolver->resolveReviewLevels($student)->pluck('id')->all());
+
+        $course->update(['review_previous_levels_count' => 0]);
+
+        $this->assertSame([$intermediate->id], $resolver->resolveReviewLevels($student)->pluck('id')->all());
+
+        $course->update(['review_previous_levels_count' => null]);
+
+        $this->assertSame(
+            [$intermediate->id, $basic2->id, $basic1->id],
+            $resolver->resolveReviewLevels($student)->pluck('id')->all(),
+        );
+    }
+
+    public function test_a_course_in_normal_mode_ignores_its_saved_custom_values(): void
+    {
+        [$student, $basic1, $basic2, $intermediate, $course] = $this->createStudentInLevel(3);
+        $course->update(['review_custom_settings' => false, 'review_previous_levels_count' => 0]);
+
+        $this->assertSame(
+            [$intermediate->id, $basic2->id, $basic1->id],
+            app(StudentLevelResolver::class)->resolveReviewLevels($student)->pluck('id')->all(),
+        );
+    }
+
+    public function test_quiz_and_songs_only_use_the_earlier_levels_the_session_course_includes(): void
+    {
+        [$student, $basic1, $basic2, $intermediate, $course] = $this->createStudentInLevel(3);
+        $course->update(['review_custom_settings' => true, 'review_previous_levels_count' => 1]);
+        $session = ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $intermediate->id,
+            'course_id' => $course->id,
+            'started_at' => now(),
+            'expires_at' => now()->addMinutes(30),
+        ]);
+        $includedItem = $this->createQuizItem($basic2);
+        $excludedItem = $this->createQuizItem($basic1);
+        RecommendedSong::factory()->count(2)->create()->each(fn (RecommendedSong $song) => $song->levels()->attach($basic2));
+        RecommendedSong::factory()->count(3)->create()->each(fn (RecommendedSong $song) => $song->levels()->attach($basic1));
+        $quiz = app(QuizGeneratorService::class);
+
+        $this->assertTrue($quiz->belongsToSessionPool($session, $includedItem));
+        $this->assertFalse($quiz->belongsToSessionPool($session, $excludedItem));
+
+        $songs = app(SongRecommendationService::class)->assignToSession($session);
+
+        $this->assertCount(2, $songs);
+    }
+
+    public function test_a_custom_course_with_earlier_levels_offers_its_figure_count_per_level(): void
+    {
+        [$student, $basic1, $basic2, $intermediate, $course] = $this->createStudentInLevel(3);
+        $course->update([
+            'review_custom_settings' => true,
+            'review_previous_levels_count' => 1,
+            'review_figure_options_count' => 3,
+            'review_figure_selection_count' => 2,
+        ]);
+        LevelContent::factory()->count(5)->for($intermediate)->create();
+        $viewedEarlierFigure = LevelContent::factory()->for($basic2)->create();
+        LevelContent::factory()->count(4)->for($basic2)->create();
+        LevelContent::factory()->count(4)->for($basic1)->create();
+        StudentFigureView::factory()->create([
+            'student_id' => $student->id,
+            'level_content_id' => $viewedEarlierFigure->id,
+            'viewed_at' => now(),
+        ]);
+        $session = ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $intermediate->id,
+            'course_id' => $course->id,
+            'started_at' => now(),
+            'expires_at' => now()->addMinutes(30),
+        ]);
+        $service = app(FigureSelectionService::class);
+
+        $options = $service->optionsForSession($session, $student);
+
+        $this->assertSame(
+            [$intermediate->id, $intermediate->id, $intermediate->id, $basic2->id, $basic2->id, $basic2->id],
+            $options->pluck('level_id')->all(),
+        );
+        $this->assertSame($viewedEarlierFigure->id, $options[3]->id);
+        $this->assertSame($options->pluck('id')->all(), $service->optionsForSession($session, $student)->pluck('id')->all());
+
+        $mixedSelection = [$options[0]->id, $options[4]->id];
+        $service->storeSelectedFigures($session, $mixedSelection);
+
+        $this->assertEqualsCanonicalizing($mixedSelection, $service->selectedFigures($session)->pluck('id')->all());
+    }
+
+    public function test_figures_are_only_offered_by_level_in_custom_mode_with_earlier_levels(): void
+    {
+        [$student, $basic1, $basic2, $intermediate, $course] = $this->createStudentInLevel(3);
+        $sessionResource = fn (): array => ReviewSessionResource::make(ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $intermediate->id,
+            'course_id' => $course->id,
+        ]))->resolve();
+
+        $this->assertFalse($sessionResource()['figure_options_by_level']);
+
+        $course->update(['review_custom_settings' => true, 'review_previous_levels_count' => 0]);
+
+        $this->assertFalse($sessionResource()['figure_options_by_level']);
+
+        $course->update(['review_previous_levels_count' => 2]);
+
+        $this->assertTrue($sessionResource()['figure_options_by_level']);
+    }
+
     private function createQuizItem(Level $level): QuizItem
     {
         $item = QuizItem::factory()->create(['level_id' => $level->id]);
@@ -135,7 +254,7 @@ class ReviewLevelsMixTest extends TestCase
      * Creates Básico 1, Básico 2 and Intermedio of one dance type and enrolls a student
      * in the level with the given sort order.
      *
-     * @return array{0: Student, 1: Level, 2: Level, 3: Level}
+     * @return array{0: Student, 1: Level, 2: Level, 3: Level, 4: Course}
      */
     private function createStudentInLevel(int $sortOrder): array
     {
@@ -157,6 +276,6 @@ class ReviewLevelsMixTest extends TestCase
             'status' => EnrollmentStatus::Active,
         ]);
 
-        return [$student, $levels[0], $levels[1], $levels[2]];
+        return [$student, $levels[0], $levels[1], $levels[2], $course];
     }
 }

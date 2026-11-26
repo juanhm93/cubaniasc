@@ -131,7 +131,24 @@ class ReviewPanelApiTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('data.level_id', $level->id)
             ->assertJsonPath('data.completed', false)
+            ->assertJsonPath('data.figure_selection_count', 2)
             ->assertJsonPath('data.remaining_seconds', 420);
+    }
+
+    public function test_review_session_exposes_the_figures_the_course_asks_for(): void
+    {
+        [$student] = $this->createEnrolledStudent();
+        $student->enrollments()->firstOrFail()->course->update([
+            'review_custom_settings' => true,
+            'review_figure_options_count' => 6,
+            'review_figure_selection_count' => 3,
+        ]);
+        Sanctum::actingAs($student, ['review']);
+
+        $this->postJson(route('review.sessions.store'))
+            ->assertCreated()
+            ->assertJsonPath('data.figure_options_count', 6)
+            ->assertJsonPath('data.figure_selection_count', 3);
     }
 
     public function test_student_can_view_own_session_state(): void

@@ -133,6 +133,8 @@ class ReviewApiTest extends TestCase
             ->assertJsonPath('data.completed_at', null)
             ->assertJsonPath('data.next_step', 'select_figures')
             ->assertJsonPath('data.quiz_max', ReviewSessionService::MAX_QUIZ_QUESTIONS)
+            ->assertJsonPath('data.figure_options_count', 4)
+            ->assertJsonPath('data.figure_selection_count', 2)
             ->assertJsonPath('data.remaining_seconds', 420);
 
         $client->postJson(route('v1.review.sessions.store'))
@@ -269,6 +271,43 @@ class ReviewApiTest extends TestCase
         $client->postJson(route('v1.review.sessions.figures.store', $session), ['level_content_ids' => [1, 2, 3]])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('level_content_ids');
+    }
+
+    public function test_a_custom_course_sets_the_figures_offered_and_chosen(): void
+    {
+        [$student, $level] = $this->createEnrolledStudent();
+        $course = $student->enrollments()->firstOrFail()->course;
+        $course->update([
+            'review_custom_settings' => true,
+            'review_figure_options_count' => 6,
+            'review_figure_selection_count' => 3,
+        ]);
+        LevelContent::factory()->count(8)->for($level)->create();
+        $client = $this->actingAsAppStudent($student);
+
+        $session = $client->postJson(route('v1.review.sessions.store'))
+            ->assertCreated()
+            ->assertJsonPath('data.figure_options_count', 6)
+            ->assertJsonPath('data.figure_selection_count', 3)
+            ->json('data');
+
+        $offeredIds = array_column(
+            $client->getJson(route('v1.review.sessions.figure-options', $session['id']))->assertOk()->json('data'),
+            'id',
+        );
+
+        $this->assertCount(6, $offeredIds);
+
+        $client->postJson(route('v1.review.sessions.figures.store', $session['id']), ['level_content_ids' => array_slice($offeredIds, 0, 2)])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Debes elegir exactamente 3 figuras.');
+
+        $client->postJson(route('v1.review.sessions.figures.store', $session['id']), ['level_content_ids' => array_slice($offeredIds, 0, 4)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('level_content_ids');
+
+        $client->postJson(route('v1.review.sessions.figures.store', $session['id']), ['level_content_ids' => array_slice($offeredIds, 0, 3)])
+            ->assertSuccessful();
     }
 
     public function test_figure_options_keep_the_same_figures_on_reload(): void

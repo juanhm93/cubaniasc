@@ -7,6 +7,7 @@ namespace App\Http\Resources\V1\Review;
 use App\Models\ReviewSession;
 use App\Services\Review\ReviewProgressResolver;
 use App\Services\Review\ReviewSessionService;
+use App\Support\ReviewSettings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,7 @@ class ReviewSessionResource extends JsonResource
     public function toArray(Request $request): array
     {
         $sessionService = app(ReviewSessionService::class);
+        $settings = ReviewSettings::forSession($this->resource);
 
         return [
             'id' => $this->id,
@@ -34,6 +36,9 @@ class ReviewSessionResource extends JsonResource
             'expired' => $sessionService->hasExpired($this->resource),
             'completed_at' => $this->completed_at?->toIso8601String(),
             'next_step' => app(ReviewProgressResolver::class)->nextStep($this->resource)->value,
+            'figure_options_count' => $settings->figureOptionsCount,
+            'figure_selection_count' => $settings->figureSelectionCount,
+            'figure_options_by_level' => $settings->figuresByLevel,
             'quiz_max' => ReviewSessionService::MAX_QUIZ_QUESTIONS,
             'quiz_answered_count' => (int) $this->quiz_responses_count,
             'level' => ReviewLevelResource::make($this->level),

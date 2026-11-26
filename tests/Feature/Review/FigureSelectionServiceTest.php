@@ -77,7 +77,9 @@ class FigureSelectionServiceTest extends TestCase
             'completed_at' => now()->subDay(),
         ]);
 
-        $selectable = $this->service->getSelectableFigures($student, $level, 2);
+        $course->update(['review_custom_settings' => true, 'review_figure_options_count' => 2]);
+
+        $selectable = $this->service->getSelectableFigures($student, $level);
 
         $this->assertCount(2, $selectable);
         $this->assertTrue($selectable->contains(fn ($figure) => $figure->is($viewedFigure)));
@@ -131,6 +133,59 @@ class FigureSelectionServiceTest extends TestCase
         $this->expectException(InvalidFigureSelectionException::class);
 
         $this->service->storeSelectedFigures($session, [1]);
+    }
+
+    public function test_custom_course_offers_and_requires_its_own_figure_counts(): void
+    {
+        [$student, $level, $course] = $this->createEnrolledStudentContext();
+        $course->update([
+            'review_custom_settings' => true,
+            'review_figure_options_count' => 6,
+            'review_figure_selection_count' => 3,
+        ]);
+        LevelContent::factory()->count(8)->for($level)->create();
+        $session = ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $level->id,
+            'course_id' => $course->id,
+        ]);
+
+        $options = $this->service->optionsForSession($session, $student);
+
+        $this->assertCount(6, $options);
+
+        try {
+            $this->service->storeSelectedFigures($session, $options->take(2)->pluck('id')->all());
+            $this->fail('Choosing fewer figures than the course asks for must be rejected.');
+        } catch (InvalidFigureSelectionException) {
+            $this->assertFalse($this->service->hasSelectedFigures($session));
+        }
+
+        $this->service->storeSelectedFigures($session, $options->take(3)->pluck('id')->all());
+
+        $this->assertCount(3, $this->service->selectedFigures($session));
+    }
+
+    public function test_session_without_course_uses_the_normal_figure_counts(): void
+    {
+        [$student, $level, $course] = $this->createEnrolledStudentContext();
+        $course->update([
+            'review_custom_settings' => true,
+            'review_figure_options_count' => 6,
+            'review_figure_selection_count' => 3,
+        ]);
+        LevelContent::factory()->count(8)->for($level)->create();
+        $session = ReviewSession::factory()->create([
+            'student_id' => $student->id,
+            'level_id' => $level->id,
+            'course_id' => null,
+        ]);
+
+        $options = $this->service->optionsForSession($session, $student);
+        $this->service->storeSelectedFigures($session, $options->take(2)->pluck('id')->all());
+
+        $this->assertCount(4, $options);
+        $this->assertCount(2, $this->service->selectedFigures($session));
     }
 
     public function test_records_figure_view(): void

@@ -2,6 +2,7 @@
 
 use App\Enums\PlatformAbility;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\CourseReviewSettingsController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\OneTimeSessionController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -182,6 +183,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
             ->name('admin.courses.sessions.attendance.store');
         Route::post('admin/courses/{course}/level-content-toggle', [CourseController::class, 'toggleCourseLevelContent'])
             ->name('admin.courses.level-content-toggle');
+        Route::patch('admin/courses/{course}/review-settings', CourseReviewSettingsController::class)
+            ->name('admin.courses.review-settings.update');
     });
 
     Route::middleware('ability:'.PlatformAbility::OneTimeSessions->value)->group(function () {

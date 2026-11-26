@@ -142,6 +142,11 @@ export default function RepasoPage() {
                                 <ReviewFigureSelection
                                     figures={panel.figureOptions}
                                     selectedIds={panel.selectedFigureIds}
+                                    selectionCount={panel.figureSelectionCount}
+                                    byLevel={
+                                        panel.session
+                                            ?.figure_options_by_level ?? false
+                                    }
                                     currentLevelId={
                                         panel.session?.level_id ?? null
                                     }
