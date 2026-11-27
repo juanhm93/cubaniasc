@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Enrollments\EnrollStudentInCourse;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminEnrollmentRequest;
@@ -165,16 +166,11 @@ class StudentController extends Controller
     /**
      * Store a new enrollment for an existing student.
      */
-    public function storeEnrollment(StoreAdminEnrollmentRequest $request): RedirectResponse
+    public function storeEnrollment(StoreAdminEnrollmentRequest $request, EnrollStudentInCourse $enrollStudentInCourse): RedirectResponse
     {
         $data = $request->validated();
 
-        Enrollment::query()->create([
-            'course_id' => $data['course_id'],
-            'student_id' => $data['student_id'],
-            'status' => EnrollmentStatus::Active,
-            'enrolled_at' => now(),
-        ]);
+        $enrollStudentInCourse->execute((int) $data['student_id'], (int) $data['course_id']);
 
         return redirect()->route('admin.students.index');
     }

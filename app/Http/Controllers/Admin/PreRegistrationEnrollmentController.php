@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\EnrollmentStatus;
+use App\Actions\Enrollments\EnrollStudentInCourse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentFromPreRegistrationRequest;
 use App\Models\Course;
-use App\Models\Enrollment;
 use App\Models\PreRegistration;
 use App\Models\Student;
 use Illuminate\Http\RedirectResponse;
@@ -61,7 +60,7 @@ class PreRegistrationEnrollmentController extends Controller
     /**
      * Persist student (and optional enrollment), remove pre-registration.
      */
-    public function store(StoreStudentFromPreRegistrationRequest $request, PreRegistration $preRegistration): RedirectResponse
+    public function store(StoreStudentFromPreRegistrationRequest $request, PreRegistration $preRegistration, EnrollStudentInCourse $enrollStudentInCourse): RedirectResponse
     {
         $attributes = $request->validatedStudentAttributes();
 
@@ -71,17 +70,12 @@ class PreRegistrationEnrollmentController extends Controller
             ? (int) $validated['course_id']
             : null;
 
-        $student = DB::transaction(function () use ($attributes, $courseId, $preRegistration): Student {
+        $student = DB::transaction(function () use ($attributes, $courseId, $enrollStudentInCourse, $preRegistration): Student {
             $student = Student::query()->create($attributes);
             $preRegistration->delete();
 
             if ($courseId !== null) {
-                Enrollment::query()->create([
-                    'course_id' => $courseId,
-                    'student_id' => $student->id,
-                    'status' => EnrollmentStatus::Active,
-                    'enrolled_at' => now(),
-                ]);
+                $enrollStudentInCourse->execute($student->id, $courseId);
             }
 
             return $student;
